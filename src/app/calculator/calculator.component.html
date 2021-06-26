@@ -1,0 +1,68 @@
+<section class="configuration">
+  <mat-card>
+    <mat-card-title>Configuration</mat-card-title>
+    <mat-card-content>
+      <div fxLayout="row" class="boardConfig">
+        <mat-form-field fxFlex="grow">
+          <mat-label>Operations</mat-label>
+          <mat-select [formControl]="selectedOperations" multiple>
+            <mat-option *ngFor="let operation of availableOperations" [value]="operation">
+              {{operation.name}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field fxFlex="grow">
+          <mat-label>Dice Count</mat-label>
+          <mat-select [formControl]="selectedDiceCount">
+            <mat-option *ngFor="let diceCountOption of diceCountOptions" [value]="diceCountOption">
+              {{diceCountOption}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div fxLayout="row" class="diceConfig">
+        <ng-container *ngFor="let die of dice; index as i; last as isLastDie">
+          <div class="die">
+            <h3>Die {{i + 1}}</h3>
+            <app-die [die]="die" (onChange)="onChange()"></app-die>
+          </div>
+          <mat-divider vertical style="height:100px" *ngIf="!isLastDie"></mat-divider>
+        </ng-container>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</section>
+
+<section class="results">
+  <mat-card>
+    <mat-card-title>Results</mat-card-title>
+    <mat-card-content>
+      <ng-container *ngIf="isProcessing">
+        <mat-spinner></mat-spinner>
+        <button mat-button (click)="cancel()">Cancel</button>
+      </ng-container>
+
+      <ng-container *ngIf="isCancelled">
+        Cancelled...
+        <button mat-button (click)="reload()">Reload</button>
+      </ng-container>
+
+      <ng-container *ngIf="!isProcessing && !isCancelled && equationGroups.length">
+        <div *ngFor="let group of equationGroups; last as isLastGroup">
+          <mat-selection-list>
+            <mat-list-option *ngFor="let equationStr of group[1]">
+              {{equationStr}}
+            </mat-list-option>
+          </mat-selection-list>
+          <mat-divider *ngIf="!isLastGroup"></mat-divider>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="!isProcessing && !isCancelled && !equationGroups.length">
+        No equations could be determined.
+      </ng-container>
+    </mat-card-content>
+  </mat-card>
+</section>

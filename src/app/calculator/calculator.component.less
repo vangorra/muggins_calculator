@@ -1,0 +1,27 @@
+section {
+  margin-bottom: 1em;
+}
+
+.configuration {
+  .diceConfig {
+    .die {
+      margin-right: 1em;
+    }
+
+    mat-divider {
+      margin: 1em;
+      height: 100%;
+      position: relative;
+    }
+  }
+}
+
+.results {
+  mat-list-option[aria-selected="true"] {
+    background-color: rgba(0, 0, 0, 0.09);
+  }
+
+  mat-list-option .mat-pseudo-checkbox {
+    display: none !important;
+  }
+}

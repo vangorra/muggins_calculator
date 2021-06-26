@@ -1,0 +1,59 @@
+{
+  "name": "app",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "~12.0.5",
+    "@angular/cdk": "^12.0.5",
+    "@angular/common": "~12.0.5",
+    "@angular/compiler": "~12.0.5",
+    "@angular/core": "~12.0.5",
+    "@angular/flex-layout": "^12.0.0-beta.34",
+    "@angular/forms": "~12.0.5",
+    "@angular/material": "^12.0.5",
+    "@angular/platform-browser": "~12.0.5",
+    "@angular/platform-browser-dynamic": "~12.0.5",
+    "@angular/router": "~12.0.5",
+    "cartesian-product-multiple-arrays": "^1.0.9",
+    "lodash": "^4.17.21",
+    "ngx-scrolltop": "^2.4.0",
+    "rxjs": "~6.6.0",
+    "rxjs-compat": "^6.6.7",
+    "tslib": "^2.1.0",
+    "zone.js": "~0.11.4"
+  },
+  "devDependencies": {
+    "@angular-builders/jest": "^12.1.0",
+    "@angular-devkit/build-angular": "~12.0.5",
+    "@angular/cli": "^12.1.0",
+    "@angular/compiler-cli": "~12.0.5",
+    "@types/jest": "^26.0.23",
+    "@types/lodash": "^4.14.170",
+    "@types/node": "^12.11.1",
+    "jest": "^27.0.5",
+    "jest-preset-angular": "^9.0.4",
+    "ts-loader": "^9.2.3",
+    "typescript": "~4.2.3"
+  },
+  "jest": {
+    "preset": "jest-preset-angular",
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/setupJest.ts"
+    ],
+    "verbose": true,
+    "collectCoverage": true,
+    "coverageReporters": [
+      "json",
+      "html",
+      "lcov"
+    ],
+    "coverageDirectory": "<rootDir>/build/coverage"
+  }
+}
