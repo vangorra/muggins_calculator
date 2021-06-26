@@ -22,7 +22,7 @@ addEventListener('message', (message => {
       data.selectedDieFaces,
       ALL_OPERATIONS.filter(o => data.selectedOperators.indexOf(o.operator) > -1)
     )
-    .map(e => `${e.total()} = ${e.toString()}`)
+    .map(e => `${e.total} = ${e.equation}`)
     .sort()
   ;
 

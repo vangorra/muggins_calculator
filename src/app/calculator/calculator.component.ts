@@ -1,75 +1,72 @@
-import {Component, OnInit, ViewEncapsulation} from '@angular/core';
-import {
-  ALL_OPERATIONS,
-  DEFAULT_BOARD_MAX_NUMBER,
-  DEFAULT_BOARD_MIN_NUMBER,
-  DEFAULT_DICE_COUNT,
-  DEFAULT_DIE_SELECTED_FACE,
-  DEFAULT_DIE_SELECTED_FACE_COUNT,
-  DEFAULT_OPERATIONS,
-  DICE_COUNT_OPTIONS,
-  Die,
-  Operation,
-} from "../const";
-import {FormControl} from "@angular/forms";
-import {Equation} from "../solver/solver";
+import {Component, OnInit} from '@angular/core';
+import {DEFAULT_CONFIG, DEFAULT_DIE_SELECTED_FACE, DEFAULT_DIE_SELECTED_FACE_COUNT} from "../const";
 import {SolverWorkerMessage, SolverWorkerResponse} from "../solver/solver.worker";
-
-interface TypedFormControl<T> extends FormControl {
-  readonly value: T;
-  setValue(value: T, options?: Object): void;
-}
+import {Config, Die} from "../general_types";
+import {MatBottomSheet} from "@angular/material/bottom-sheet";
+import {ConfigComponent} from "../config/config.component";
+import {merge} from "rxjs";
 
 @Component({
   selector: 'app-calculator',
   templateUrl: './calculator.component.html',
   styleUrls: ['./calculator.component.less'],
-  encapsulation: ViewEncapsulation.None
 })
 export class CalculatorComponent implements OnInit {
-  readonly availableOperations = ALL_OPERATIONS;
-  readonly diceCountOptions = DICE_COUNT_OPTIONS;
-  readonly selectedOperations: TypedFormControl<Operation[]> = new FormControl(DEFAULT_OPERATIONS);
-  readonly selectedDiceCount: TypedFormControl<number> = new FormControl(DEFAULT_DICE_COUNT);
   readonly dice: Die[] = [];
   readonly equationGroups: [string, string[]][] = [];
   private currentWorker: Worker | undefined = undefined;
   isProcessing: boolean = false
   isCancelled: boolean = false;
   selectedEquationString: string | undefined = undefined;
+  readonly config: Config = DEFAULT_CONFIG;
+  private readonly bottomSheet: MatBottomSheet;
 
-  constructor() { }
-
-  ngOnInit(): void {
-    this.updateDice();
-
-    this.selectedOperations.valueChanges.subscribe(() => this.onChange());
-    this.selectedDiceCount.valueChanges.subscribe(() => {
-      this.updateDice();
-      this.onChange();
-    });
-
-    this.onChange();
+  constructor(bottomSheet: MatBottomSheet) {
+    this.bottomSheet = bottomSheet;
   }
 
-  private updateDice = () => {
-    const diceCount = this.selectedDiceCount.value;
-    this.dice.splice(diceCount);
-    const newDice = [...new Array(diceCount - this.dice.length).keys()].map(() => ({
-      selectedFaceCount: DEFAULT_DIE_SELECTED_FACE_COUNT,
-      selectedFace: DEFAULT_DIE_SELECTED_FACE,
-    }));
-    this.dice.push(...newDice);
+  ngOnInit(): void {
+    this.reload();
+  }
+
+  openConfig(): void {
+    const self = this;
+    const configComponentRef = this.bottomSheet.open(ConfigComponent);
+
+    const configInstance = configComponentRef.instance;
+    configInstance.boardMinNumber.setValue(this.config.boardMinNumber);
+    configInstance.boardMaxNumber.setValue(this.config.boardMaxNumber);
+    configInstance.diceCount.setValue(this.config.diceCount);
+    configInstance.operations.setValue(this.config.operations);
+
+    merge(
+      configInstance.boardMinNumber.valueChanges,
+      configInstance.boardMaxNumber.valueChanges,
+      configInstance.diceCount.valueChanges,
+      configInstance.operations.valueChanges
+    ).subscribe(() => {
+      Object.assign(self.config, {
+        boardMinNumber: configInstance.boardMinNumber.value,
+        boardMaxNumber: configInstance.boardMaxNumber.value,
+        diceCount: configInstance.diceCount.value,
+        operations: configInstance.operations.value,
+      });
+      self.reload();
+    })
   }
 
   selectEquationString(equationString: string): void {
-    this.selectedEquationString = equationString;
+    this.selectedEquationString = this.isEquationStringSelected(equationString) ? undefined : equationString;
   }
 
   equationStringListItemClass(equationString: string) {
     return {
-      active: this.selectedEquationString === equationString,
+      active: this.isEquationStringSelected(equationString),
     };
+  }
+
+  isEquationStringSelected(equationString: string): boolean {
+    return this.selectedEquationString === equationString;
   }
 
   cancel(): void {
@@ -84,8 +81,17 @@ export class CalculatorComponent implements OnInit {
     this.isProcessing = true;
     this.currentWorker?.terminate();
 
-    this.currentWorker = new Worker(new URL('../solver/solver.worker', import.meta.url));
+    // Update the dice.
+    const diceCount = this.config.diceCount;
+    this.dice.splice(diceCount);
+    const newDice = [...new Array(diceCount - this.dice.length).keys()].map(() => ({
+      selectedFaceCount: DEFAULT_DIE_SELECTED_FACE_COUNT,
+      selectedFace: DEFAULT_DIE_SELECTED_FACE,
+    }));
+    this.dice.push(...newDice);
 
+
+    this.currentWorker = new Worker(new URL('../solver/solver.worker', import.meta.url));
     this.currentWorker.onmessage = response => {
       const data: SolverWorkerResponse = JSON.parse(response.data);
 
@@ -98,10 +104,10 @@ export class CalculatorComponent implements OnInit {
     };
 
     const postData = JSON.stringify({
-      boardMinNumber: DEFAULT_BOARD_MIN_NUMBER,
-      boardMaxNumber: DEFAULT_BOARD_MAX_NUMBER,
+      boardMinNumber: this.config.boardMinNumber,
+      boardMaxNumber: this.config.boardMaxNumber,
       selectedDieFaces: this.dice.map(die => die.selectedFace),
-      selectedOperators: this.selectedOperations.value.map(o => o.operator)
+      selectedOperators: this.config.operations.map(o => o.operator)
     } as SolverWorkerMessage);
     this.currentWorker.postMessage(postData);
   }

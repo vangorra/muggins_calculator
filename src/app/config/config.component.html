@@ -1,0 +1,21 @@
+<h3>Advanced Configuration</h3>
+<div fxLayout="column" class="boardConfig">
+  <mat-form-field>
+    <mat-label>Min Board Number (inclusive)</mat-label>
+    <input matInput type="number" min="1" [formControl]="boardMinNumber">
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Max Board Number (inclusive)</mat-label>
+    <input matInput type="number" min="1" [formControl]="boardMaxNumber">
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Dice Count</mat-label>
+    <mat-select [formControl]="diceCount">
+      <mat-option *ngFor="let diceCountOption of diceCountOptions" [value]="diceCountOption">
+        {{diceCountOption}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>

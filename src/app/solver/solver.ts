@@ -2,8 +2,8 @@
  * Tools for providing solutions to muggins dice.
  */
 import {cartesianProduct} from 'cartesian-product-multiple-arrays';
-import {Operation} from "../const";
 import {uniqWith} from "lodash";
+import {Operation} from "../general_types";
 
 interface ParingPermutation extends Array<any | ParingPermutation[]> {}
 
@@ -49,7 +49,7 @@ class EquationNumber extends BaseEquation {
   }
 }
 
-export class Equation extends BaseEquation {
+class Equation extends BaseEquation {
   num1: BaseEquation;
   num2: BaseEquation;
   operation: Operation;
@@ -148,7 +148,7 @@ export class MugginsSolver {
     return permutations;
   }
 
-  public getEquations(selectedFaces: number[], selectedOperations: Operation[]): Equation[] {
+  public getEquations(selectedFaces: number[], selectedOperations: Operation[]): EquationData[] {
     console.debug('getEquations', selectedFaces, selectedOperations);
 
     const facePermutations = uniqWith(
@@ -172,9 +172,18 @@ export class MugginsSolver {
       .filter(equation => Number.isInteger(equation.total())
           && equation.total() >= this.minTotal
           && equation.total() <= this.maxTotal
-      );
-    console.debug('equations', equations);
+      )
+      .map(equation => ({
+        total: equation.total(),
+        equation: equation.toString(),
+      }));
 
+    console.debug('equations', equations);
     return equations;
   }
+}
+
+export interface EquationData {
+  total: number;
+  equation: string;
 }

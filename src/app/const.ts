@@ -1,19 +1,10 @@
+import {Config, Operation} from "./general_types";
+
 export const DEFAULT_DICE_COUNT = 3;
 export const DEFAULT_DIE_SELECTED_FACE_COUNT = 6;
 export const DEFAULT_DIE_SELECTED_FACE = 1;
 export const DEFAULT_BOARD_MIN_NUMBER = 1;
 export const DEFAULT_BOARD_MAX_NUMBER = 36;
-
-export interface Die {
-  selectedFaceCount: number;
-  selectedFace: number;
-}
-
-export interface Operation {
-  name: string;
-  operationFunction: (a: number, b: number) => number;
-  operator: string;
-}
 
 const OPERATIONS: {[name: string]: Operation} = {
   plus: {
@@ -57,3 +48,10 @@ export const DICE_COUNT_OPTIONS = [...new Array(MAX_DICE_COUNT).keys()].map(i =>
 
 const MAX_DIE_FACE_COUNT = Math.max(DEFAULT_DIE_SELECTED_FACE_COUNT, 16);
 export const DIE_FACE_COUNT_OPTIONS = [...new Array(MAX_DIE_FACE_COUNT).keys()].map(i => i + 1);
+
+export const DEFAULT_CONFIG: Config = {
+  boardMinNumber: DEFAULT_BOARD_MIN_NUMBER,
+  boardMaxNumber: DEFAULT_BOARD_MAX_NUMBER,
+  diceCount: DEFAULT_DICE_COUNT,
+  operations: DEFAULT_OPERATIONS,
+};

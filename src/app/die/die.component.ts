@@ -1,6 +1,8 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {FormControl} from "@angular/forms";
-import {DEFAULT_DIE_SELECTED_FACE, DEFAULT_DIE_SELECTED_FACE_COUNT, Die, DIE_FACE_COUNT_OPTIONS} from "../const";
+import {DEFAULT_DIE_SELECTED_FACE, DEFAULT_DIE_SELECTED_FACE_COUNT, DIE_FACE_COUNT_OPTIONS} from "../const";
+import {Die} from "../general_types";
+import {merge} from "rxjs";
 
 @Component({
   selector: 'app-die',
@@ -11,8 +13,7 @@ export class DieComponent implements OnInit {
   readonly faceCountOptions = DIE_FACE_COUNT_OPTIONS;
 
   @Input()
-  // @ts-ignore
-  die: Die;
+  die!: Die;
 
   @Output()
   onChange = new EventEmitter<Die>();
@@ -26,13 +27,12 @@ export class DieComponent implements OnInit {
     this.selectedFaceCount.setValue(this.die.selectedFaceCount);
     this.selectedFace.setValue(this.die.selectedFace);
 
-    this.selectedFaceCount.valueChanges.subscribe(value => {
-      this.die.selectedFaceCount = value;
-      this.onChange.emit(this.die);
-    });
-
-    this.selectedFace.valueChanges.subscribe(value => {
-      this.die.selectedFace = value;
+    merge(
+      this.selectedFaceCount.valueChanges,
+      this.selectedFace.valueChanges
+    ).subscribe(() => {
+      this.die.selectedFaceCount = this.selectedFaceCount.value;
+      this.die.selectedFace = this.selectedFace.value;
       this.onChange.emit(this.die);
     });
   }

@@ -1,27 +1,6 @@
 <section class="configuration">
   <mat-card>
-    <mat-card-title>Configuration</mat-card-title>
     <mat-card-content>
-      <div fxLayout.xs="column" fxLayout.sm="row" fxLayoutGap.sm="1em" class="boardConfig">
-        <mat-form-field>
-          <mat-label>Operations</mat-label>
-          <mat-select [formControl]="selectedOperations" multiple>
-            <mat-option *ngFor="let operation of availableOperations" [value]="operation">
-              {{operation.name}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-label>Dice Count</mat-label>
-          <mat-select [formControl]="selectedDiceCount">
-            <mat-option *ngFor="let diceCountOption of diceCountOptions" [value]="diceCountOption">
-              {{diceCountOption}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-
       <div fxLayout="row" fxLayoutGap="1em" class="diceConfig" style="overflow: auto">
         <ng-container *ngFor="let die of dice; index as i; last as isLastDie">
           <div class="die" fxFlex.xs="20" fxFlex.sm="20">
@@ -29,6 +8,10 @@
             <app-die [die]="die" (onChange)="onChange()"></app-die>
           </div>
         </ng-container>
+
+        <button mat-button (click)="openConfig()" class="configButton">
+          <mat-icon>settings</mat-icon>
+        </button>
       </div>
     </mat-card-content>
   </mat-card>
