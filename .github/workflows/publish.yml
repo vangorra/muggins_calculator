@@ -13,9 +13,8 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '12'
-      - run: npm install -G @angular/cli
       - run: npm install
-      - run: ng build
+      - run: ./node_modules/.bin/ng build
       - name: Check GitHub Pages status
         uses: crazy-max/ghaction-github-status@v2
         with:
@@ -25,6 +24,6 @@ jobs:
         uses: crazy-max/ghaction-github-pages@v2
         with:
           target_branch: gh-pages
-          build_dir: public
+          build_dir: dist/app
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -11,7 +11,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '12'
-      - run: npm install -G @angular/cli
       - run: npm install
-      - run: ng build
-      - run: ng test
+      - run: ./node_modules/.bin/ng build
+      - run: ./node_modules/.bin/ng test
