@@ -2,13 +2,20 @@
 
 Tool for providing equations for the popular math game Muggins.
 
-## Running
-```shell
-$ npm install -G @angular/cli
-$ ng serve
-```
+## Quickstart
 
-## Build
+Goto: https://vangorra.github.io/muggins_calculator/
+
+## Development
 ```shell
-$ ng build
+$ npm install
+
+# Build
+$ npm run build
+
+# Test
+$ npm test
+
+# Local serve of files.
+$ npm serve
 ```
