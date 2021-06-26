@@ -50,11 +50,11 @@
 
       <ng-container *ngIf="!isProcessing && !isCancelled && equationGroups.length">
         <div *ngFor="let group of equationGroups; last as isLastGroup">
-          <mat-selection-list>
-            <mat-list-option *ngFor="let equationStr of group[1]">
+          <mat-list>
+            <mat-list-item *ngFor="let equationStr of group[1]" (click)="selectEquationString(equationStr)" [ngClass]="equationStringListItemClass(equationStr)">
               {{equationStr}}
-            </mat-list-option>
-          </mat-selection-list>
+            </mat-list-item>
+          </mat-list>
           <mat-divider *ngIf="!isLastGroup"></mat-divider>
         </div>
       </ng-container>

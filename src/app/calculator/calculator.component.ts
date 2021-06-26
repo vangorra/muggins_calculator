@@ -32,10 +32,11 @@ export class CalculatorComponent implements OnInit {
   readonly selectedOperations: TypedFormControl<Operation[]> = new FormControl(DEFAULT_OPERATIONS);
   readonly selectedDiceCount: TypedFormControl<number> = new FormControl(DEFAULT_DICE_COUNT);
   readonly dice: Die[] = [];
-  readonly equationGroups: [string, Equation[]][] = [];
+  readonly equationGroups: [string, string[]][] = [];
   private currentWorker: Worker | undefined = undefined;
   isProcessing: boolean = false
   isCancelled: boolean = false;
+  selectedEquationString: string | undefined = undefined;
 
   constructor() { }
 
@@ -59,6 +60,16 @@ export class CalculatorComponent implements OnInit {
       selectedFace: DEFAULT_DIE_SELECTED_FACE,
     }));
     this.dice.push(...newDice);
+  }
+
+  selectEquationString(equationString: string): void {
+    this.selectedEquationString = equationString;
+  }
+
+  equationStringListItemClass(equationString: string) {
+    return {
+      active: this.selectedEquationString === equationString,
+    };
   }
 
   cancel(): void {
