@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {FormControl} from "@angular/forms";
 import {
   ALL_OPERATIONS,
@@ -16,15 +16,16 @@ import {Operation} from "../general_types";
   templateUrl: './config.component.html',
   styleUrls: ['./config.component.less']
 })
-export class ConfigComponent implements OnInit {
+export default class ConfigComponent {
   readonly availableOperations = ALL_OPERATIONS;
+
   readonly diceCountOptions = DICE_COUNT_OPTIONS;
+
   readonly boardMinNumber: TypedFormControl<number> = new FormControl(DEFAULT_BOARD_MIN_NUMBER);
+
   readonly boardMaxNumber: TypedFormControl<number> = new FormControl(DEFAULT_BOARD_MAX_NUMBER);
+
   readonly diceCount: TypedFormControl<number> = new FormControl(DEFAULT_DICE_COUNT);
+
   readonly operations: TypedFormControl<Operation[]> = new FormControl(DEFAULT_OPERATIONS);
-
-  constructor() { }
-
-  ngOnInit(): void {}
 }

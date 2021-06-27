@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /**
  * Tools for providing solutions to muggins dice.
  */
@@ -9,6 +10,7 @@ interface ParingPermutation extends Array<any | ParingPermutation[]> {}
 
 abstract class BaseEquation {
   private totalCache: number | undefined = undefined;
+
   private stringCache: string | undefined = undefined;
 
   public total(): number {
@@ -45,13 +47,15 @@ class EquationNumber extends BaseEquation {
   }
 
   calculateToString(): string {
-    return this.num + '';
+    return `${this.num  }`;
   }
 }
 
 class Equation extends BaseEquation {
   num1: BaseEquation;
+
   num2: BaseEquation;
+
   operation: Operation;
 
   constructor(num1: BaseEquation, num2: BaseEquation, operation: Operation) {
@@ -76,33 +80,34 @@ class Equation extends BaseEquation {
   }
 
   static createFromPairingsAndOperations(pairings: ParingPermutation, operations: Operation[]): Equation {
-    return Equation._createFromPairingsAndOperations(
+    return Equation.createFromPairingsAndOperationsInternal(
       pairings.slice(),
       operations.slice()
     );
   }
 
-  static _createFromPairingsAndOperations(pairings: ParingPermutation, operations: Operation[]): Equation {
+  private static createFromPairingsAndOperationsInternal(pairings: ParingPermutation, operations: Operation[]): Equation {
     const operation = operations.pop();
 
     return new Equation(
-      Equation._newNum(pairings[0], operations),
-      Equation._newNum(pairings[1], operations),
+      Equation.newNum(pairings[0], operations),
+      Equation.newNum(pairings[1], operations),
       operation as Operation
     );
   }
 
-  static _newNum(num: any[] | number, operations: Operation[]): BaseEquation {
+  private static newNum(num: any[] | number, operations: Operation[]): BaseEquation {
     if (Array.isArray(num)) {
-      return Equation._createFromPairingsAndOperations(num, operations)
-    } else {
-      return new EquationNumber(num);
+      return Equation.createFromPairingsAndOperationsInternal(num, operations)
     }
+
+    return new EquationNumber(num);
   }
 }
 
 export class MugginsSolver {
   maxTotal: number;
+
   minTotal: number;
 
   constructor(minTotal: number, maxTotal: number) {
@@ -111,15 +116,15 @@ export class MugginsSolver {
   }
 
   private permutations(xs: number[]): number[][] {
-    let ret = [];
+    const ret = [];
 
-    for (let i = 0; i < xs.length; i = i + 1) {
-      let rest = this.permutations(xs.slice(0, i).concat(xs.slice(i + 1)));
+    for (let i = 0; i < xs.length; i += 1) {
+      const rest = this.permutations(xs.slice(0, i).concat(xs.slice(i + 1)));
 
       if(!rest.length) {
         ret.push([xs[i]])
       } else {
-        for(let j = 0; j < rest.length; j = j + 1) {
+        for(let j = 0; j < rest.length; j += 1) {
           ret.push([xs[i]].concat(rest[j]))
         }
       }
@@ -128,7 +133,6 @@ export class MugginsSolver {
   }
 
   private pairingPermutations(arr: ParingPermutation, depth= 0): ParingPermutation {
-    console.log('pairingPermutations', arr, 'depth', depth);
     const permutations: ParingPermutation = [];
 
     // Not enough items to pair.
@@ -136,7 +140,7 @@ export class MugginsSolver {
       return [arr];
     }
 
-    for (var i = 0; i < arr.length - 1; i += 1) {
+    for (let i = 0; i < arr.length - 1; i += 1) {
       const permutation = arr.slice();
       const pair = permutation.slice(i, i + 2)
       permutation.splice(i, 2, pair)
@@ -149,22 +153,18 @@ export class MugginsSolver {
   }
 
   public getEquations(selectedFaces: number[], selectedOperations: Operation[]): EquationData[] {
-    console.debug('getEquations', selectedFaces, selectedOperations);
 
     const facePermutations = uniqWith(
       this.permutations(selectedFaces),
       (a,b) => a.join('_') === b.join('_')
     ) as number[][];
-    console.debug('facePermutations', facePermutations);
 
-    const operationPermutations = cartesianProduct(...selectedFaces.slice(1).map(face => selectedOperations));
-    console.debug('operationPermutations', operationPermutations);
+    const operationPermutations = cartesianProduct(...selectedFaces.slice(1).map(() => selectedOperations));
 
     const facePairingPermutations = facePermutations
       .flatMap(f => this.pairingPermutations(f));
-    console.debug('facePairingPermutations', facePairingPermutations);
 
-    const equations = cartesianProduct(facePairingPermutations, operationPermutations)
+    return cartesianProduct(facePairingPermutations, operationPermutations)
       .map(arr => Equation.createFromPairingsAndOperations(
           arr.slice(0, 2),
           arr[2],
@@ -177,9 +177,6 @@ export class MugginsSolver {
         total: equation.total(),
         equation: equation.toString(),
       }));
-
-    console.debug('equations', equations);
-    return equations;
   }
 }
 

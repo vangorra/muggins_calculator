@@ -5,7 +5,7 @@
         <ng-container *ngFor="let die of dice; index as i; last as isLastDie">
           <div class="die" fxFlex.xs="20" fxFlex.sm="20">
             <h3>Die {{i + 1}}</h3>
-            <app-die [die]="die" (onChange)="onChange()"></app-die>
+            <app-die [die]="die" (dieChanged)="onChange()"></app-die>
           </div>
         </ng-container>
 
