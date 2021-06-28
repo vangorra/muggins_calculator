@@ -28,7 +28,7 @@ import ConfigComponent from "./config/config.component";
     AppComponent,
     CalculatorComponent,
     DieComponent,
-    ConfigComponent
+    ConfigComponent,
   ],
   imports: [
     BrowserModule,

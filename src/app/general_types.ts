@@ -3,6 +3,7 @@ export interface Config {
   boardMaxNumber: number;
   diceCount: number;
   operations: Operation[];
+  customizeDieFaceCount: boolean;
 }
 
 export interface Die {

@@ -3,11 +3,13 @@
   <mat-form-field>
     <mat-label>Min Board Number (inclusive)</mat-label>
     <input matInput type="number" min="1" [formControl]="boardMinNumber">
+    <mat-hint>Minimum number on the board (default: 1)</mat-hint>
   </mat-form-field>
 
   <mat-form-field>
     <mat-label>Max Board Number (inclusive)</mat-label>
     <input matInput type="number" min="1" [formControl]="boardMaxNumber">
+    <mat-hint>The maximum number on the board (default: 36)</mat-hint>
   </mat-form-field>
 
   <mat-form-field>
@@ -17,5 +19,13 @@
         {{diceCountOption}}
       </mat-option>
     </mat-select>
+    <mat-hint>Warning: Increasing this beyond 4 will result and considerably slower runs.</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field floatPlaceholder="always" class="mat-form-field--no-underline">
+    <!-- the matInput with display:none makes the magic. It's ugly, I've warned you -->
+    <input matInput style="display: none" >
+    <mat-checkbox [formControl]="customizeDieFaceCount" name="customizeDieFaceCount">Customize Die Face Count</mat-checkbox>
+    <mat-hint>Enable this if you want to customize the number of faces for each die.</mat-hint>
   </mat-form-field>
 </div>

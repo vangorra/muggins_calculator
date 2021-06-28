@@ -5,6 +5,7 @@ export const DEFAULT_DIE_SELECTED_FACE_COUNT = 6;
 export const DEFAULT_DIE_SELECTED_FACE = 1;
 export const DEFAULT_BOARD_MIN_NUMBER = 1;
 export const DEFAULT_BOARD_MAX_NUMBER = 36;
+export const DEFAULT_CUSTOMIZE_DIE_FACE_COUNT = false;
 
 const OPERATIONS: {[name: string]: Operation} = {
   plus: {
@@ -54,4 +55,5 @@ export const DEFAULT_CONFIG: Config = {
   boardMaxNumber: DEFAULT_BOARD_MAX_NUMBER,
   diceCount: DEFAULT_DICE_COUNT,
   operations: DEFAULT_OPERATIONS,
+  customizeDieFaceCount: DEFAULT_CUSTOMIZE_DIE_FACE_COUNT,
 };

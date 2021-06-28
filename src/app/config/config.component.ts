@@ -3,7 +3,7 @@ import {FormControl} from "@angular/forms";
 import {
   ALL_OPERATIONS,
   DEFAULT_BOARD_MAX_NUMBER,
-  DEFAULT_BOARD_MIN_NUMBER,
+  DEFAULT_BOARD_MIN_NUMBER, DEFAULT_CUSTOMIZE_DIE_FACE_COUNT,
   DEFAULT_DICE_COUNT,
   DEFAULT_OPERATIONS,
   DICE_COUNT_OPTIONS
@@ -26,6 +26,8 @@ export default class ConfigComponent {
   readonly boardMaxNumber: TypedFormControl<number> = new FormControl(DEFAULT_BOARD_MAX_NUMBER);
 
   readonly diceCount: TypedFormControl<number> = new FormControl(DEFAULT_DICE_COUNT);
+
+  readonly customizeDieFaceCount: TypedFormControl<boolean> = new FormControl(DEFAULT_CUSTOMIZE_DIE_FACE_COUNT);
 
   readonly operations: TypedFormControl<Operation[]> = new FormControl(DEFAULT_OPERATIONS);
 }

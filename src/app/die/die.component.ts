@@ -1,8 +1,9 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {FormControl} from "@angular/forms";
 import {merge, Subject} from "rxjs";
+import {takeUntil} from "rxjs/operators";
 import {DEFAULT_DIE_SELECTED_FACE, DEFAULT_DIE_SELECTED_FACE_COUNT, DIE_FACE_COUNT_OPTIONS} from "../const";
-import {Die} from "../general_types";
+import {Config, Die} from "../general_types";
 
 @Component({
   selector: 'app-die',
@@ -11,6 +12,9 @@ import {Die} from "../general_types";
 })
 export default class DieComponent implements OnInit, OnDestroy {
   readonly faceCountOptions = DIE_FACE_COUNT_OPTIONS;
+
+  @Input()
+  config!: Config
 
   @Input()
   die!: Die;
@@ -29,18 +33,16 @@ export default class DieComponent implements OnInit, OnDestroy {
     this.selectedFace.setValue(this.die.selectedFace);
 
     // Subscribe to changes in the new form controls.
-    const mergedObservable = merge(
+    merge(
       this.selectedFaceCount.valueChanges,
       this.selectedFace.valueChanges
-    );
-
-    mergedObservable
-      .takeUntil(this.destroy)
-      .subscribe(() => {
-        this.die.selectedFaceCount = this.selectedFaceCount.value;
-        this.die.selectedFace = this.selectedFace.value;
-        this.dieChanged.emit(this.die);
-      });
+    )
+    .pipe(takeUntil(this.destroy))
+    .subscribe(() => {
+      this.die.selectedFaceCount = this.selectedFaceCount.value;
+      this.die.selectedFace = this.selectedFace.value;
+      this.dieChanged.emit(this.die);
+    });
   }
 
   ngOnDestroy() {

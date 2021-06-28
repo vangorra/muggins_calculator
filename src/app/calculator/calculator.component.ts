@@ -1,6 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {MatBottomSheet} from "@angular/material/bottom-sheet";
 import {merge, Subject} from "rxjs";
+import {takeUntil} from "rxjs/operators";
 import {DEFAULT_CONFIG, DEFAULT_DIE_SELECTED_FACE, DEFAULT_DIE_SELECTED_FACE_COUNT} from "../const";
 import {Config, Die, SolverWorkerMessage, SolverWorkerResponse, TypedWorker} from "../general_types";
 import ConfigComponent from "../config/config.component";
@@ -23,7 +24,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   selectedEquationString: string | undefined = undefined;
 
-  readonly config: Config = DEFAULT_CONFIG;
+  readonly config: Config = ({ ...DEFAULT_CONFIG});
 
   private readonly bottomSheet: MatBottomSheet;
 
@@ -52,27 +53,28 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     configInstance.boardMinNumber.setValue(this.config.boardMinNumber);
     configInstance.boardMaxNumber.setValue(this.config.boardMaxNumber);
     configInstance.diceCount.setValue(this.config.diceCount);
+    configInstance.customizeDieFaceCount.setValue(this.config.customizeDieFaceCount);
     configInstance.operations.setValue(this.config.operations);
 
     // Subscribe to changes in the new form controls.
-    const mergedObservable = merge(
+    merge(
       configInstance.boardMinNumber.valueChanges,
       configInstance.boardMaxNumber.valueChanges,
       configInstance.diceCount.valueChanges,
+      configInstance.customizeDieFaceCount.valueChanges,
       configInstance.operations.valueChanges
-    );
-
-    mergedObservable
-      .takeUntil(this.destroyBottomSheet)
-      .subscribe(() => {
-        Object.assign(self.config, {
-          boardMinNumber: configInstance.boardMinNumber.value,
-          boardMaxNumber: configInstance.boardMaxNumber.value,
-          diceCount: configInstance.diceCount.value,
-          operations: configInstance.operations.value,
-        });
-        self.reload();
+    )
+    .pipe(takeUntil(this.destroyBottomSheet))
+    .subscribe(() => {
+      Object.assign(self.config, {
+        boardMinNumber: configInstance.boardMinNumber.value,
+        boardMaxNumber: configInstance.boardMaxNumber.value,
+        diceCount: configInstance.diceCount.value,
+        operations: configInstance.operations.value,
+        customizeDieFaceCount: configInstance.customizeDieFaceCount.value,
       });
+      self.reload();
+    });
   }
 
   selectEquationString(equationString: string): void {
