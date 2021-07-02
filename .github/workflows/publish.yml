@@ -16,7 +16,7 @@ jobs:
           node-version: '12'
       - run: npm install
       - run: npm run lint:ci
-      - run: npm test:ci
+      - run: npm run test:ci
       - run: npm run build
       - name: Check GitHub Pages status
         uses: crazy-max/ghaction-github-status@v2
