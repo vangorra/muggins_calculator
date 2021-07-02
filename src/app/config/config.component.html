@@ -2,30 +2,26 @@
 <div fxLayout="column" class="boardConfig">
   <mat-form-field>
     <mat-label>Min Board Number (inclusive)</mat-label>
-    <input matInput type="number" min="1" [formControl]="boardMinNumber">
+    <input matInput type="number" min="1" [formControl]="boardMinNumber" (click)="inputSelectAll($event.target)" data-testid="boardMinNumber" />
     <mat-hint>Minimum number on the board (default: 1)</mat-hint>
   </mat-form-field>
 
   <mat-form-field>
     <mat-label>Max Board Number (inclusive)</mat-label>
-    <input matInput type="number" min="1" [formControl]="boardMaxNumber">
+    <input matInput type="number" min="1" [formControl]="boardMaxNumber" (click)="inputSelectAll($event.target)" data-testid="boardMaxNumber" />
     <mat-hint>The maximum number on the board (default: 36)</mat-hint>
   </mat-form-field>
 
   <mat-form-field>
     <mat-label>Dice Count</mat-label>
-    <mat-select [formControl]="diceCount">
-      <mat-option *ngFor="let diceCountOption of diceCountOptions" [value]="diceCountOption">
-        {{diceCountOption}}
-      </mat-option>
-    </mat-select>
+    <input matInput type="number" min="1" max="6" [formControl]="diceCount" (click)="inputSelectAll($event.target)" data-testid="diceCount" />
     <mat-hint>Warning: Increasing this beyond 4 will result and considerably slower runs.</mat-hint>
   </mat-form-field>
 
   <mat-form-field floatPlaceholder="always" class="mat-form-field--no-underline">
     <!-- the matInput with display:none makes the magic. It's ugly, I've warned you -->
-    <input matInput style="display: none" >
-    <mat-checkbox [formControl]="customizeDieFaceCount" name="customizeDieFaceCount">Customize Die Face Count</mat-checkbox>
+    <input matInput style="display: none" />
+    <mat-checkbox [formControl]="customizeDieFaceCount" name="customizeDieFaceCount" data-testid="customizeDieFaceCount">Customize Die Face Count</mat-checkbox>
     <mat-hint>Enable this if you want to customize the number of faces for each die.</mat-hint>
   </mat-form-field>
 </div>

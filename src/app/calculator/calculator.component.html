@@ -23,18 +23,18 @@
     <mat-card-content>
       <ng-container *ngIf="isProcessing">
         <mat-spinner></mat-spinner>
-        <button mat-button (click)="cancel()">Cancel</button>
+        <button mat-button (click)="cancel()" data-testid="cancelButton">Cancel</button>
       </ng-container>
 
       <ng-container *ngIf="isCancelled">
         Cancelled...
-        <button mat-button (click)="reload()">Reload</button>
+        <button mat-button (click)="reload()" data-testid="reloadButton">Reload</button>
       </ng-container>
 
       <ng-container *ngIf="!isProcessing && !isCancelled && equationGroups.length">
         <div *ngFor="let group of equationGroups; last as isLastGroup">
           <mat-list>
-            <mat-list-item *ngFor="let equationStr of group[1]" (click)="selectEquationString(equationStr)" [ngClass]="equationStringListItemClass(equationStr)">
+            <mat-list-item *ngFor="let equationStr of group[1]" (click)="selectEquationString(equationStr)" [ngClass]="equationStringListItemClass(equationStr)" class="equationStr">
               {{equationStr}}
             </mat-list-item>
           </mat-list>

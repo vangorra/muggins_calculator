@@ -12,6 +12,6 @@ jobs:
         with:
           node-version: '12'
       - run: npm install
-      - run: npm run lint
+      - run: npm run lint:ci
       - run: npm run build
-      - run: npm test
+      - run: npm test:ci

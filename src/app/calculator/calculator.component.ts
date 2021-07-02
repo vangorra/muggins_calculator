@@ -5,6 +5,7 @@ import {takeUntil} from "rxjs/operators";
 import {DEFAULT_CONFIG, DEFAULT_DIE_SELECTED_FACE, DEFAULT_DIE_SELECTED_FACE_COUNT} from "../const";
 import {Config, Die, SolverWorkerMessage, SolverWorkerResponse, TypedWorker} from "../general_types";
 import ConfigComponent from "../config/config.component";
+import {runSolverWorkerMain} from "../solver/utils";
 
 @Component({
   selector: 'app-calculator',
@@ -112,25 +113,31 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     }));
     this.dice.push(...newDice);
 
-    // Setup the worker.
-    this.currentWorker = new Worker(new URL('../solver/solver.worker', import.meta.url));
-    this.currentWorker.onmessage = response => {
-      const { data } = response;
-
-      // Empty the current array.
-      this.equationGroups.splice(0, this.equationGroups.length);
-
-      // Add the new groups.
-      this.equationGroups.push(...Object.entries(data));
-      this.isProcessing = false;
-    };
-
-    this.currentWorker.postMessage({
+    const message: SolverWorkerMessage = {
       boardMinNumber: this.config.boardMinNumber,
       boardMaxNumber: this.config.boardMaxNumber,
       selectedDieFaces: this.dice.map(die => die.selectedFace),
       selectedOperators: this.config.operations.map(o => o.operator)
-    });
+    };
+
+    // Run process in a worker.
+    if (Worker) {
+      this.currentWorker = new Worker(new URL('../solver.worker', import.meta.url));
+      this.currentWorker.onmessage = response => this.onWorkerResponse(response.data);
+      this.currentWorker.postMessage(message);
+    // Run process in current thread.
+    } else {
+      this.onWorkerResponse(runSolverWorkerMain(message));
+    }
+  }
+
+  onWorkerResponse(data: SolverWorkerResponse): void {
+    // Empty the current array.
+    this.equationGroups.splice(0, this.equationGroups.length);
+
+    // Add the new groups.
+    this.equationGroups.push(...Object.entries(data));
+    this.isProcessing = false;
   }
 
   onChange(): void {

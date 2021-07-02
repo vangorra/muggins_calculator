@@ -1,16 +1,10 @@
-/// <reference lib="webworker" />
-
-// Default type of `self` is `WorkerGlobalScope & typeof globalThis`
-// https://github.com/microsoft/TypeScript/issues/14877
 import {groupBy} from "lodash";
-import {ALL_OPERATIONS} from "../const";
+import {SolverWorkerMessage, SolverWorkerResponse} from "../general_types";
 import {MugginsSolver} from "./solver";
-import {SolverWorkerResponse} from "../general_types";
+import {ALL_OPERATIONS} from "../const";
 
-declare let self: ServiceWorkerGlobalScope;
-
-self.addEventListener('message', (message => {
-  const { data } = message;
+/* eslint-disable import/prefer-default-export */
+export const runSolverWorkerMain = (data: SolverWorkerMessage) => {
   const solver = new MugginsSolver(data.boardMinNumber, data.boardMaxNumber);
   const equations = solver
     .getEquations(
@@ -22,5 +16,5 @@ self.addEventListener('message', (message => {
   ;
 
   const resp: SolverWorkerResponse = groupBy(equations, e => e.split(/=/)[0].trim());
-  postMessage(resp);
-}));
+  return resp;
+};

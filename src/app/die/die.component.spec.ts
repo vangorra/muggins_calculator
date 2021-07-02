@@ -1,5 +1,3 @@
-import {TestBed} from '@angular/core/testing';
-import {BrowserDynamicTestingModule, platformBrowserDynamicTesting} from "@angular/platform-browser-dynamic/testing";
 import {render, screen} from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import {MatSelectModule} from "@angular/material/select";
@@ -8,22 +6,11 @@ import {ReactiveFormsModule} from "@angular/forms";
 import DieComponent from "./die.component";
 import {DEFAULT_CONFIG} from "../const";
 import {Config} from "../general_types";
+import createSpy = jasmine.createSpy;
 
 describe(DieComponent.name, () => {
-  beforeAll(() => {
-    TestBed.resetTestEnvironment();
-    TestBed.initTestEnvironment(
-      BrowserDynamicTestingModule,
-      platformBrowserDynamicTesting()
-    );
-  });
-
-  const dieChangedCallback = jest.fn();
-  beforeEach(() => async () => {
-    dieChangedCallback.mockClear()
-  });
-
-  test("select face count", async () => {
+  it("select face count", async () => {
+    const dieChangedCallback = createSpy();
     const config: Config = { ...DEFAULT_CONFIG};
     const {fixture} = await render(
       `<app-die [config]="config" [die]="die" (dieChanged)="dieChanged($event)"></app-die>`,
