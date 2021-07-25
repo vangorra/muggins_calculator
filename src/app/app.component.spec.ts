@@ -6,6 +6,7 @@ describe(AppComponent.name, () => {
     const colorSchemeService = new ColorSchemeService();
     const subscribeToMediaChangesSpy = spyOn(colorSchemeService, "subscribeToMediaChanges");
     const applyStyleSpy = spyOn(colorSchemeService, "applyStyle");
+    /* eslint-disable no-new */
     new AppComponent(colorSchemeService);
 
     expect(subscribeToMediaChangesSpy).toHaveBeenCalled();

@@ -25,12 +25,12 @@ export const OPERATIONS: {[name: string]: Operation} = {
   },
   divide: {
     name: "Divide",
-    operationFunction: (a: number, b: number) => a ^ b,
+    operationFunction: (a: number, b: number) => a / b,
     operator: "/",
   },
   power: {
     name: "Power",
-    operationFunction: (a: number, b: number) => a / b,
+    operationFunction: (a: number, b: number) => a ** b,
     operator: "^",
   },
 };

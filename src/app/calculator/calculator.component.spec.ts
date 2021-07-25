@@ -15,12 +15,12 @@ import {MatBottomSheetModule} from "@angular/material/bottom-sheet";
 import {MatIconModule} from "@angular/material/icon";
 import {render, screen} from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
-import DieComponent from "../die/die.component";
-import ConfigComponent from "../config/config.component";
-import CalculatorComponent from "../calculator/calculator.component";
-import AppRoutingModule from "../app-routing.module";
 import {BrowserModule} from "@angular/platform-browser";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
+import DieComponent from "../die/die.component";
+import ConfigComponent from "../config/config.component";
+import CalculatorComponent from "./calculator.component";
+import AppRoutingModule from "../app-routing.module";
 import createSpy = jasmine.createSpy;
 
 describe(CalculatorComponent.name, () => {
@@ -93,17 +93,17 @@ describe(CalculatorComponent.name, () => {
 
     userEvent.click(die1Face4);
     equationElements = getEquationElements();
-    expect(equationElements.length).toEqual(74);
+    expect(equationElements.length).toEqual(59);
     expect(equationElements[0].textContent?.trim()).toEqual("2 = ((4 - 1) - 1)");
 
     userEvent.click(die2Face3);
     equationElements = getEquationElements();
-    expect(equationElements.length).toEqual(140);
-    expect(equationElements[0].textContent?.trim()).toEqual("1 = ((1 x 4) - 3)");
+    expect(equationElements.length).toEqual(101);
+    expect(equationElements[0].textContent?.trim()).toEqual("1 = ((1 + 3) / 4)");
 
     userEvent.click(die3Face2);
     equationElements = getEquationElements();
-    expect(equationElements.length).toEqual(156);
+    expect(equationElements.length).toEqual(99);
     expect(equationElements[0].textContent?.trim()).toEqual("1 = ((2 + 3) - 4)");
 
     const configButton = container.querySelector("button.configButton") as HTMLElement;
@@ -129,7 +129,7 @@ describe(CalculatorComponent.name, () => {
     userEvent.click(container);
 
     equationElements = await getEquationElements();
-    expect(equationElements.length).toEqual(2054);
+    expect(equationElements.length).toEqual(1053);
     expect(equationElements[0].textContent?.trim()).toEqual("2 = (((1 + 2) + 3) - 4)");
 
     // Test select equation.
