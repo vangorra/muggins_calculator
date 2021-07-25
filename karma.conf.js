@@ -10,6 +10,7 @@ module.exports = function (config) {
     plugins: [
       require('karma-jasmine'),
       require('karma-chrome-launcher'),
+      require('karma-firefox-launcher'),
       require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
       require('@angular-devkit/build-angular/plugins/karma')
@@ -32,14 +33,22 @@ module.exports = function (config) {
       reporters: [
         { type: 'html' },
         { type: 'text-summary' }
-      ]
+      ],
+      check: {
+        global: {
+          statements: 98,
+          branches: 86,
+          functions: 95,
+          lines: 98,
+        }
+      }
     },
     reporters: ['progress', 'kjhtml'],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['ChromeHeadless'],
+    browsers: process.env['CI'] ? ['ChromeHeadless', 'FirefoxHeadless'] : ['Chromium', 'ChromeHeadless', 'Firefox', 'FirefoxHeadless'],
     singleRun: false,
     restartOnFileChange: true
   });

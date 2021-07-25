@@ -10,7 +10,7 @@ import {runSolverWorkerMain} from "../solver/utils";
 @Component({
   selector: 'app-calculator',
   templateUrl: './calculator.component.html',
-  styleUrls: ['./calculator.component.less'],
+  styleUrls: ['./calculator.component.scss'],
 })
 export default class CalculatorComponent implements OnInit, OnDestroy {
   readonly dice: Die[] = [];

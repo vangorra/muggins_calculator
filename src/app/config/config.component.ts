@@ -14,7 +14,7 @@ import {Operation} from "../general_types";
 @Component({
   selector: 'app-config',
   templateUrl: './config.component.html',
-  styleUrls: ['./config.component.less']
+  styleUrls: ['./config.component.scss']
 })
 export default class ConfigComponent {
   readonly availableOperations = ALL_OPERATIONS;

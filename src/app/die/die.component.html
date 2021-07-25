@@ -1,7 +1,7 @@
 <div *ngIf="config.customizeDieFaceCount">
   <mat-form-field>
     <mat-label>Face Count</mat-label>
-    <mat-select [formControl]="selectedFaceCount">
+    <mat-select [formControl]="selectedFaceCount" data-testid="faceCount">
       <mat-option *ngFor="let faceCountOption of faceCountOptions" [value]="faceCountOption">
         {{faceCountOption}}
       </mat-option>

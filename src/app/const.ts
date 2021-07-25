@@ -7,7 +7,7 @@ export const DEFAULT_BOARD_MIN_NUMBER = 1;
 export const DEFAULT_BOARD_MAX_NUMBER = 36;
 export const DEFAULT_CUSTOMIZE_DIE_FACE_COUNT = false;
 
-const OPERATIONS: {[name: string]: Operation} = {
+export const OPERATIONS: {[name: string]: Operation} = {
   plus: {
     name: "Plus",
     operationFunction: (a: number, b: number) => a + b,
@@ -25,7 +25,7 @@ const OPERATIONS: {[name: string]: Operation} = {
   },
   divide: {
     name: "Divide",
-    operationFunction: (a: number, b: number) => a / b,
+    operationFunction: (a: number, b: number) => a ^ b,
     operator: "/",
   },
   power: {

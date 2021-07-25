@@ -8,7 +8,7 @@ import {Config, Die} from "../general_types";
 @Component({
   selector: 'app-die',
   templateUrl: './die.component.html',
-  styleUrls: ['./die.component.less']
+  styleUrls: ['./die.component.scss']
 })
 export default class DieComponent implements OnInit, OnDestroy {
   readonly faceCountOptions = DIE_FACE_COUNT_OPTIONS;
