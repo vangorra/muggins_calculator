@@ -1,4 +1,4 @@
-# Muggins Calculator [![Build status](https://github.com/vangorra/muggins_calculator/workflows/Build/badge.svg?branch=master)]
+# Muggins Calculator ![Build status](https://github.com/vangorra/muggins_calculator/workflows/Build/badge.svg?branch=master)
 
 Tool for providing equations for the popular math game Muggins.
 
