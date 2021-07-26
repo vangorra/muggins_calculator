@@ -1,11 +1,14 @@
-import AppComponent from "./app.component";
-import ColorSchemeService from "./color-scheme.service";
+import AppComponent from './app.component';
+import ColorSchemeService from './color-scheme.service';
 
 describe(AppComponent.name, () => {
-  it("Initialize", () => {
+  it('Initialize', () => {
     const colorSchemeService = new ColorSchemeService();
-    const subscribeToMediaChangesSpy = spyOn(colorSchemeService, "subscribeToMediaChanges");
-    const applyStyleSpy = spyOn(colorSchemeService, "applyStyle");
+    const subscribeToMediaChangesSpy = spyOn(
+      colorSchemeService,
+      'subscribeToMediaChanges'
+    );
+    const applyStyleSpy = spyOn(colorSchemeService, 'applyStyle');
     /* eslint-disable no-new */
     new AppComponent(colorSchemeService);
 

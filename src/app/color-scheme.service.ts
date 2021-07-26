@@ -1,36 +1,38 @@
-import {Injectable} from "@angular/core";
+import { Injectable } from '@angular/core';
 
 export enum ColorScheme {
-  LIGHT = "light",
-  DARK = "dark",
+  LIGHT = 'light',
+  DARK = 'dark',
 }
 
 export const DEFAULT_COLOR_SCHEME = ColorScheme.LIGHT;
-const LOCAL_STORAGE_COLOR_SCHEME_KEY = "preferred-color-scheme";
+const LOCAL_STORAGE_COLOR_SCHEME_KEY = 'preferred-color-scheme';
 
 /**
  * Service for manging the light/dark theme. See styles.scss for details of the themes.
  */
 @Injectable({
-  providedIn: "root"
+  providedIn: 'root',
 })
 class ColorSchemeService {
-  private readonly mediaQuery: MediaQueryList = window.matchMedia("(prefers-color-scheme)");
+  private readonly mediaQuery: MediaQueryList = window.matchMedia(
+    '(prefers-color-scheme)'
+  );
 
-  private readonly mediaChangeListener = () => this.applyStyle();
+  readonly mediaChangeListener = () => this.applyStyle();
 
   /**
    * Listens for changes to color scheme preference and applies the change.
    */
   public subscribeToMediaChanges(): void {
-    this.mediaQuery.addEventListener("change", this.mediaChangeListener);
+    this.mediaQuery.addEventListener('change', this.mediaChangeListener);
   }
 
   /**
    * Stop listening for changes to the color change preference.
    */
   public unsubscribeFromMediaChanges(): void {
-    this.mediaQuery.removeEventListener("change", this.mediaChangeListener);
+    this.mediaQuery.removeEventListener('change', this.mediaChangeListener);
   }
 
   /**
@@ -41,14 +43,13 @@ class ColorSchemeService {
       this.getCalculatedColorScheme()
     );
 
-    const {classList} = document.body;
+    const { classList } = document.body;
 
     // Remove existing scheme classes.
-    const removeClassNames = Object
-      .values(ColorScheme)
-      .map(colorScheme => this.newColorSchemeClass(colorScheme))
+    const removeClassNames = Object.values(ColorScheme)
+      .map((colorScheme) => this.newColorSchemeClass(colorScheme))
       // Exclude the currently selected scheme.
-      .filter(className => className !== currentColorSchemeClassName);
+      .filter((className) => className !== currentColorSchemeClassName);
 
     classList.remove(...removeClassNames);
     classList.add(currentColorSchemeClassName);
@@ -83,9 +84,11 @@ class ColorSchemeService {
    * Defaults to light.
    */
   public getCalculatedColorScheme(): ColorScheme {
-    return this.getLocalStorageColorScheme()
-      || this.getMediaColorScheme()
-      || DEFAULT_COLOR_SCHEME;
+    return (
+      this.getLocalStorageColorScheme() ||
+      this.getMediaColorScheme() ||
+      DEFAULT_COLOR_SCHEME
+    );
   }
 
   /**
@@ -94,7 +97,7 @@ class ColorSchemeService {
    */
   /* eslint-disable class-methods-use-this */
   public getMediaColorScheme(): ColorScheme | undefined {
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return ColorScheme.DARK;
     }
 
@@ -108,8 +111,7 @@ class ColorSchemeService {
   private getLocalStorageColorScheme(): ColorScheme | undefined {
     const savedPref = localStorage.getItem(LOCAL_STORAGE_COLOR_SCHEME_KEY);
 
-    return Object
-      .entries(ColorScheme)
+    return Object.entries(ColorScheme)
       .filter(([, value]) => value === savedPref)
       .map(([, value]) => value)
       .pop();

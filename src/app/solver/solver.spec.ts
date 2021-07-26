@@ -1,19 +1,13 @@
-import {MugginsSolver} from "./solver";
-import {ALL_OPERATIONS} from "../const";
+import { MugginsSolver } from './solver';
+import { ALL_OPERATIONS } from '../const';
 
-describe("Solver", () => {
-  it("Test", () => {
+describe('Solver', () => {
+  it('Test', () => {
     const solver = new MugginsSolver(1, 36);
-    const equations = solver.getEquations(
-      [
-        4,
-        5,
-        6,
-      ],
-      ALL_OPERATIONS
-    );
+    const equations = solver.getEquations([4, 5, 6], ALL_OPERATIONS);
 
-    expect(equations).toEqual(JSON.parse(`
+    expect(equations).toEqual(
+      JSON.parse(`
       [
         {
           "total": 15,
@@ -304,6 +298,7 @@ describe("Solver", () => {
           "equation": "(6 + (5 x 4))"
         }
       ]
-    `));
+    `)
+    );
   });
 });

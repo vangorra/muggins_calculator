@@ -2,9 +2,9 @@
 /**
  * Tools for providing solutions to muggins dice.
  */
-import {cartesianProduct} from 'cartesian-product-multiple-arrays';
-import {uniqWith} from "lodash";
-import {Operation} from "../general_types";
+import { cartesianProduct } from 'cartesian-product-multiple-arrays';
+import { uniqWith } from 'lodash';
+import { Operation } from '../general_types';
 
 interface ParingPermutation extends Array<any | ParingPermutation[]> {}
 
@@ -47,7 +47,7 @@ class EquationNumber extends BaseEquation {
   }
 
   calculateToString(): string {
-    return `${this.num  }`;
+    return `${this.num}`;
   }
 }
 
@@ -79,14 +79,20 @@ class Equation extends BaseEquation {
     return `(${num1} ${this.operation.operator} ${num2})`;
   }
 
-  static createFromPairingsAndOperations(pairings: ParingPermutation, operations: Operation[]): Equation {
+  static createFromPairingsAndOperations(
+    pairings: ParingPermutation,
+    operations: Operation[]
+  ): Equation {
     return Equation.createFromPairingsAndOperationsInternal(
       pairings.slice(),
       operations.slice()
     );
   }
 
-  private static createFromPairingsAndOperationsInternal(pairings: ParingPermutation, operations: Operation[]): Equation {
+  private static createFromPairingsAndOperationsInternal(
+    pairings: ParingPermutation,
+    operations: Operation[]
+  ): Equation {
     const operation = operations.pop();
 
     return new Equation(
@@ -96,9 +102,12 @@ class Equation extends BaseEquation {
     );
   }
 
-  private static newNum(num: any[] | number, operations: Operation[]): BaseEquation {
+  private static newNum(
+    num: any[] | number,
+    operations: Operation[]
+  ): BaseEquation {
     if (Array.isArray(num)) {
-      return Equation.createFromPairingsAndOperationsInternal(num, operations)
+      return Equation.createFromPairingsAndOperationsInternal(num, operations);
     }
 
     return new EquationNumber(num);
@@ -121,18 +130,21 @@ export class MugginsSolver {
     for (let i = 0; i < xs.length; i += 1) {
       const rest = this.permutations(xs.slice(0, i).concat(xs.slice(i + 1)));
 
-      if(!rest.length) {
-        ret.push([xs[i]])
+      if (!rest.length) {
+        ret.push([xs[i]]);
       } else {
-        for(let j = 0; j < rest.length; j += 1) {
-          ret.push([xs[i]].concat(rest[j]))
+        for (let j = 0; j < rest.length; j += 1) {
+          ret.push([xs[i]].concat(rest[j]));
         }
       }
     }
     return ret;
   }
 
-  private pairingPermutations(arr: ParingPermutation, depth= 0): ParingPermutation {
+  private pairingPermutations(
+    arr: ParingPermutation,
+    depth = 0
+  ): ParingPermutation {
     const permutations: ParingPermutation = [];
 
     // Not enough items to pair.
@@ -142,38 +154,45 @@ export class MugginsSolver {
 
     for (let i = 0; i < arr.length - 1; i += 1) {
       const permutation = arr.slice();
-      const pair = permutation.slice(i, i + 2)
-      permutation.splice(i, 2, pair)
+      const pair = permutation.slice(i, i + 2);
+      permutation.splice(i, 2, pair);
 
-      this.pairingPermutations(permutation, depth + 1)
-        .forEach(p => permutations.push(p));
+      this.pairingPermutations(permutation, depth + 1).forEach((p) =>
+        permutations.push(p)
+      );
     }
 
     return permutations;
   }
 
-  public getEquations(selectedFaces: number[], selectedOperations: Operation[]): EquationData[] {
-
+  public getEquations(
+    selectedFaces: number[],
+    selectedOperations: Operation[]
+  ): EquationData[] {
     const facePermutations = uniqWith(
       this.permutations(selectedFaces),
-      (a,b) => a.join('_') === b.join('_')
+      (a, b) => a.join('_') === b.join('_')
     ) as number[][];
 
-    const operationPermutations = cartesianProduct(...selectedFaces.slice(1).map(() => selectedOperations));
+    const operationPermutations = cartesianProduct(
+      ...selectedFaces.slice(1).map(() => selectedOperations)
+    );
 
-    const facePairingPermutations = facePermutations
-      .flatMap(f => this.pairingPermutations(f));
+    const facePairingPermutations = facePermutations.flatMap((f) =>
+      this.pairingPermutations(f)
+    );
 
     return cartesianProduct(facePairingPermutations, operationPermutations)
-      .map(arr => Equation.createFromPairingsAndOperations(
-          arr.slice(0, 2),
-          arr[2],
-      ))
-      .filter(equation => Number.isInteger(equation.total())
-          && equation.total() >= this.minTotal
-          && equation.total() <= this.maxTotal
+      .map((arr) =>
+        Equation.createFromPairingsAndOperations(arr.slice(0, 2), arr[2])
       )
-      .map(equation => ({
+      .filter(
+        (equation) =>
+          Number.isInteger(equation.total()) &&
+          equation.total() >= this.minTotal &&
+          equation.total() <= this.maxTotal
+      )
+      .map((equation) => ({
         total: equation.total(),
         equation: equation.toString(),
       }));

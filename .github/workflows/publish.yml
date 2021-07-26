@@ -14,10 +14,12 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '12'
-      - run: npm install
-      - run: npm run lint:ci
-      - run: npm run test:ci
-      - run: npm run build
+      - run: ./build.sh
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./build/coverage/app/report-lcov/lcov.info
       - name: Check GitHub Pages status
         uses: crazy-max/ghaction-github-status@v2
         with:

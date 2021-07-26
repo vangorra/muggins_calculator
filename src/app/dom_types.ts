@@ -1,4 +1,4 @@
-import {FormControl} from "@angular/forms";
+import { FormControl } from '@angular/forms';
 
 export interface TypedFormControl<T> extends FormControl {
   readonly value: T;

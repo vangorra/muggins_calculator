@@ -8,8 +8,11 @@
     "lint:ci": "./node_modules/.bin/ng lint",
     "build": "./node_modules/.bin/ng build",
     "watch": "./node_modules/.bin/ng build --watch --configuration development",
-    "test": "./node_modules/.bin/ng test",
-    "test:ci": "./node_modules/.bin/ng test --watch=false"
+    "test": "./node_modules/.bin/ng test --watch false",
+    "test:watch": "./node_modules/.bin/ng test --watch true",
+    "test:ci": "./node_modules/.bin/ng test --watch false",
+    "format": "./node_modules/.bin/prettier --write src/",
+    "format:ci": "./node_modules/.bin/prettier --list-different src/"
   },
   "private": true,
   "dependencies": {
@@ -62,6 +65,7 @@
     "karma-firefox-launcher": "^2.1.1",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "^1.5.0",
+    "prettier": "2.3.2",
     "pretty-format": "^27.0.6",
     "puppeteer": "^10.0.0",
     "ts-loader": "^9.2.3",

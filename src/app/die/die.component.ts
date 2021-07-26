@@ -1,20 +1,31 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {FormControl} from "@angular/forms";
-import {merge, Subject} from "rxjs";
-import {takeUntil} from "rxjs/operators";
-import {DEFAULT_DIE_SELECTED_FACE, DEFAULT_DIE_SELECTED_FACE_COUNT, DIE_FACE_COUNT_OPTIONS} from "../const";
-import {Config, Die} from "../general_types";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { merge, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import {
+  DEFAULT_DIE_SELECTED_FACE,
+  DEFAULT_DIE_SELECTED_FACE_COUNT,
+  DIE_FACE_COUNT_OPTIONS,
+} from '../const';
+import { Config, Die } from '../general_types';
 
 @Component({
   selector: 'app-die',
   templateUrl: './die.component.html',
-  styleUrls: ['./die.component.scss']
+  styleUrls: ['./die.component.scss'],
 })
 export default class DieComponent implements OnInit, OnDestroy {
   readonly faceCountOptions = DIE_FACE_COUNT_OPTIONS;
 
   @Input()
-  config!: Config
+  config!: Config;
 
   @Input()
   die!: Die;
@@ -33,16 +44,13 @@ export default class DieComponent implements OnInit, OnDestroy {
     this.selectedFace.setValue(this.die.selectedFace);
 
     // Subscribe to changes in the new form controls.
-    merge(
-      this.selectedFaceCount.valueChanges,
-      this.selectedFace.valueChanges
-    )
-    .pipe(takeUntil(this.destroy))
-    .subscribe(() => {
-      this.die.selectedFaceCount = this.selectedFaceCount.value;
-      this.die.selectedFace = this.selectedFace.value;
-      this.dieChanged.emit(this.die);
-    });
+    merge(this.selectedFaceCount.valueChanges, this.selectedFace.valueChanges)
+      .pipe(takeUntil(this.destroy))
+      .subscribe(() => {
+        this.die.selectedFaceCount = this.selectedFaceCount.value;
+        this.die.selectedFace = this.selectedFace.value;
+        this.dieChanged.emit(this.die);
+      });
   }
 
   ngOnDestroy() {
@@ -50,6 +58,8 @@ export default class DieComponent implements OnInit, OnDestroy {
   }
 
   getFaceOptions(): number[] {
-    return [...new Array(this.selectedFaceCount.value).keys()].map(i => i + 1);
+    return [...new Array(this.selectedFaceCount.value).keys()].map(
+      (i) => i + 1
+    );
   }
 }

@@ -1,11 +1,21 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {MatBottomSheet} from "@angular/material/bottom-sheet";
-import {merge, Subject} from "rxjs";
-import {takeUntil} from "rxjs/operators";
-import {DEFAULT_CONFIG, DEFAULT_DIE_SELECTED_FACE, DEFAULT_DIE_SELECTED_FACE_COUNT} from "../const";
-import {Config, Die, SolverWorkerMessage, SolverWorkerResponse, TypedWorker} from "../general_types";
-import ConfigComponent from "../config/config.component";
-import {runSolverWorkerMain} from "../solver/utils";
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { MatBottomSheet } from '@angular/material/bottom-sheet';
+import { merge, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import {
+  DEFAULT_CONFIG,
+  DEFAULT_DIE_SELECTED_FACE,
+  DEFAULT_DIE_SELECTED_FACE_COUNT,
+} from '../const';
+import {
+  Config,
+  Die,
+  SolverWorkerMessage,
+  SolverWorkerResponse,
+  TypedWorker,
+} from '../general_types';
+import ConfigComponent from '../config/config.component';
+import { runSolverWorkerMain } from '../solver/utils';
 
 @Component({
   selector: 'app-calculator',
@@ -17,15 +27,17 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   readonly equationGroups: [string, string[]][] = [];
 
-  private currentWorker: TypedWorker<SolverWorkerMessage, SolverWorkerResponse> | undefined = undefined;
+  private currentWorker:
+    | TypedWorker<SolverWorkerMessage, SolverWorkerResponse>
+    | undefined = undefined;
 
-  isProcessing: boolean = false
+  isProcessing: boolean = false;
 
   isCancelled: boolean = false;
 
   selectedEquationString: string | undefined = undefined;
 
-  readonly config: Config = ({ ...DEFAULT_CONFIG});
+  readonly config: Config = { ...DEFAULT_CONFIG };
 
   private readonly bottomSheet: MatBottomSheet;
 
@@ -54,7 +66,9 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     configInstance.boardMinNumber.setValue(this.config.boardMinNumber);
     configInstance.boardMaxNumber.setValue(this.config.boardMaxNumber);
     configInstance.diceCount.setValue(this.config.diceCount);
-    configInstance.customizeDieFaceCount.setValue(this.config.customizeDieFaceCount);
+    configInstance.customizeDieFaceCount.setValue(
+      this.config.customizeDieFaceCount
+    );
     configInstance.operations.setValue(this.config.operations);
 
     // Subscribe to changes in the new form controls.
@@ -65,21 +79,23 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       configInstance.customizeDieFaceCount.valueChanges,
       configInstance.operations.valueChanges
     )
-    .pipe(takeUntil(this.destroyBottomSheet))
-    .subscribe(() => {
-      Object.assign(self.config, {
-        boardMinNumber: configInstance.boardMinNumber.value,
-        boardMaxNumber: configInstance.boardMaxNumber.value,
-        diceCount: configInstance.diceCount.value,
-        operations: configInstance.operations.value,
-        customizeDieFaceCount: configInstance.customizeDieFaceCount.value,
+      .pipe(takeUntil(this.destroyBottomSheet))
+      .subscribe(() => {
+        Object.assign(self.config, {
+          boardMinNumber: configInstance.boardMinNumber.value,
+          boardMaxNumber: configInstance.boardMaxNumber.value,
+          diceCount: configInstance.diceCount.value,
+          operations: configInstance.operations.value,
+          customizeDieFaceCount: configInstance.customizeDieFaceCount.value,
+        });
+        self.reload();
       });
-      self.reload();
-    });
   }
 
   selectEquationString(equationString: string): void {
-    this.selectedEquationString = this.isEquationStringSelected(equationString) ? undefined : equationString;
+    this.selectedEquationString = this.isEquationStringSelected(equationString)
+      ? undefined
+      : equationString;
   }
 
   equationStringListItemClass(equationString: string) {
@@ -105,27 +121,32 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     this.currentWorker?.terminate();
 
     // Update the dice.
-    const {diceCount} = this.config;
+    const { diceCount } = this.config;
     this.dice.splice(diceCount);
-    const newDice = [...new Array(diceCount - this.dice.length).keys()].map(() => ({
-      selectedFaceCount: DEFAULT_DIE_SELECTED_FACE_COUNT,
-      selectedFace: DEFAULT_DIE_SELECTED_FACE,
-    }));
+    const newDice = [...new Array(diceCount - this.dice.length).keys()].map(
+      () => ({
+        selectedFaceCount: DEFAULT_DIE_SELECTED_FACE_COUNT,
+        selectedFace: DEFAULT_DIE_SELECTED_FACE,
+      })
+    );
     this.dice.push(...newDice);
 
     const message: SolverWorkerMessage = {
       boardMinNumber: this.config.boardMinNumber,
       boardMaxNumber: this.config.boardMaxNumber,
-      selectedDieFaces: this.dice.map(die => die.selectedFace),
-      selectedOperators: this.config.operations.map(o => o.operator)
+      selectedDieFaces: this.dice.map((die) => die.selectedFace),
+      selectedOperators: this.config.operations.map((o) => o.operator),
     };
 
     // Run process in a worker.
     if (Worker) {
-      this.currentWorker = new Worker(new URL('../solver.worker', import.meta.url));
-      this.currentWorker.onmessage = response => this.onWorkerResponse(response.data);
+      this.currentWorker = new Worker(
+        new URL('../solver.worker', import.meta.url)
+      );
+      this.currentWorker.onmessage = (response) =>
+        this.onWorkerResponse(response.data);
       this.currentWorker.postMessage(message);
-    // Run process in current thread.
+      // Run process in current thread.
     } else {
       this.onWorkerResponse(runSolverWorkerMain(message));
     }

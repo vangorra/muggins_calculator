@@ -1,6 +1,6 @@
-import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
-import CalculatorComponent from "./calculator/calculator.component";
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import CalculatorComponent from './calculator/calculator.component';
 
 export const routes: Routes = [
   {
@@ -16,6 +16,6 @@ export const routes: Routes = [
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, { useHash: true })],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export default class AppRoutingModule { }
+export default class AppRoutingModule {}

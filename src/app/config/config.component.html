@@ -3,8 +3,11 @@
   <mat-form-field>
     <mat-label>Operations</mat-label>
     <mat-select [formControl]="operations" multiple data-testid="operations">
-      <mat-option *ngFor="let operation of availableOperations" [value]="operation">
-        {{operation.name}}
+      <mat-option
+        *ngFor="let operation of availableOperations"
+        [value]="operation"
+      >
+        {{ operation.name }}
       </mat-option>
     </mat-select>
     <mat-hint>The operations to use when deriving equations.</mat-hint>
@@ -12,26 +15,62 @@
 
   <mat-form-field>
     <mat-label>Min Board Number (inclusive)</mat-label>
-    <input matInput type="number" min="1" [formControl]="boardMinNumber" (click)="inputSelectAll($event.target)" data-testid="boardMinNumber" />
+    <input
+      matInput
+      type="number"
+      min="1"
+      [formControl]="boardMinNumber"
+      (click)="inputSelectAll($event.target)"
+      data-testid="boardMinNumber"
+    />
     <mat-hint>Minimum number on the board (default: 1)</mat-hint>
   </mat-form-field>
 
   <mat-form-field>
     <mat-label>Max Board Number (inclusive)</mat-label>
-    <input matInput type="number" min="1" [formControl]="boardMaxNumber" (click)="inputSelectAll($event.target)" data-testid="boardMaxNumber" />
+    <input
+      matInput
+      type="number"
+      min="1"
+      [formControl]="boardMaxNumber"
+      (click)="inputSelectAll($event.target)"
+      data-testid="boardMaxNumber"
+    />
     <mat-hint>The maximum number on the board (default: 36)</mat-hint>
   </mat-form-field>
 
   <mat-form-field>
     <mat-label>Dice Count</mat-label>
-    <input matInput type="number" min="1" max="6" [formControl]="diceCount" (click)="inputSelectAll($event.target)" data-testid="diceCount" />
-    <mat-hint>The number of dice to use for generating equations. Warning: Increasing this beyond 4 will result in considerably slower runs.</mat-hint>
+    <input
+      matInput
+      type="number"
+      min="1"
+      max="6"
+      [formControl]="diceCount"
+      (click)="inputSelectAll($event.target)"
+      data-testid="diceCount"
+    />
+    <mat-hint
+      >The number of dice to use for generating equations. Warning: Increasing
+      this beyond 4 will result in considerably slower runs.</mat-hint
+    >
   </mat-form-field>
 
-  <mat-form-field floatPlaceholder="always" class="mat-form-field--no-underline">
+  <mat-form-field
+    floatPlaceholder="always"
+    class="mat-form-field--no-underline"
+  >
     <!-- the matInput with display:none makes the magic. It's ugly, I've warned you -->
     <input matInput style="display: none" />
-    <mat-checkbox [formControl]="customizeDieFaceCount" name="customizeDieFaceCount" data-testid="customizeDieFaceCount">Customize Die Face Count</mat-checkbox>
-    <mat-hint>Enable this if you want to customize the number of faces for each die.</mat-hint>
+    <mat-checkbox
+      [formControl]="customizeDieFaceCount"
+      name="customizeDieFaceCount"
+      data-testid="customizeDieFaceCount"
+      >Customize Die Face Count</mat-checkbox
+    >
+    <mat-hint
+      >Enable this if you want to customize the number of faces for each
+      die.</mat-hint
+    >
   </mat-form-field>
 </div>

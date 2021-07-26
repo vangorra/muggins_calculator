@@ -32,14 +32,15 @@ module.exports = function (config) {
       subdir: '.',
       reporters: [
         { type: 'html' },
-        { type: 'text-summary' }
+        { type: 'text-summary' },
+        { type: 'lcov', subdir: 'report-lcov' },
       ],
       check: {
         global: {
-          statements: 97,
+          statements: 100,
           branches: 86,
-          functions: 94,
-          lines: 98,
+          functions: 100,
+          lines: 100,
         }
       }
     },

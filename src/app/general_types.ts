@@ -28,7 +28,7 @@ export interface SolverWorkerResponse {
   [total: number]: string[];
 }
 
-export interface TypedWorker<M,R> extends Worker {
+export interface TypedWorker<M, R> extends Worker {
   onmessage: ((this: Worker, ev: MessageEvent<R>) => any) | null;
   postMessage(message: M, transfer: Transferable[]): void;
   postMessage(message: M, options?: PostMessageOptions): void;

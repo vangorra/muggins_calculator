@@ -1,52 +1,48 @@
-import {render, screen} from "@testing-library/angular";
-import userEvent from "@testing-library/user-event";
-import {MatSelectModule} from "@angular/material/select";
-import {MatRadioModule} from "@angular/material/radio";
-import {ReactiveFormsModule} from "@angular/forms";
-import DieComponent from "./die.component";
-import {DEFAULT_CONFIG} from "../const";
-import {Config} from "../general_types";
+import { render, screen } from '@testing-library/angular';
+import userEvent from '@testing-library/user-event';
+import { MatSelectModule } from '@angular/material/select';
+import { MatRadioModule } from '@angular/material/radio';
+import { ReactiveFormsModule } from '@angular/forms';
+import DieComponent from './die.component';
+import { DEFAULT_CONFIG } from '../const';
+import { Config } from '../general_types';
 import createSpy = jasmine.createSpy;
 
 describe(DieComponent.name, () => {
-  it("select face count", async () => {
+  it('select face count', async () => {
     const dieChangedCallback = createSpy();
-    const config: Config = { ...DEFAULT_CONFIG};
-    const {fixture} = await render(
+    const config: Config = { ...DEFAULT_CONFIG };
+    const { fixture } = await render(
       `<app-die [config]="config" [die]="die" (dieChanged)="dieChanged($event)"></app-die>`,
       {
-        declarations: [
-          DieComponent
-        ],
+        declarations: [DieComponent],
         componentProperties: {
           config,
           die: {
             selectedFaceCount: 6,
             selectedFace: 3,
           },
-          dieChanged: dieChangedCallback
+          dieChanged: dieChangedCallback,
         },
-        imports: [
-          MatSelectModule,
-          ReactiveFormsModule,
-          MatRadioModule,
-        ]
+        imports: [MatSelectModule, ReactiveFormsModule, MatRadioModule],
       }
     );
 
     // Confirm the select is not visible yet.
-    expect(await screen.queryByLabelText("Face Count")).toBeNull();
+    expect(await screen.queryByLabelText('Face Count')).toBeNull();
 
     config.customizeDieFaceCount = true;
 
     const targetFaceCountSelection = 4;
     const targetFaceSelection = 2;
-    const faceCountElement = await screen.findByLabelText("Face Count");
+    const faceCountElement = await screen.findByLabelText('Face Count');
 
     // Select a face count.
     userEvent.click(faceCountElement);
-    const option = await screen.getByText((text, element) =>
-      text === `${targetFaceCountSelection  }` && element?.className === "mat-option-text"
+    const option = await screen.getByText(
+      (text, element) =>
+        text === `${targetFaceCountSelection}` &&
+        element?.className === 'mat-option-text'
     );
     userEvent.click(option);
     expect(dieChangedCallback).toHaveBeenCalledWith({
@@ -58,14 +54,16 @@ describe(DieComponent.name, () => {
     const faceOptionArr = screen.queryAllByText((content, element) => {
       if (element instanceof HTMLInputElement) {
         const inputElement = element as HTMLInputElement;
-        return inputElement.type === "radio";
+        return inputElement.type === 'radio';
       }
       return false;
     }) as HTMLInputElement[];
     expect(faceOptionArr.length).toEqual(targetFaceCountSelection);
 
     // Click a face option.
-    const faceOption = faceOptionArr.filter(o => o.value === `${targetFaceSelection  }`)[0]
+    const faceOption = faceOptionArr.filter(
+      (o) => o.value === `${targetFaceSelection}`
+    )[0];
     userEvent.click(faceOption);
     expect(dieChangedCallback).toHaveBeenCalledWith({
       selectedFaceCount: targetFaceCountSelection,
