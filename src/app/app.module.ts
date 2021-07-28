@@ -17,11 +17,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatInputModule } from '@angular/material/input';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatIconModule } from '@angular/material/icon';
+import { ServiceWorkerModule } from '@angular/service-worker';
 import AppRoutingModule from './app-routing.module';
 import AppComponent from './app.component';
 import CalculatorComponent from './calculator/calculator.component';
 import DieComponent from './die/die.component';
 import ConfigComponent from './config/config.component';
+import environment from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -49,6 +51,12 @@ import ConfigComponent from './config/config.component';
     MatInputModule,
     MatBottomSheetModule,
     MatIconModule,
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: environment.production,
+      // Register the ServiceWorker as soon as the app is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
   providers: [],
   bootstrap: [AppComponent],

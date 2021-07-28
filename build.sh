@@ -19,6 +19,10 @@ echo "=== Linting code ==="
 npm run "lint${CI_SUFFIX}"
 
 echo ""
+echo "=== Generating icons ==="
+ngx-pwa-icons
+
+echo ""
 echo "=== Building ==="
 npm run build
 
