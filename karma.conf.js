@@ -49,7 +49,7 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: process.env['CI'] ? ['ChromeHeadless', 'FirefoxHeadless'] : ['Chromium', 'ChromeHeadless', 'Firefox', 'FirefoxHeadless'],
+    browsers: ['ChromeHeadless', 'FirefoxHeadless'],
     singleRun: false,
     restartOnFileChange: true
   });

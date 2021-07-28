@@ -10,15 +10,19 @@ Goto: https://vangorra.github.io/muggins_calculator/
 
 Full build with code formatting, linting and testing.
 ```shell
-./build.sh
+npm install
+```
+
+```shell
+gulp build
 ```
 
 Run and serve the app on localhost.
 ```shell
-npm serve
+gulp serve
 ```
 
 Continually test the app.
 ```shell
-npm test:watch
+gulp testWatch
 ```

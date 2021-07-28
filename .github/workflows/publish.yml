@@ -14,7 +14,8 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '12'
-      - run: ./build.sh
+      - run: npm install
+      - run: gulp build
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
