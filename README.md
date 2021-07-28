@@ -18,6 +18,8 @@ gulp build
 ```
 
 Run and serve the app on localhost.
+Note: This does not use `ng serve` as the former lacks support for progressive web apps (PWA).
+Instead, `ng build --watch` is used to build on code changes, and a separate http server serves the files.
 ```shell
 gulp serve
 ```

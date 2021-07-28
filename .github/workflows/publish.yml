@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: '12'
       - run: npm install
-      - run: gulp build
+      - run: gulp buildCi
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:

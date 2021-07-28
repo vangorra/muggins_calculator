@@ -11,6 +11,11 @@ const buildDir = resolve("build");
 const distDir = resolve("dist");
 const targetDirs = [buildDir, distDir];
 
+const testBrowsers = ["Chromium", "ChromeHeadless", "Firefox", "FirefoxHeadless"];
+const testBrowsersStr = testBrowsers.join(",");
+const testCiBrowsers = ["ChromeHeadless", "FirefoxHeadless"];
+const testCiBrowsersStr = testCiBrowsers.join(",");
+
 async function spawnCommand(command: string, ...args: string[]): Promise<number> {
   return new Promise<number>(res => {
     const process = spawn(command, args, { stdio: 'inherit' });
@@ -28,6 +33,8 @@ export async function clean() {
     })
   );
 }
+const targetDirsStr = targetDirs.join(",");
+clean.description = `Remove directories: ${targetDirsStr}`;
 
 export async function formatCodeApply() {
   await spawnCommand(
@@ -35,6 +42,7 @@ export async function formatCodeApply() {
     "--write", "src/"
   );
 }
+formatCodeApply.description = "Format source code.";
 
 export async function formatCodeCheck() {
   await spawnCommand(
@@ -42,12 +50,14 @@ export async function formatCodeCheck() {
     "--list-different", "src/"
   );
 }
+formatCodeCheck.description = "Check if code is formatted.";
 
 export async function generateIcons() {
   await spawnCommand(
     resolve(binDir, "ngx-pwa-icons"),
   );
 }
+generateIcons.description = "Generate icons.";
 
 export async function lintApply() {
   await spawnCommand(
@@ -55,6 +65,7 @@ export async function lintApply() {
     "lint", "--fix"
   );
 }
+lintApply.description = "Lint code and apply changes (if possible).";
 
 export async function lintCheck() {
   await spawnCommand(
@@ -62,11 +73,23 @@ export async function lintCheck() {
     "lint"
   );
 }
+lintCheck.description = "Check if code passes lint checks.";
 
 export async function compile() {
   await spawnCommand(
     resolve(binDir, "ng"),
-    "build"
+    "build",
+    "--configuration", "production"
+  );
+}
+compile.description = "Compile the code.";
+
+async function compileWatch() {
+  await spawnCommand(
+    resolve(binDir, "ng"),
+    "build",
+    "--configuration", "production",
+    "--watch"
   );
 }
 
@@ -75,18 +98,20 @@ export async function test() {
     resolve(binDir, "ng"),
     "test",
     "--watch", "false",
-    "--browsers", "Chromium,ChromeHeadless,Firefox,FirefoxHeadless"
+    "--browsers", testBrowsersStr
   );
 }
+test.description = `Test code with browsers: ${testBrowsersStr}`;
+
 export async function testCi() {
   await spawnCommand(
     resolve(binDir, "ng"),
     "test",
     "--watch", "false",
-    "--browsers", "ChromeHeadless,FirefoxHeadless"
+    "--browsers", testCiBrowsersStr
   );
 }
-
+test.description = `Test code in continuous integration with browsers: ${testCiBrowsersStr}`;
 
 export async function testWatch() {
   await spawnCommand(
@@ -96,15 +121,17 @@ export async function testWatch() {
     "--browsers", "Chromium"
   );
 }
+testWatch.description = "Test and watch for changes.";
 
-async function startHttpServer() {
+export async function startHttpServer() {
   await spawnCommand(
     resolve(binDir, "http-server"),
     "-p", "8080",
-    "-c", "-1",
+    "-c", "0",
     "dist/app"
   )
 }
+startHttpServer.description = "Start HTTP server for hosting compiled code.";
 
 async function startNg() {
   await spawnCommand(
@@ -112,32 +139,39 @@ async function startNg() {
     "serve"
   )
 }
+startNg.description = "Start locally using 'ng serve'.";
 
 export const build = gulp.series(
-  formatCodeApply,
   generateIcons,
+  formatCodeApply,
   lintApply,
   compile,
   test
 );
+build.description = "Format, generate, lint, compile and test.";
 
 export const buildCi = gulp.series(
-  formatCodeCheck,
   generateIcons,
+  formatCodeCheck,
   lintCheck,
   compile,
   testCi
 );
+buildCi.description = `Check format, generate, check lint, compile and test with browsers (${testCiBrowsers}).`;
 
-export const servePwa = gulp.series(
-  generateIcons,
-  compile,
-  startHttpServer
-);
+async function watchIcons() {
+  gulp.watch("./icon.png", generateIcons);
+}
 
 export const serve = gulp.series(
-  generateIcons,
-  startNg
+  clean,
+  gulp.parallel(
+    watchIcons,
+    generateIcons,
+    compileWatch,
+    startHttpServer
+  )
 );
+serve.description = "Build and serve using local HTTP server. Better than 'ng serve' as the former does not work with progressive web apps.";
 
 export default build;
