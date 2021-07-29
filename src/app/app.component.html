@@ -1,7 +1,26 @@
 <div class="app">
   <router-outlet></router-outlet>
+
+  <div class="appTheme">
+    <mat-button-toggle-group
+      name="appTheme"
+      aria-label="App Theme"
+      [value]="getBrightnessSetting()"
+      (change)="onBrightnessSettingChanged($event)"
+    >
+      <mat-button-toggle aria-label="Dark Theme" value="dark"
+        ><mat-icon svgIcon="brightness-1"></mat-icon
+      ></mat-button-toggle>
+      <mat-button-toggle aria-label="Auto" value="auto"
+        ><mat-icon svgIcon="brightness-auto"></mat-icon
+      ></mat-button-toggle>
+      <mat-button-toggle aria-label="Light Theme" value="light"
+        ><mat-icon svgIcon="brightness-7"></mat-icon
+      ></mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  <a href="https://github.com/vangorra/muggins_calculator">Github Project</a>
 </div>
 
 <ngx-scrolltop></ngx-scrolltop>
-
-<a href="https://github.com/vangorra/muggins_calculator">Github Project</a>

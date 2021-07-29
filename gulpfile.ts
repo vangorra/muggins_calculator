@@ -127,7 +127,7 @@ export async function startHttpServer() {
   await spawnCommand(
     resolve(binDir, "http-server"),
     "-p", "8080",
-    "-c", "0",
+    "-c", "\\-1",
     "dist/app"
   )
 }

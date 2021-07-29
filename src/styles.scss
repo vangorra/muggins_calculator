@@ -3,9 +3,6 @@
 $roboto-font-path: "~roboto-fontface/fonts" !default;
 @import "~roboto-fontface/css/roboto/sass/roboto-fontface";
 
-$material-icons-font-path: "~material-icons/iconfont/";
-@import "~material-icons/iconfont/material-icons.scss";
-
 @import "~@angular/material/theming";
 
 html,
@@ -29,11 +26,6 @@ $theme-light: mat-light-theme($app-primary, $app-accent, $app-warn);
 
   $background: map-get($theme-dark, background);
   background-color: mat-color($background, card);
-
-  a,
-  a:visited {
-    color: white;
-  }
 }
 
 .color-scheme-light {
@@ -41,9 +33,4 @@ $theme-light: mat-light-theme($app-primary, $app-accent, $app-warn);
 
   $background: map-get($theme-light, background);
   background-color: mat-color($background, card);
-
-  a,
-  a:visited {
-    color: black;
-  }
 }
