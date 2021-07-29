@@ -79,6 +79,7 @@ export async function compile() {
   await spawnCommand(
     resolve(binDir, "ng"),
     "build",
+    "--aot",
     "--configuration", "production"
   );
 }
@@ -88,6 +89,7 @@ async function compileWatch() {
   await spawnCommand(
     resolve(binDir, "ng"),
     "build",
+    "--aot",
     "--configuration", "production",
     "--watch"
   );
