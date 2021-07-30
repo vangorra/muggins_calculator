@@ -19,7 +19,6 @@
     "@mdi/angular-material": "^5.9.55",
     "cartesian-product-multiple-arrays": "^1.0.9",
     "lodash": "^4.17.21",
-    "material-icons": "^1.0.0",
     "ngx-scrolltop": "^2.4.0",
     "roboto-fontface": "^0.10.0",
     "rxjs": "~6.6.0",
@@ -38,16 +37,20 @@
     "@angular/compiler-cli": "~12.0.5",
     "@testing-library/angular": "^10.8.2",
     "@testing-library/user-event": "^13.1.9",
+    "@types/browser-sync": "^2.26.2",
+    "@types/glob": "^7.1.4",
     "@types/gulp": "^4.0.9",
     "@types/jasmine": "~3.6.0",
     "@types/lodash": "^4.14.170",
     "@types/node": "^12.11.1",
     "@typescript-eslint/eslint-plugin": "^4.28.0",
     "@typescript-eslint/parser": "4.23.0",
+    "browser-sync": "^2.27.5",
     "eslint": "^7.26.0",
     "eslint-config-airbnb-typescript": "^12.3.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.23.4",
+    "glob": "^7.1.7",
     "gulp": "^4.0.2",
     "http-server": "^0.12.3",
     "jasmine-core": "~3.7.0",
@@ -63,6 +66,7 @@
     "puppeteer": "^10.0.0",
     "ts-loader": "^9.2.3",
     "ts-node": "^10.1.0",
-    "typescript": "~4.2.3"
+    "typescript": "~4.2.3",
+    "xml-js": "^1.6.11"
   }
 }
