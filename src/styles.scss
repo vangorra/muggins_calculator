@@ -1,4 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
+@use "sass:color";
 
 $roboto-font-path: "~roboto-fontface/fonts" !default;
 @import "~roboto-fontface/css/roboto/sass/roboto-fontface";
@@ -25,7 +26,7 @@ $theme-light: mat-light-theme($app-primary, $app-accent, $app-warn);
   @include angular-material-theme($theme-dark);
 
   $background: map-get($theme-dark, background);
-  background-color: mat-color($background, card);
+  background-color: color.adjust(mat-color($background, card), $lightness: -1%);
 }
 
 .color-scheme-light {

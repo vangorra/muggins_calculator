@@ -192,17 +192,20 @@ export const buildAndTest = gulp.series(
 );
 build.description = "Format, generate, lint, compile and test.";
 
-function startServe() {
+async function startServe() {
+  console.log("startServe");
   browserSync.init({
     port: 8080,
     server: {
       baseDir: "./dist/app",
     }
   });
+  console.log("/startServe");
 }
 
 let serveFileWatcher: FSWatcher;
-function startServeWatch() {
+async function startServeWatch() {
+  console.log("startServeWatch");
   serveFileWatcher = gulp.watch(
     [
       "./icon.png",
@@ -210,10 +213,13 @@ function startServeWatch() {
     ],
     buildAndReload
   );
+  console.log("/startServeWatch");
 }
 
-function stopServeWatch() {
+async function stopServeWatch() {
+  console.log("stopServeWatch");
   serveFileWatcher && serveFileWatcher.close();
+  console.log("/stopServeWatch");
 }
 
 const buildAndReload = gulp.series(
