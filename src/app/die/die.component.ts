@@ -47,9 +47,10 @@ export default class DieComponent implements OnInit, OnDestroy {
     merge(this.selectedFaceCount.valueChanges, this.selectedFace.valueChanges)
       .pipe(takeUntil(this.destroy))
       .subscribe(() => {
-        this.die.selectedFaceCount = this.selectedFaceCount.value;
-        this.die.selectedFace = this.selectedFace.value;
-        this.dieChanged.emit(this.die);
+        this.dieChanged.emit({
+          selectedFaceCount: this.selectedFaceCount.value,
+          selectedFace: this.selectedFace.value,
+        });
       });
   }
 

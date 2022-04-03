@@ -17,14 +17,25 @@ npm install
 gulp build
 ```
 
-Run and serve the app on localhost.
-Note: This does not use `ng serve` as the former lacks support for progressive web apps (PWA).
+### Run and serve the app on localhost.
+
+#### Serve fully end-to-end with all browser features
+
+This does not use `ng serve` as the former lacks support for progressive web apps (PWA).
 Instead, `ng build --watch` is used to build on code changes, and a separate http server serves the files.
 ```shell
 gulp serve
 ```
 
-Continually test the app.
+#### Serve quick for development
+
+This lacks support for progressive web apps but allows for faster development.
+
+```shell
+ng serve
+```
+
+### Continually test the app.
 ```shell
 gulp testWatch
 ```

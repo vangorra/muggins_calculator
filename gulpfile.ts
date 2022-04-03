@@ -210,6 +210,7 @@ async function startServeWatch() {
     [
       "./icon.png",
       "./src/**",
+      "!./src/**/*.spec.*"
     ],
     buildAndReload
   );

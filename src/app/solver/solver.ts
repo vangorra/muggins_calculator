@@ -35,7 +35,7 @@ abstract class BaseEquation {
 }
 
 class EquationNumber extends BaseEquation {
-  num: number;
+  private readonly num: number;
 
   constructor(num: number) {
     super();
@@ -52,11 +52,11 @@ class EquationNumber extends BaseEquation {
 }
 
 class Equation extends BaseEquation {
-  num1: BaseEquation;
+  private readonly num1: BaseEquation;
 
-  num2: BaseEquation;
+  private readonly num2: BaseEquation;
 
-  operation: Operation;
+  private operation: Operation;
 
   constructor(num1: BaseEquation, num2: BaseEquation, operation: Operation) {
     super();
@@ -115,10 +115,15 @@ class Equation extends BaseEquation {
 }
 
 export class MugginsSolver {
-  maxTotal: number;
+  private readonly maxTotal: number;
 
-  minTotal: number;
+  private readonly minTotal: number;
 
+  /**
+   * Create a new solver.
+   * @param minTotal Minimum board size.
+   * @param maxTotal Maximum board size.
+   */
   constructor(minTotal: number, maxTotal: number) {
     this.minTotal = minTotal;
     this.maxTotal = maxTotal;
@@ -165,6 +170,11 @@ export class MugginsSolver {
     return permutations;
   }
 
+  /**
+   * Get equations for the selected configurations.
+   * @param selectedFaces
+   * @param selectedOperations
+   */
   public getEquations(
     selectedFaces: number[],
     selectedOperations: Operation[]
@@ -200,6 +210,6 @@ export class MugginsSolver {
 }
 
 export interface EquationData {
-  total: number;
-  equation: string;
+  readonly total: number;
+  readonly equation: string;
 }

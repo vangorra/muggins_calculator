@@ -9,10 +9,10 @@ import { Config } from '../general_types';
 import createSpy = jasmine.createSpy;
 
 describe(DieComponent.name, () => {
-  it('select face count', async () => {
+  it('custom face count not visible', async () => {
     const dieChangedCallback = createSpy();
     const config: Config = { ...DEFAULT_CONFIG };
-    const { fixture } = await render(
+    await render(
       `<app-die [config]="config" [die]="die" (dieChanged)="dieChanged($event)"></app-die>`,
       {
         declarations: [DieComponent],
@@ -30,8 +30,26 @@ describe(DieComponent.name, () => {
 
     // Confirm the select is not visible yet.
     expect(await screen.queryByLabelText('Face Count')).toBeNull();
+  });
 
-    config.customizeDieFaceCount = true;
+  it('select face count', async () => {
+    const dieChangedCallback = createSpy();
+    const config: Config = { ...DEFAULT_CONFIG, customizeDieFaceCount: true };
+    const { fixture } = await render(
+      `<app-die [config]="config" [die]="die" (dieChanged)="dieChanged($event)"></app-die>`,
+      {
+        declarations: [DieComponent],
+        componentProperties: {
+          config,
+          die: {
+            selectedFaceCount: 6,
+            selectedFace: 3,
+          },
+          dieChanged: dieChangedCallback,
+        },
+        imports: [MatSelectModule, ReactiveFormsModule, MatRadioModule],
+      }
+    );
 
     const targetFaceCountSelection = 4;
     const targetFaceSelection = 2;

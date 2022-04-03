@@ -70,6 +70,7 @@ describe(CalculatorComponent.name, () => {
     const containerParent = container.parentElement as HTMLElement;
     expect(containerParent).toBeTruthy();
 
+    // Setup helper query functions.
     const getDieFace = (el: HTMLElement, face: number) =>
       el.querySelector(`input[type='radio'][value='${face}']`) as HTMLElement;
     const getEquationElements = () =>
@@ -77,13 +78,14 @@ describe(CalculatorComponent.name, () => {
         container.querySelectorAll('mat-list-item.equationStr')
       ) as HTMLElement[];
 
-    // Test changing die faces.
+    // Assert the default number of radio groups are present.
     const faceRadioGroups = Array.from(
       container.querySelectorAll('mat-radio-group')
     ) as HTMLElement[];
     expect(faceRadioGroups).toBeTruthy();
     expect(faceRadioGroups.length).toEqual(3);
 
+    // Get the die faces for later use.
     const die1Face4 = getDieFace(faceRadioGroups[0], 4);
     expect(die1Face4).toBeTruthy();
     const die2Face3 = getDieFace(faceRadioGroups[1], 3);
@@ -92,9 +94,11 @@ describe(CalculatorComponent.name, () => {
     expect(die3Face2).toBeTruthy();
     let equationElements: HTMLElement[];
 
+    // Assert the defaults show the correct result.
     equationElements = getEquationElements();
     expect(equationElements.length).toEqual(21);
 
+    // Click die and confirm results.
     userEvent.click(die1Face4);
     equationElements = getEquationElements();
     expect(equationElements.length).toEqual(59);

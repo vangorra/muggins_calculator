@@ -1,9 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 @use "sass:color";
 
-$roboto-font-path: "~roboto-fontface/fonts" !default;
-@import "~roboto-fontface/css/roboto/sass/roboto-fontface";
-
+@import "~@fontsource/roboto/index.css";
+@import "~@fontsource/material-icons/index.css";
 @import "~@angular/material/theming";
 
 html,
@@ -12,7 +11,7 @@ body {
 }
 body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", sans-serif;
 }
 
 $app-primary: mat-palette($mat-light-blue);

@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { BrowserModule, DomSanitizer } from '@angular/platform-browser';
+import { BrowserModule } from '@angular/platform-browser';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -16,7 +16,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatInputModule } from '@angular/material/input';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
-import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { HttpClientModule } from '@angular/common/http';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -52,7 +52,6 @@ import environment from '../environments/environment';
     MatProgressSpinnerModule,
     MatInputModule,
     MatBottomSheetModule,
-    MatIconModule,
     MatButtonToggleModule,
     MatIconModule,
     HttpClientModule,
@@ -66,10 +65,4 @@ import environment from '../environments/environment';
   providers: [],
   bootstrap: [AppComponent],
 })
-export default class AppModule {
-  constructor(matIconRegistry: MatIconRegistry, domSanitizer: DomSanitizer) {
-    matIconRegistry.addSvgIconSet(
-      domSanitizer.bypassSecurityTrustResourceUrl('./assets/mdi.svg')
-    );
-  }
-}
+export default class AppModule {}

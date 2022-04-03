@@ -1,3 +1,4 @@
+import '@fontsource/roboto';
 import { Component } from '@angular/core';
 import { MatButtonToggleChange } from '@angular/material/button-toggle';
 import ColorSchemeService from './color-scheme.service';

@@ -9,14 +9,14 @@
       (change)="onBrightnessSettingChanged($event)"
     >
       <mat-button-toggle aria-label="Dark Theme" value="dark"
-        ><mat-icon svgIcon="brightness-1"></mat-icon
-      ></mat-button-toggle>
+        ><mat-icon>brightness_low</mat-icon></mat-button-toggle
+      >
       <mat-button-toggle aria-label="Auto" value="auto"
-        ><mat-icon svgIcon="brightness-auto"></mat-icon
-      ></mat-button-toggle>
-      <mat-button-toggle aria-label="Light Theme" value="light"
-        ><mat-icon svgIcon="brightness-7"></mat-icon
-      ></mat-button-toggle>
+        ><mat-icon>brightness_auto</mat-icon></mat-button-toggle
+      >
+      <mat-button-toggle aria-label="Light Theme" value="light">
+        <mat-icon>brightness_high</mat-icon></mat-button-toggle
+      >
     </mat-button-toggle-group>
   </div>
 

@@ -7,19 +7,21 @@
         class="diceConfig"
         style="overflow: auto"
       >
-        <ng-container *ngFor="let die of dice; index as i; last as isLastDie">
+        <ng-container
+          *ngFor="let die of dice; index as dieIndex; last as isLastDie"
+        >
           <div class="die" fxFlex.xs="20" fxFlex.sm="20">
-            <h3>Die {{ i + 1 }}</h3>
+            <h3>Die {{ dieIndex + 1 }}</h3>
             <app-die
               [config]="config"
               [die]="die"
-              (dieChanged)="onChange()"
+              (dieChanged)="onDieChanged(dieIndex, $event)"
             ></app-die>
           </div>
         </ng-container>
 
         <button mat-button (click)="openConfig()" class="configButton">
-          <mat-icon svgIcon="cog-outline"></mat-icon>
+          <mat-icon>settings</mat-icon>
         </button>
       </div>
     </mat-card-content>
@@ -28,7 +30,10 @@
 
 <section class="results">
   <mat-card>
-    <mat-card-title>Results</mat-card-title>
+    <mat-card-title>
+      Results
+      <span *ngIf="equationsCount > 0"> ({{ equationsCount }})</span>
+    </mat-card-title>
     <mat-card-content>
       <ng-container *ngIf="isProcessing">
         <mat-spinner></mat-spinner>

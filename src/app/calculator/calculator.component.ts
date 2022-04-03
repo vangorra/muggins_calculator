@@ -27,6 +27,8 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   readonly equationGroups: [string, string[]][] = [];
 
+  equationsCount: number = 0;
+
   private currentWorker:
     | TypedWorker<SolverWorkerMessage, SolverWorkerResponse>
     | undefined = undefined;
@@ -110,7 +112,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   cancel(): void {
     this.currentWorker?.terminate();
-    this.equationGroups.splice(0, this.equationGroups.length);
+    this.emptyEquationGroups();
     this.isProcessing = false;
     this.isCancelled = true;
   }
@@ -152,13 +154,25 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     }
   }
 
-  onWorkerResponse(data: SolverWorkerResponse): void {
-    // Empty the current array.
+  emptyEquationGroups() {
     this.equationGroups.splice(0, this.equationGroups.length);
+    this.equationsCount = 0;
+  }
+
+  onWorkerResponse(data: SolverWorkerResponse): void {
+    this.emptyEquationGroups();
 
     // Add the new groups.
     this.equationGroups.push(...Object.entries(data));
+    this.equationsCount = this.equationGroups
+      .map((group) => group[1].length)
+      .reduce((partialSum, a) => partialSum + a, 0);
     this.isProcessing = false;
+  }
+
+  onDieChanged(dieIndex: number, die: Die): void {
+    this.dice[dieIndex] = die;
+    this.reload();
   }
 
   onChange(): void {

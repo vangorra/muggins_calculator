@@ -1,31 +1,31 @@
 export interface Config {
-  boardMinNumber: number;
-  boardMaxNumber: number;
-  diceCount: number;
-  operations: Operation[];
-  customizeDieFaceCount: boolean;
+  readonly boardMinNumber: number;
+  readonly boardMaxNumber: number;
+  readonly diceCount: number;
+  readonly operations: Operation[];
+  readonly customizeDieFaceCount: boolean;
 }
 
 export interface Die {
-  selectedFaceCount: number;
-  selectedFace: number;
+  readonly selectedFaceCount: number;
+  readonly selectedFace: number;
 }
 
 export interface Operation {
-  name: string;
-  operationFunction: (a: number, b: number) => number;
-  operator: string;
+  readonly name: string;
+  readonly operationFunction: (a: number, b: number) => number;
+  readonly operator: string;
 }
 
 export interface SolverWorkerMessage {
-  boardMinNumber: number;
-  boardMaxNumber: number;
-  selectedDieFaces: number[];
-  selectedOperators: string[];
+  readonly boardMinNumber: number;
+  readonly boardMaxNumber: number;
+  readonly selectedDieFaces: number[];
+  readonly selectedOperators: string[];
 }
 
 export interface SolverWorkerResponse {
-  [total: number]: string[];
+  readonly [total: number]: string[];
 }
 
 export interface TypedWorker<M, R> extends Worker {
