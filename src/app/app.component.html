@@ -1,4 +1,4 @@
-<div class="app">
+<div class="app" *ngIf="isMathJaxInitialized">
   <router-outlet></router-outlet>
 
   <div class="appTheme">
@@ -22,5 +22,7 @@
 
   <a href="https://github.com/vangorra/muggins_calculator">Github Project</a>
 </div>
+
+<span class="mathjax_process" style="display: none">`x`</span>
 
 <ngx-scrolltop></ngx-scrolltop>

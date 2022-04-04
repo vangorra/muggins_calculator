@@ -1,6 +1,6 @@
 # Muggins Calculator ![Build status](https://github.com/vangorra/muggins_calculator/workflows/Build/badge.svg?branch=main) [![Coverage Status](https://coveralls.io/repos/github/vangorra/muggins_calculator/badge.svg)](https://coveralls.io/github/vangorra/muggins_calculator)
 
-Tool for providing equations for the popular math game Muggins.
+Aa app for discovering and checking answers to the popular math game Muggins.
 
 ## Quickstart
 
@@ -39,3 +39,23 @@ ng serve
 ```shell
 gulp testWatch
 ```
+
+## Notes
+
+### MathJax
+
+This app utilized mathjax to format equations in a way humans are familiar with.
+Getting it working in Angular is a little tricky. For the sake easy for future debugging,
+here is what was done:
+
+- package.json - Added mathjax as a dependency.
+- angular.json - Added build asset for the mathjax/es5 directory. This will ensure our
+bundled version is all we every use and is served locally.
+- index.html - Added MathJax config for processing asciimath.
+Also updated libraries to output in acsiimath format.
+- AppComponent component - Added small (hidden) equation to bottom of template.
+This ensures MathJax is fully initialized before we start using it. 
+AppComponent itself wait for init to finish before allowing itself to be displayed.
+- Calculator component - Will tell MathJax to rescan for equations after it
+finishes rendering new results.
+- test.ts - Set a mocked MathJax object so components think its initialized.

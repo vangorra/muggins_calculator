@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { merge, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -16,13 +16,16 @@ import {
 } from '../general_types';
 import ConfigComponent from '../config/config.component';
 import { runSolverWorkerMain } from '../solver/utils';
+import { MathJaxUtils } from '../utils';
 
 @Component({
   selector: 'app-calculator',
   templateUrl: './calculator.component.html',
   styleUrls: ['./calculator.component.scss'],
 })
-export default class CalculatorComponent implements OnInit, OnDestroy {
+export default class CalculatorComponent
+  implements OnInit, OnDestroy, AfterViewChecked
+{
   readonly dice: Die[] = [];
 
   readonly equationGroups: [string, string[]][] = [];
@@ -55,6 +58,10 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.destroyBottomSheet.next();
+  }
+
+  ngAfterViewChecked(): void {
+    MathJaxUtils.typeset();
   }
 
   openConfig(): void {
@@ -137,7 +144,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       boardMinNumber: this.config.boardMinNumber,
       boardMaxNumber: this.config.boardMaxNumber,
       selectedDieFaces: this.dice.map((die) => die.selectedFace),
-      selectedOperators: this.config.operations.map((o) => o.operator),
+      selectedOperators: this.config.operations.map((o) => o.id),
     };
 
     // Run process in a worker.

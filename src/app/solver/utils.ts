@@ -9,9 +9,7 @@ export const runSolverWorkerMain = (data: SolverWorkerMessage) => {
   const equations = solver
     .getEquations(
       data.selectedDieFaces,
-      ALL_OPERATIONS.filter(
-        (o) => data.selectedOperators.indexOf(o.operator) > -1
-      )
+      ALL_OPERATIONS.filter((o) => data.selectedOperators.indexOf(o.id) > -1)
     )
     .map((e) => `${e.total} = ${e.equation}`)
     .sort();

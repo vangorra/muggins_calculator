@@ -103,21 +103,21 @@ describe(CalculatorComponent.name, () => {
     equationElements = getEquationElements();
     expect(equationElements.length).toEqual(59);
     expect(equationElements[0].textContent?.trim()).toEqual(
-      '2 = ((4 - 1) - 1)'
+      '`2 = (4 - 1) - 1`'
     );
 
     userEvent.click(die2Face3);
     equationElements = getEquationElements();
     expect(equationElements.length).toEqual(101);
     expect(equationElements[0].textContent?.trim()).toEqual(
-      '1 = ((1 + 3) / 4)'
+      '`1 = (1 * 4) - 3`'
     );
 
     userEvent.click(die3Face2);
     equationElements = getEquationElements();
     expect(equationElements.length).toEqual(99);
     expect(equationElements[0].textContent?.trim()).toEqual(
-      '1 = ((2 + 3) - 4)'
+      '`1 = (2 + 3) - 4`'
     );
 
     const configButton = container.querySelector(
@@ -157,7 +157,7 @@ describe(CalculatorComponent.name, () => {
     equationElements = await getEquationElements();
     expect(equationElements.length).toEqual(1053);
     expect(equationElements[0].textContent?.trim()).toEqual(
-      '2 = (((1 + 2) + 3) - 4)'
+      '`2 = ((1 * 2) * 3) - 4`'
     );
 
     // Test select equation.

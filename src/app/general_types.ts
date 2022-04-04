@@ -11,10 +11,22 @@ export interface Die {
   readonly selectedFace: number;
 }
 
+export enum OperationId {
+  PLUS = 'plus',
+  MINUS = 'minus',
+  MULTIPLY = 'multiply',
+  DIVIDE = 'divide',
+  POWER = 'power',
+  ROOT = 'root',
+  MODULO = 'modulo',
+}
+
 export interface Operation {
   readonly name: string;
-  readonly operationFunction: (a: number, b: number) => number;
-  readonly operator: string;
+  readonly id: OperationId;
+  readonly solve: (a: number, b: number) => number;
+  readonly display: (a: string, b: string) => string;
+  readonly grouping: (text: string) => string;
 }
 
 export interface SolverWorkerMessage {
@@ -31,5 +43,5 @@ export interface SolverWorkerResponse {
 export interface TypedWorker<M, R> extends Worker {
   onmessage: ((this: Worker, ev: MessageEvent<R>) => any) | null;
   postMessage(message: M, transfer: Transferable[]): void;
-  postMessage(message: M, options?: PostMessageOptions): void;
+  postMessage(message: M, options?: any): void;
 }

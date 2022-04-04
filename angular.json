@@ -30,7 +30,8 @@
               "src/favicon.ico",
               "src/assets",
               "src/manifest.webmanifest",
-              { "glob": "**", "input": "./dist/generated_assets", "output": "./assets" }
+              { "glob": "**", "input": "./dist/generated_assets", "output": "./assets" },
+              { "glob": "**", "input": "./node_modules/mathjax/es5", "output":  "./mathjax/es5" }
             ],
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",

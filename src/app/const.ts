@@ -1,4 +1,4 @@
-import { Config, Operation } from './general_types';
+import { Config, Operation, OperationId } from './general_types';
 
 export const DEFAULT_DICE_COUNT = 3;
 export const DEFAULT_DIE_SELECTED_FACE_COUNT = 6;
@@ -7,35 +7,66 @@ export const DEFAULT_BOARD_MIN_NUMBER = 1;
 export const DEFAULT_BOARD_MAX_NUMBER = 36;
 export const DEFAULT_CUSTOMIZE_DIE_FACE_COUNT = false;
 
-export const OPERATIONS: { [name: string]: Operation } = {
-  plus: {
-    name: 'Plus',
-    operationFunction: (a: number, b: number) => a + b,
-    operator: '+',
-  },
-  minus: {
-    name: 'Minus',
-    operationFunction: (a: number, b: number) => a - b,
-    operator: '-',
-  },
-  multiply: {
-    name: 'Multiply',
-    operationFunction: (a: number, b: number) => a * b,
-    operator: 'x',
-  },
-  divide: {
-    name: 'Divide',
-    operationFunction: (a: number, b: number) => a / b,
-    operator: '/',
-  },
-  power: {
-    name: 'Power',
-    operationFunction: (a: number, b: number) => a ** b,
-    operator: '^',
-  },
-};
+const GROUPING_PARENTHESIS = (text: string) => `(${text})`;
+const GROUPING_NONE = (text: string) => text;
 
-export const ALL_OPERATIONS = Object.values(OPERATIONS);
+export const ALL_OPERATIONS: Operation[] = [
+  {
+    name: 'Plus',
+    id: OperationId.PLUS,
+    solve: (a: number, b: number) => a + b,
+    display: (a: string, b: string) => `${a} + ${b}`,
+    grouping: GROUPING_PARENTHESIS,
+  },
+  {
+    name: 'Minus',
+    id: OperationId.MINUS,
+    solve: (a: number, b: number) => a - b,
+    display: (a: string, b: string) => `${a} - ${b}`,
+    grouping: GROUPING_PARENTHESIS,
+  },
+  {
+    name: 'Multiply',
+    id: OperationId.MULTIPLY,
+    solve: (a: number, b: number) => a * b,
+    display: (a: string, b: string) => `${a} * ${b}`,
+    grouping: GROUPING_PARENTHESIS,
+  },
+  {
+    name: 'Divide',
+    id: OperationId.DIVIDE,
+    solve: (a: number, b: number) => a / b,
+    display: (a: string, b: string) => `${a} / ${b}`,
+    grouping: GROUPING_PARENTHESIS,
+  },
+  {
+    name: 'Power',
+    id: OperationId.POWER,
+    solve: (a: number, b: number) => a ** b,
+    display: (a: string, b: string) => `${a} ^ ${b}`,
+    grouping: GROUPING_NONE,
+  },
+  {
+    name: 'Root',
+    id: OperationId.ROOT,
+    solve: (a: number, b: number) => Math.pow(a, 1 / b),
+    display: (a: string, b: string) => `root(${a})(${b})`,
+    grouping: GROUPING_NONE,
+  },
+  {
+    name: 'Modulo',
+    id: OperationId.MODULO,
+    solve: (a: number, b: number) => a % b,
+    display: (a: string, b: string) => `${a} % ${b}`,
+    grouping: GROUPING_PARENTHESIS,
+  },
+];
+
+// @ts-ignore
+export const OPERATIONS: { [id in OperationId]: Operation } =
+  Object.fromEntries(
+    ALL_OPERATIONS.map((operation) => [operation.id, operation])
+  );
 
 export const DEFAULT_OPERATIONS = [
   OPERATIONS.plus,

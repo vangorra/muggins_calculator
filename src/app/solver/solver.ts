@@ -5,6 +5,7 @@
 import { cartesianProduct } from 'cartesian-product-multiple-arrays';
 import { uniqWith } from 'lodash';
 import { Operation } from '../general_types';
+import { windowTime } from 'rxjs-compat/operator/windowTime';
 
 interface ParingPermutation extends Array<any | ParingPermutation[]> {}
 
@@ -23,15 +24,15 @@ abstract class BaseEquation {
 
   abstract calculateTotal(): number;
 
-  toString(): string {
+  toString(withGrouping = true): string {
     if (this.stringCache === undefined) {
-      this.stringCache = this.calculateToString();
+      this.stringCache = this.calculateToString(withGrouping);
     }
 
     return this.stringCache;
   }
 
-  abstract calculateToString(): string;
+  abstract calculateToString(withGrouping: boolean): string;
 }
 
 class EquationNumber extends BaseEquation {
@@ -69,14 +70,18 @@ class Equation extends BaseEquation {
     const num1 = +this.num1.total();
     const num2 = +this.num2.total();
 
-    return this.operation.operationFunction(num1, num2);
+    return this.operation.solve(num1, num2);
   }
 
-  calculateToString(): string {
+  calculateToString(withGrouping = true): string {
     const num1 = this.num1.toString();
     const num2 = this.num2.toString();
 
-    return `(${num1} ${this.operation.operator} ${num2})`;
+    const display = this.operation.display(num1, num2);
+    if (!withGrouping) {
+      return display;
+    }
+    return this.operation.grouping(display);
   }
 
   static createFromPairingsAndOperations(
@@ -204,7 +209,7 @@ export class MugginsSolver {
       )
       .map((equation) => ({
         total: equation.total(),
-        equation: equation.toString(),
+        equation: equation.toString(false),
       }));
   }
 }

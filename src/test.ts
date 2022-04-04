@@ -32,3 +32,10 @@ context.keys().map(context);
 Object.defineProperty(window, 'Worker', {
   value: undefined,
 });
+
+// Assume MathJax is initiated.
+Object.defineProperty(window, 'MathJax', {
+  value: {
+    typeset: () => undefined,
+  },
+} as any);
