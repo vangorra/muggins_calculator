@@ -185,4 +185,12 @@ export default class CalculatorComponent
   onChange(): void {
     this.reload();
   }
+
+  groupId(group: string): string {
+    return `group_${group}`;
+  }
+
+  scrollToId(groupId: string): void {
+    document.getElementById(groupId)?.scrollIntoView({ behavior: "smooth" })
+  }
 }
