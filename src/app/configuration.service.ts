@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Configuration } from './general_types';
 import {
   DEFAULT_CONFIGURATION,
-  DEFAULT_DIE_SELECTED_FACE_COUNT,
+  DEFAULT_DIE_FACE_COUNT,
 } from './const';
 import { cloneDeep } from 'lodash';
 import { BehaviorSubject } from 'rxjs';
@@ -63,7 +63,7 @@ export class ConfigurationService {
       dice: [
         ...this.configuration.dice,
         {
-          faceCount: DEFAULT_DIE_SELECTED_FACE_COUNT,
+          faceCount: DEFAULT_DIE_FACE_COUNT,
         },
       ],
     });

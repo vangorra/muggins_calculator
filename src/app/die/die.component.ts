@@ -1,15 +1,8 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-} from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { Subscription } from 'rxjs';
-import { DEFAULT_DIE_SELECTED_FACE, DIE_FACE_COUNT_OPTIONS } from '../const';
-import { Die } from '../general_types';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output,} from '@angular/core';
+import {FormControl} from '@angular/forms';
+import {Subscription} from 'rxjs';
+import {DEFAULT_DIE_SELECTED_FACE} from '../const';
+import {Die} from '../general_types';
 
 @Component({
   selector: 'app-die',
@@ -17,8 +10,6 @@ import { Die } from '../general_types';
   styleUrls: ['./die.component.scss'],
 })
 export default class DieComponent implements OnInit, OnDestroy {
-  readonly faceCountOptions = DIE_FACE_COUNT_OPTIONS;
-
   @Input()
   label!: string;
 

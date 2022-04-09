@@ -1,7 +1,7 @@
 import { groupBy } from 'lodash';
 import { SolverWorkerMessage, SolverWorkerResponse } from '../general_types';
 import { MugginsSolver } from './solver';
-import { ALL_OPERATIONS } from '../const';
+import { OPERATIONS_ARRAY } from '../const';
 
 /* eslint-disable import/prefer-default-export */
 export const runSolverWorkerMain = (data: SolverWorkerMessage) => {
@@ -9,7 +9,7 @@ export const runSolverWorkerMain = (data: SolverWorkerMessage) => {
   const equations = solver
     .getEquations(
       data.diceFaces,
-      ALL_OPERATIONS.filter((o) => data.operators.indexOf(o.id) > -1)
+      OPERATIONS_ARRAY.filter((o) => data.operators.indexOf(o.id) > -1)
     )
     .map((e) => `${e.total} = ${e.equation}`)
     .sort();
