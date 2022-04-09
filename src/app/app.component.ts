@@ -1,8 +1,8 @@
 import '@fontsource/roboto';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { MatButtonToggleChange } from '@angular/material/button-toggle';
-import ColorSchemeService from './color-scheme.service';
-import { MathJaxUtils } from './utils';
+import { ThemeService } from './theme.service';
+import { MathJaxService } from './math-jax.service';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -10,42 +10,26 @@ import { MathJaxUtils } from './utils';
   styleUrls: ['./app.component.scss'],
 })
 export default class AppComponent implements OnInit, OnDestroy {
-  title = 'app';
+  private readonly themeService: ThemeService;
 
-  isMathJaxInitialized = false;
+  readonly mathJaxService: MathJaxService;
 
-  private initializeCheckInterval: any;
-
-  constructor(private colorSchemeService: ColorSchemeService) {
-    colorSchemeService.subscribeToMediaChanges();
-    colorSchemeService.applyStyle();
+  constructor(themeService: ThemeService, mathJaxService: MathJaxService) {
+    this.themeService = themeService;
+    this.mathJaxService = mathJaxService;
   }
 
   ngOnInit(): void {
-    this.initializeCheckInterval = setInterval(() => {
-      this.isMathJaxInitialized = MathJaxUtils.isMathJaxInitialized();
-
-      if (this.isMathJaxInitialized) {
-        clearInterval(this.initializeCheckInterval);
-      }
-    }, 100);
+    this.themeService.start();
+    this.mathJaxService.startPoll();
   }
 
   ngOnDestroy() {
-    clearInterval(this.initializeCheckInterval);
+    this.themeService.stop();
+    this.mathJaxService.stopPoll();
   }
 
-  getBrightnessSetting(): string {
-    const persistedColorScheme =
-      this.colorSchemeService.getPersistentColorScheme();
-    return persistedColorScheme || 'auto';
-  }
-
-  onBrightnessSettingChanged($event: MatButtonToggleChange): void {
-    if ($event.value === 'auto') {
-      this.colorSchemeService.clearPersistentColorScheme();
-    } else {
-      this.colorSchemeService.setPersistentColorScheme($event.value);
-    }
+  public getRouterOutletState(outlet: RouterOutlet) {
+    return outlet.isActivated ? outlet.activatedRoute : '';
   }
 }

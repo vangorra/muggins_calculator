@@ -1,31 +1,27 @@
-import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
-import { MatBottomSheet } from '@angular/material/bottom-sheet';
-import { merge, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { DEFAULT_DIE_SELECTED_FACE } from '../const';
 import {
-  DEFAULT_CONFIG,
-  DEFAULT_DIE_SELECTED_FACE,
-  DEFAULT_DIE_SELECTED_FACE_COUNT,
-} from '../const';
-import {
-  Config,
+  Configuration,
   Die,
   SolverWorkerMessage,
   SolverWorkerResponse,
   TypedWorker,
 } from '../general_types';
-import ConfigComponent from '../config/config.component';
 import { runSolverWorkerMain } from '../solver/utils';
-import { MathJaxUtils } from '../utils';
+import { ConfigurationService } from '../configuration.service';
+import { Subscription } from 'rxjs';
+import { ToolbarService } from '../toolbar.service';
+import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { AboutDialogComponent } from '../about-dialog/about-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-calculator',
   templateUrl: './calculator.component.html',
   styleUrls: ['./calculator.component.scss'],
 })
-export default class CalculatorComponent
-  implements OnInit, OnDestroy, AfterViewChecked
-{
+export default class CalculatorComponent implements OnInit, OnDestroy {
   readonly dice: Die[] = [];
 
   readonly equationGroups: [string, string[]][] = [];
@@ -42,63 +38,63 @@ export default class CalculatorComponent
 
   selectedEquationString: string | undefined = undefined;
 
-  readonly config: Config = { ...DEFAULT_CONFIG };
+  private readonly configurationService: ConfigurationService;
 
-  private readonly bottomSheet: MatBottomSheet;
+  private readonly matDialog: MatDialog;
 
-  private readonly destroyBottomSheet = new Subject<void>();
+  private readonly matSnackBar: MatSnackBar;
 
-  constructor(bottomSheet: MatBottomSheet) {
-    this.bottomSheet = bottomSheet;
+  private configurationSubscription: Subscription;
+
+  constructor(
+    configurationService: ConfigurationService,
+    toolbarService: ToolbarService,
+    router: Router,
+    matDialog: MatDialog,
+    matSnackBar: MatSnackBar
+  ) {
+    this.configurationService = configurationService;
+    this.matDialog = matDialog;
+    this.matSnackBar = matSnackBar;
+
+    this.configurationSubscription = this.configurationService.value.subscribe(
+      (configuration) => this.onConfigurationUpdated(configuration)
+    );
+
+    toolbarService.set({
+      title: 'Muggins Calculator',
+      buttons: [
+        ToolbarService.newButton({
+          title: 'About',
+          icon: 'help',
+          onClick: () => this.matDialog.open(AboutDialogComponent, {}),
+        }),
+        ToolbarService.newButton({
+          title: 'Configuration',
+          icon: 'settings',
+          onClick: () => router.navigate(['/configuration']),
+        }),
+      ],
+    });
   }
 
   ngOnInit(): void {
     this.reload();
   }
 
-  ngOnDestroy() {
-    this.destroyBottomSheet.next();
+  ngOnDestroy(): void {
+    this.configurationSubscription.unsubscribe();
   }
 
-  ngAfterViewChecked(): void {
-    MathJaxUtils.typeset();
-  }
+  onConfigurationUpdated(configuration: Configuration): void {
+    this.dice.splice(0, configuration.dice.length);
+    const newDice = configuration.dice.map((die) => ({
+      faceCount: die.faceCount,
+      selectedFace: DEFAULT_DIE_SELECTED_FACE,
+    }));
+    this.dice.push(...newDice);
 
-  openConfig(): void {
-    const self = this;
-    const configComponentRef = this.bottomSheet.open(ConfigComponent);
-
-    // Unsubscribe the old form controls.
-    this.destroyBottomSheet.next();
-
-    const configInstance = configComponentRef.instance;
-    configInstance.boardMinNumber.setValue(this.config.boardMinNumber);
-    configInstance.boardMaxNumber.setValue(this.config.boardMaxNumber);
-    configInstance.diceCount.setValue(this.config.diceCount);
-    configInstance.customizeDieFaceCount.setValue(
-      this.config.customizeDieFaceCount
-    );
-    configInstance.operations.setValue(this.config.operations);
-
-    // Subscribe to changes in the new form controls.
-    merge(
-      configInstance.boardMinNumber.valueChanges,
-      configInstance.boardMaxNumber.valueChanges,
-      configInstance.diceCount.valueChanges,
-      configInstance.customizeDieFaceCount.valueChanges,
-      configInstance.operations.valueChanges
-    )
-      .pipe(takeUntil(this.destroyBottomSheet))
-      .subscribe(() => {
-        Object.assign(self.config, {
-          boardMinNumber: configInstance.boardMinNumber.value,
-          boardMaxNumber: configInstance.boardMaxNumber.value,
-          diceCount: configInstance.diceCount.value,
-          operations: configInstance.operations.value,
-          customizeDieFaceCount: configInstance.customizeDieFaceCount.value,
-        });
-        self.reload();
-      });
+    this.reload();
   }
 
   selectEquationString(equationString: string): void {
@@ -124,27 +120,19 @@ export default class CalculatorComponent
     this.isCancelled = true;
   }
 
-  reload(): void {
-    this.isCancelled = false;
+  reload() {
+    this.cancel();
     this.isProcessing = true;
-    this.currentWorker?.terminate();
+    this.isCancelled = false;
 
-    // Update the dice.
-    const { diceCount } = this.config;
-    this.dice.splice(diceCount);
-    const newDice = [...new Array(diceCount - this.dice.length).keys()].map(
-      () => ({
-        selectedFaceCount: DEFAULT_DIE_SELECTED_FACE_COUNT,
-        selectedFace: DEFAULT_DIE_SELECTED_FACE,
-      })
-    );
-    this.dice.push(...newDice);
-
+    const configuration = this.configurationService.value.getValue();
     const message: SolverWorkerMessage = {
-      boardMinNumber: this.config.boardMinNumber,
-      boardMaxNumber: this.config.boardMaxNumber,
-      selectedDieFaces: this.dice.map((die) => die.selectedFace),
-      selectedOperators: this.config.operations.map((o) => o.id),
+      boardMinNumber: configuration.board.minSize,
+      boardMaxNumber: configuration.board.maxSize,
+      diceFaces: this.dice.map((die) => die.selectedFace),
+      operators: Object.entries(configuration.operations)
+        .filter((entry) => entry[1])
+        .map((entry) => entry[0]),
     };
 
     // Run process in a worker.
@@ -190,7 +178,13 @@ export default class CalculatorComponent
     return `group_${group}`;
   }
 
-  scrollToId(groupId: string): void {
-    document.getElementById(groupId)?.scrollIntoView({ behavior: "smooth" })
+  scrollToId(groupId: string, group: string): void {
+    this.matSnackBar.dismiss();
+    document
+      .getElementById(groupId)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    this.matSnackBar.open(`Jumped to group ${group}.`, '', {
+      duration: 2000,
+    });
   }
 }

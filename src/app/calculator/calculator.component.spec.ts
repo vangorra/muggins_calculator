@@ -16,9 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import DieComponent from '../die/die.component';
-import ConfigComponent from '../config/config.component';
 import CalculatorComponent from './calculator.component';
 import AppRoutingModule from '../app-routing.module';
 import createSpy = jasmine.createSpy;
@@ -30,12 +28,10 @@ describe(CalculatorComponent.name, () => {
         // AppComponent,
         CalculatorComponent,
         DieComponent,
-        ConfigComponent,
       ],
       imports: [
         BrowserModule,
         AppRoutingModule,
-        BrowserAnimationsModule,
         MatCheckboxModule,
         MatSelectModule,
         ReactiveFormsModule,

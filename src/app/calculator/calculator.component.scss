@@ -1,9 +1,10 @@
-section {
-  margin-bottom: 1em;
-}
-
 .results {
-  mat-list-item.active {
-    background-color: rgba(0, 0, 0, 0.09);
+  mat-card-subtitle {
+    margin-bottom: 0;
+  }
+
+  mat-list-option {
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
   }
 }

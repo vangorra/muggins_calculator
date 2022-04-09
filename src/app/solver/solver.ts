@@ -5,7 +5,6 @@
 import { cartesianProduct } from 'cartesian-product-multiple-arrays';
 import { uniqWith } from 'lodash';
 import { Operation } from '../general_types';
-import { windowTime } from 'rxjs-compat/operator/windowTime';
 
 interface ParingPermutation extends Array<any | ParingPermutation[]> {}
 
@@ -135,7 +134,7 @@ export class MugginsSolver {
   }
 
   private permutations(xs: number[]): number[][] {
-    const ret = [];
+    const ret: number[][] = [];
 
     for (let i = 0; i < xs.length; i += 1) {
       const rest = this.permutations(xs.slice(0, i).concat(xs.slice(i + 1)));

@@ -1,15 +1,37 @@
-declare namespace MathJax {
-  function typeset(): void;
-}
+import { cloneDeep, isArray, mergeWith } from 'lodash';
 
-export class MathJaxUtils {
-  static isMathJaxInitialized(): boolean {
-    return !!MathJax.typeset;
+export class ObjectBuilder {
+  private static readonly mergeWithCustomizer = (
+    objValue: any,
+    sourceValue: any
+  ) => {
+    if (isArray(sourceValue)) {
+      return sourceValue;
+    }
+
+    return undefined;
+  };
+
+  public static newFromBase<T>(base: T, updates: RecursivePartial<T>): T {
+    return ObjectBuilder.newFromBaseArray([base], updates);
   }
 
-  static typeset(): void {
-    if (MathJaxUtils.isMathJaxInitialized()) {
-      MathJax.typeset();
-    }
+  public static newFromBaseArray<T>(
+    bases: T[],
+    updates: RecursivePartial<T>
+  ): T {
+    // Start with the default configuration.
+    const newObject = cloneDeep(bases[0]);
+
+    bases
+      .slice(1)
+      .forEach((base) =>
+        mergeWith(newObject, base, ObjectBuilder.mergeWithCustomizer)
+      );
+
+    // Update with the latest updates.
+    mergeWith(newObject, cloneDeep(updates), ObjectBuilder.mergeWithCustomizer);
+
+    return newObject;
   }
 }

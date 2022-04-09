@@ -1,0 +1,44 @@
+<h2 mat-dialog-title *ngIf="!!data.title">{{ data.title }}</h2>
+<div mat-dialog-content *ngIf="!!data.content">
+  {{ data.content }}
+</div>
+<mat-dialog-actions *ngIf="hasVisibleButtons()">
+  <ng-container *ngFor="let button of buttonsArray()">
+    <ng-container *ngIf="button.show">
+      <ng-container [ngSwitch]="button.type">
+        <button
+          *ngSwitchCase="'raised'"
+          mat-raised-button
+          [color]="button.color"
+          [mat-dialog-close]="button === data.acceptButton"
+        >
+          {{ button.title }}
+        </button>
+        <button
+          *ngSwitchCase="'stroked'"
+          mat-stroked-button
+          [color]="button.color"
+          [mat-dialog-close]="button === data.acceptButton"
+        >
+          {{ button.title }}
+        </button>
+        <button
+          *ngSwitchCase="'flat'"
+          mat-flat-button
+          [color]="button.color"
+          [mat-dialog-close]="button === data.acceptButton"
+        >
+          {{ button.title }}
+        </button>
+        <button
+          *ngSwitchDefault
+          mat-button
+          [color]="button.color"
+          [mat-dialog-close]="button === data.acceptButton"
+        >
+          {{ button.title }}
+        </button>
+      </ng-container>
+    </ng-container>
+  </ng-container>
+</mat-dialog-actions>

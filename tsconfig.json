@@ -29,6 +29,9 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true
   },
+  "include": [
+    "src/**/*.d.ts"
+  ],
   "ts-node": {
     "compilerOptions": {
       "module": "commonjs"

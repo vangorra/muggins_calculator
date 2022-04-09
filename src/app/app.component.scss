@@ -1,9 +1,11 @@
-.app {
-  margin: 1em;
+app-toolbar {
+  position: fixed;
+  width: 100%;
+  left: 0;
+  top: 0;
+  z-index: 10000;
 }
 
-.my-custom-style {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
+.app {
+  margin: 1em;
 }

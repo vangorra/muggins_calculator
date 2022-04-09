@@ -1,0 +1,119 @@
+<form [formGroup]="formGroup" *ngIf="!!formGroup && !!configuration">
+  <mat-card class="theme">
+    <mat-card-title>Theme</mat-card-title>
+    <mat-card-subtitle>Specifies how the app should look.</mat-card-subtitle>
+    <mat-card-content>
+      <mat-radio-group formControlName="theme">
+        <mat-radio-button [value]="themeEnum.AUTOMATIC">Auto</mat-radio-button>
+        <mat-radio-button [value]="themeEnum.DARK">Dark</mat-radio-button>
+        <mat-radio-button [value]="themeEnum.LIGHT">Light</mat-radio-button>
+      </mat-radio-group>
+    </mat-card-content>
+  </mat-card>
+
+  <br />
+
+  <mat-card>
+    <mat-card-title>Operations</mat-card-title>
+    <mat-card-subtitle
+      >Expand the game with additional operations.</mat-card-subtitle
+    >
+    <mat-card-content formGroupName="operations">
+      <p *ngFor="let operation of availableOperations">
+        <mat-checkbox [formControlName]="operation.id">
+          {{ operation.name }}
+          (<app-math-jax [equation]="operation.display('a', 'b')"></app-math-jax
+          >)
+        </mat-checkbox>
+      </p>
+    </mat-card-content>
+  </mat-card>
+
+  <br />
+
+  <mat-card>
+    <mat-card-title>Board Size</mat-card-title>
+    <mat-card-subtitle
+      >For the adventurous, choose a larger board.</mat-card-subtitle
+    >
+    <mat-card-content formGroupName="board">
+      <mat-form-field>
+        <mat-label>Min Board Number (inclusive)</mat-label>
+        <input
+          #minBoardSize
+          matInput
+          type="number"
+          min="1"
+          formControlName="minSize"
+          (click)="inputSelectAll($event.target)"
+          data-testid="boardMinNumber"
+        />
+        <mat-hint>Minimum number on the board (default: 1)</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Max Board Number (inclusive)</mat-label>
+        <input
+          #maxBoardSize
+          matInput
+          type="number"
+          [min]="+minBoardSize.value + 1 || 1"
+          formControlName="maxSize"
+          (click)="inputSelectAll($event.target)"
+        />
+        <mat-hint>The maximum number on the board (default: 36)</mat-hint>
+      </mat-form-field>
+    </mat-card-content>
+  </mat-card>
+
+  <br />
+
+  <mat-card>
+    <mat-card-title>Dice</mat-card-title>
+    <mat-card-subtitle
+      >The number of dice to use for generating equations. Warning: Increasing
+      this beyond 4 will result in considerably slower runs.</mat-card-subtitle
+    >
+    <mat-card-content formArrayName="dice">
+      <ng-container
+        *ngFor="let dieConfiguration of configuration.dice; index as dieIndex"
+      >
+        <mat-form-field>
+          <ng-container [formGroupName]="dieIndex">
+            <mat-label>Faces for Die #{{ dieIndex + 1 }}</mat-label>
+            <input
+              matInput
+              type="number"
+              min="1"
+              max="10"
+              formControlName="faceCount"
+              (click)="inputSelectAll($event.target)"
+              data-testid="faceCount"
+            />
+          </ng-container>
+        </mat-form-field>
+        <br />
+      </ng-container>
+      <mat-card-actions>
+        <button type="button" mat-button (click)="addDie()">
+          <mat-icon>add</mat-icon>
+        </button>
+        <button type="button" mat-button (click)="removeDie()">
+          <mat-icon>remove</mat-icon>
+        </button>
+      </mat-card-actions>
+    </mat-card-content>
+  </mat-card>
+
+  <br />
+  <div class="resetButton">
+    <button
+      mat-flat-button
+      color="warn"
+      [ngStyle.lt-md]="{ width: '100%' }"
+      (click)="resetToDefaults()"
+    >
+      Reset all configuration to defaults
+    </button>
+  </div>
+</form>

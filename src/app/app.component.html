@@ -1,28 +1,12 @@
-<div class="app" *ngIf="isMathJaxInitialized">
-  <router-outlet></router-outlet>
+<ng-container *ngIf="mathJaxService.initialized | async">
+  <app-toolbar></app-toolbar>
 
-  <div class="appTheme">
-    <mat-button-toggle-group
-      name="appTheme"
-      aria-label="App Theme"
-      [value]="getBrightnessSetting()"
-      (change)="onBrightnessSettingChanged($event)"
-    >
-      <mat-button-toggle aria-label="Dark Theme" value="dark"
-        ><mat-icon>brightness_low</mat-icon></mat-button-toggle
-      >
-      <mat-button-toggle aria-label="Auto" value="auto"
-        ><mat-icon>brightness_auto</mat-icon></mat-button-toggle
-      >
-      <mat-button-toggle aria-label="Light Theme" value="light">
-        <mat-icon>brightness_high</mat-icon></mat-button-toggle
-      >
-    </mat-button-toggle-group>
+  <!-- Scroll placeholder to keep content from hiding under the fixed app-toolbar. -->
+  <mat-toolbar><span> </span></mat-toolbar>
+
+  <div class="app">
+    <router-outlet></router-outlet>
   </div>
 
-  <a href="https://github.com/vangorra/muggins_calculator">Github Project</a>
-</div>
-
-<span class="mathjax_process" style="display: none">`x`</span>
-
-<ngx-scrolltop></ngx-scrolltop>
+  <ngx-scrolltop></ngx-scrolltop>
+</ng-container>

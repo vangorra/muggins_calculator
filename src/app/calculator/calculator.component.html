@@ -7,26 +7,24 @@
         class="diceConfig"
         style="overflow: auto"
       >
-        <ng-container
-          *ngFor="let die of dice; index as dieIndex; last as isLastDie"
+        <div
+          class="die"
+          fxFlex.xs="20"
+          fxFlex.sm="20"
+          *ngFor="let die of dice; index as dieIndex"
         >
-          <div class="die" fxFlex.xs="20" fxFlex.sm="20">
-            <h3>Die {{ dieIndex + 1 }}</h3>
-            <app-die
-              [config]="config"
-              [die]="die"
-              (dieChanged)="onDieChanged(dieIndex, $event)"
-            ></app-die>
-          </div>
-        </ng-container>
-
-        <button mat-button (click)="openConfig()" class="configButton">
-          <mat-icon>settings</mat-icon>
-        </button>
+          <app-die
+            [label]="'Die ' + (dieIndex + 1)"
+            [die]="die"
+            (dieChanged)="onDieChanged(dieIndex, $event)"
+          ></app-die>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>
 </section>
+
+<br />
 
 <section class="results">
   <mat-card>
@@ -34,51 +32,60 @@
       Results
       <span *ngIf="equationsCount > 0"> ({{ equationsCount }})</span>
     </mat-card-title>
-    <mat-card-content>
-      <ng-container *ngIf="isProcessing">
-        <mat-spinner></mat-spinner>
-        <button mat-button (click)="cancel()" data-testid="cancelButton">
+    <div *ngIf="isProcessing">
+      <mat-card-content>
+        <p><mat-spinner></mat-spinner></p>
+        <button mat-flat-button (click)="cancel()" data-testid="cancelButton">
           Cancel
         </button>
-      </ng-container>
+      </mat-card-content>
+    </div>
 
-      <ng-container *ngIf="isCancelled">
-        Cancelled...
-        <button mat-button (click)="reload()" data-testid="reloadButton">
+    <ng-container *ngIf="isCancelled">
+      <mat-card-content>
+        <p>Cancelled...</p>
+        <button mat-flat-button (click)="reload()" data-testid="reloadButton">
           Reload
         </button>
-      </ng-container>
+      </mat-card-content>
+    </ng-container>
 
-      <ng-container
-        *ngIf="!isProcessing && !isCancelled && equationGroups.length"
-      >
-        <div> Jump to:
-          <button mat-button (click)="scrollToId(groupId(group[0]))" *ngFor="let group of equationGroups; last as isLastGroup">
+    <ng-container
+      *ngIf="!isProcessing && !isCancelled && equationGroups.length"
+    >
+      <mat-card-subtitle>
+        <div>Jump to solution:</div>
+        <div>
+          <button
+            mat-button
+            (click)="scrollToId(groupId(group[0]), group[0])"
+            *ngFor="let group of equationGroups; last as isLastGroup"
+          >
             {{ group[0] }}
           </button>
         </div>
-        <mat-divider></mat-divider>
+      </mat-card-subtitle>
 
-        <div *ngFor="let group of equationGroups; last as isLastGroup">
-          <mat-list [id]="groupId(group[0])">
-            <mat-list-item
+      <mat-card-content>
+        <mat-selection-list [multiple]="false">
+          <ng-container *ngFor="let group of equationGroups">
+            <mat-divider [id]="groupId(group[0])"></mat-divider>
+            <mat-list-option
               *ngFor="let equationStr of group[1]"
-              (click)="selectEquationString(equationStr)"
-              [ngClass]="equationStringListItemClass(equationStr)"
-              class="equationStr"
+              [value]="equationStr"
             >
-              <span class="mathjax_process">`{{ equationStr }}`</span>
-            </mat-list-item>
-          </mat-list>
-          <mat-divider *ngIf="!isLastGroup"></mat-divider>
-        </div>
-      </ng-container>
+              <app-math-jax [equation]="equationStr"></app-math-jax>
+            </mat-list-option>
+          </ng-container>
+          <mat-divider></mat-divider>
+        </mat-selection-list>
+      </mat-card-content>
+    </ng-container>
 
-      <ng-container
-        *ngIf="!isProcessing && !isCancelled && !equationGroups.length"
-      >
-        No equations could be determined.
-      </ng-container>
-    </mat-card-content>
+    <ng-container
+      *ngIf="!isProcessing && !isCancelled && !equationGroups.length"
+    >
+      <mat-card-content>No equations could be determined.</mat-card-content>
+    </ng-container>
   </mat-card>
 </section>

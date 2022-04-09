@@ -1,13 +1,9 @@
-.faceOptions {
+mat-radio-group {
   display: flex;
   flex-direction: column;
   margin: 1em 0;
 }
 
-.faceOption {
+mat-radio-button {
   margin: 0.5em;
-}
-
-mat-form-field {
-  width: 100%;
 }

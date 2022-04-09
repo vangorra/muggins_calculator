@@ -4,33 +4,37 @@
 @import "~@fontsource/roboto/index.css";
 @import "~@fontsource/material-icons/index.css";
 @import "~@angular/material/theming";
+@include mat-core();
 
-html,
-body {
-  height: 100%;
-}
+//html,
+//body {
+//  height: 100%;
+//}
 body {
   margin: 0;
   font-family: "Roboto", "Helvetica Neue", sans-serif;
 }
 
-$app-primary: mat-palette($mat-light-blue);
-$app-accent: mat-palette($mat-light-blue);
-$app-warn: mat-palette($mat-red);
+$light-primary: mat-palette($mat-deep-purple);
+$light-accent: mat-palette($mat-pink, A200, A100, A400);
+$light-warn: mat-palette($mat-deep-orange);
+$light-theme: mat-light-theme($light-primary, $light-accent, $light-warn);
 
-$theme-dark: mat-dark-theme($app-primary, $app-accent, $app-warn);
-$theme-light: mat-light-theme($app-primary, $app-accent, $app-warn);
+$dark-primary: mat-palette($mat-deep-purple);
+$dark-accent: mat-palette($mat-pink, A200, A100, A400);
+$dark-warn: mat-palette($mat-deep-orange);
+$dark-theme: mat-dark-theme($dark-primary, $dark-accent, $dark-warn);
 
 .color-scheme-dark {
-  @include angular-material-theme($theme-dark);
+  @include angular-material-theme($dark-theme);
 
-  $background: map-get($theme-dark, background);
-  background-color: color.adjust(mat-color($background, card), $lightness: -1%);
+  $background: map-get($dark-theme, background);
+  background-color: color.adjust(mat-color($background, card), $lightness: -5%);
 }
 
 .color-scheme-light {
-  @include angular-material-theme($theme-light);
+  @include angular-material-theme($light-theme);
 
-  $background: map-get($theme-light, background);
-  background-color: mat-color($background, card);
+  $background: map-get($light-theme, background);
+  background-color: color.adjust(mat-color($background, card), $lightness: -5%);
 }

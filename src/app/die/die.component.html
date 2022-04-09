@@ -1,26 +1,6 @@
-<div *ngIf="config.customizeDieFaceCount">
-  <mat-form-field>
-    <mat-label>Face Count</mat-label>
-    <mat-select [formControl]="selectedFaceCount" data-testid="faceCount">
-      <mat-option
-        *ngFor="let faceCountOption of faceCountOptions"
-        [value]="faceCountOption"
-      >
-        {{ faceCountOption }}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-</div>
-
-<div>
-  <mat-radio-group [formControl]="selectedFace" class="faceOptions">
-    <mat-label>Face</mat-label>
-    <mat-radio-button
-      *ngFor="let face of getFaceOptions()"
-      [value]="face"
-      class="faceOption"
-    >
-      {{ face }}
-    </mat-radio-button>
-  </mat-radio-group>
-</div>
+<mat-label>{{ label }}</mat-label>
+<mat-radio-group [formControl]="selectedFace">
+  <mat-radio-button *ngFor="let face of getFaceOptions()" [value]="face">
+    {{ face }}
+  </mat-radio-button>
+</mat-radio-group>

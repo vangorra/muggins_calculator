@@ -8,8 +8,8 @@ export const runSolverWorkerMain = (data: SolverWorkerMessage) => {
   const solver = new MugginsSolver(data.boardMinNumber, data.boardMaxNumber);
   const equations = solver
     .getEquations(
-      data.selectedDieFaces,
-      ALL_OPERATIONS.filter((o) => data.selectedOperators.indexOf(o.id) > -1)
+      data.diceFaces,
+      ALL_OPERATIONS.filter((o) => data.operators.indexOf(o.id) > -1)
     )
     .map((e) => `${e.total} = ${e.equation}`)
     .sort();

@@ -1,17 +1,12 @@
-export interface Config {
-  readonly boardMinNumber: number;
-  readonly boardMaxNumber: number;
-  readonly diceCount: number;
-  readonly operations: Operation[];
-  readonly customizeDieFaceCount: boolean;
+export enum ThemeEnum {
+  AUTOMATIC = 'automatic',
+  DARK = 'dark',
+  LIGHT = 'light',
 }
 
-export interface Die {
-  readonly selectedFaceCount: number;
-  readonly selectedFace: number;
-}
+export type ThemeType = `${ThemeEnum}`;
 
-export enum OperationId {
+export enum OperationEnum {
   PLUS = 'plus',
   MINUS = 'minus',
   MULTIPLY = 'multiply',
@@ -21,9 +16,42 @@ export enum OperationId {
   MODULO = 'modulo',
 }
 
+export type OperationType = `${OperationEnum}`;
+
+export interface DiceConfiguration {
+  faceCount: number;
+}
+
+export interface BoardConfiguration {
+  minSize: number;
+  maxSize: number;
+}
+
+export type OperationsConfiguration = { [id in OperationEnum]: boolean };
+
+export interface Configuration {
+  readonly theme: ThemeType;
+  readonly operations: OperationsConfiguration;
+  readonly board: BoardConfiguration;
+  readonly dice: DiceConfiguration[];
+}
+
+export interface Config {
+  readonly boardMinNumber: number;
+  readonly boardMaxNumber: number;
+  readonly diceCount: number;
+  readonly operations: Operation[];
+  readonly customizeDieFaceCount: boolean;
+}
+
+export interface Die {
+  readonly faceCount: number;
+  readonly selectedFace: number;
+}
+
 export interface Operation {
   readonly name: string;
-  readonly id: OperationId;
+  readonly id: OperationEnum;
   readonly solve: (a: number, b: number) => number;
   readonly display: (a: string, b: string) => string;
   readonly grouping: (text: string) => string;
@@ -32,8 +60,8 @@ export interface Operation {
 export interface SolverWorkerMessage {
   readonly boardMinNumber: number;
   readonly boardMaxNumber: number;
-  readonly selectedDieFaces: number[];
-  readonly selectedOperators: string[];
+  readonly diceFaces: number[];
+  readonly operators: string[];
 }
 
 export interface SolverWorkerResponse {
