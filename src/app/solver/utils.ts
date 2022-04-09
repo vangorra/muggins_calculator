@@ -1,20 +1,32 @@
-import { groupBy } from 'lodash';
+import {groupBy, includes} from 'lodash';
 import { SolverWorkerMessage, SolverWorkerResponse } from '../general_types';
-import { MugginsSolver } from './solver';
-import { OPERATIONS_ARRAY } from '../const';
+import {MugginsSolver, OPERATIONS} from './solver';
 
 /* eslint-disable import/prefer-default-export */
-export const runSolverWorkerMain = (data: SolverWorkerMessage) => {
-  const solver = new MugginsSolver(data.boardMinNumber, data.boardMaxNumber);
-  const equations = solver
-    .getEquations(
-      data.diceFaces,
-      OPERATIONS_ARRAY.filter((o) => data.operators.indexOf(o.id) > -1)
-    )
-    .map((e) => `${e.total} = ${e.equation}`)
-    .sort();
-  const resp: SolverWorkerResponse = groupBy(equations, (e) =>
-    e.split(/=/)[0].trim()
-  );
-  return resp;
-};
+export function runSolverWorkerMain(data: SolverWorkerMessage): SolverWorkerResponse {
+  const solver = new MugginsSolver({
+    minTotal: data.boardMinNumber,
+    maxTotal: data.boardMaxNumber,
+    faces: data.diceFaces,
+    operations: OPERATIONS.filter((o) => includes(data.operators, o.id))
+  });
+
+  const resultsWithEquations = solver.calculateSolutions()
+    .map(solution => ({
+      ...solution,
+      equation: `${solution.total} = ${solution.equation}`,
+    }))
+    .sort((a, b) => {
+      if (a.equation < b.equation) {
+        return -1;
+      }
+
+      if (a.equation > b.equation) {
+        return 1;
+      }
+
+      return 0;
+    });
+
+  return groupBy(resultsWithEquations, item => item.total);
+}

@@ -59,7 +59,7 @@
           <button
             mat-button
             (click)="scrollToId(groupId(group[0]), group[0])"
-            *ngFor="let group of equationGroups; last as isLastGroup"
+            *ngFor="let group of equationGroups"
           >
             {{ group[0] }}
           </button>
@@ -71,10 +71,10 @@
           <ng-container *ngFor="let group of equationGroups">
             <mat-divider [id]="groupId(group[0])"></mat-divider>
             <mat-list-option
-              *ngFor="let equationStr of group[1]"
-              [value]="equationStr"
+              *ngFor="let calculateResultWithEquation of group[1]"
+              [value]="calculateResultWithEquation.equation"
             >
-              <app-math-jax [equation]="equationStr"></app-math-jax>
+              <app-math-jax [equation]="calculateResultWithEquation.equation"></app-math-jax>
             </mat-list-option>
           </ng-container>
           <mat-divider></mat-divider>

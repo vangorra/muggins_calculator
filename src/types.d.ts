@@ -12,3 +12,5 @@ declare namespace MathJax {
 
   function svgStylesheet(): string;
 }
+
+declare type NonEmptyArray<T> = [T, ...T[]];

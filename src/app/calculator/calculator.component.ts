@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DEFAULT_DIE_SELECTED_FACE } from '../const';
 import {
+  CalculateResultWithEquation,
   Configuration,
   Die,
   SolverWorkerMessage,
@@ -24,7 +25,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export default class CalculatorComponent implements OnInit, OnDestroy {
   readonly dice: Die[] = [];
 
-  readonly equationGroups: [string, string[]][] = [];
+  readonly equationGroups: [string, CalculateResultWithEquation[]][] = [];
 
   equationsCount: number = 0;
 
@@ -45,6 +46,8 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
   private readonly matSnackBar: MatSnackBar;
 
   private configurationSubscription: Subscription;
+
+  solverWorkerResponse?: SolverWorkerResponse;
 
   constructor(
     configurationService: ConfigurationService,
@@ -163,6 +166,8 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       .map((group) => group[1].length)
       .reduce((partialSum, a) => partialSum + a, 0);
     this.isProcessing = false;
+
+    console.log(this.equationGroups);
   }
 
   onDieChanged(dieIndex: number, die: Die): void {

@@ -1,10 +1,10 @@
 import { MugginsSolver } from './solver';
-import { OPERATIONS_ARRAY } from '../const';
+import { OPERATIONS } from '../const';
 
 describe('Solver', () => {
   it('Test', () => {
     const solver = new MugginsSolver(1, 36);
-    const equations = solver.getEquations([4, 5, 6], OPERATIONS_ARRAY);
+    const equations = solver.getEquations([4, 5, 6], OPERATIONS);
 
     expect(equations).toEqual(
       JSON.parse(`

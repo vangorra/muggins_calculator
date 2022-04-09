@@ -1,5 +1,4 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { OPERATIONS_ARRAY } from '../const';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { range } from 'lodash';
 import { ConfigurationService } from '../configuration.service';
@@ -9,6 +8,7 @@ import { ToolbarService } from '../toolbar.service';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import {OPERATIONS} from "../solver/solver";
 
 @Component({
   selector: 'app-configuration',
@@ -18,7 +18,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
 export class ConfigurationComponent implements OnInit, OnDestroy {
   readonly themeEnum = ThemeEnum;
 
-  readonly availableOperations = OPERATIONS_ARRAY;
+  readonly availableOperations = OPERATIONS;
 
   private readonly formBuilder: FormBuilder;
 

@@ -1,3 +1,5 @@
+import {CalculateResult, OperationEnum} from "./solver/solver";
+
 export enum ThemeEnum {
   AUTOMATIC = 'automatic',
   DARK = 'dark',
@@ -5,18 +7,6 @@ export enum ThemeEnum {
 }
 
 export type ThemeType = `${ThemeEnum}`;
-
-export enum OperationEnum {
-  PLUS = 'plus',
-  MINUS = 'minus',
-  MULTIPLY = 'multiply',
-  DIVIDE = 'divide',
-  POWER = 'power',
-  ROOT = 'root',
-  MODULO = 'modulo',
-}
-
-// export type OperationType = `${OperationEnum}`;
 
 export interface DiceConfiguration {
   faceCount: number;
@@ -39,15 +29,6 @@ export interface Die {
   readonly selectedFace: number;
 }
 
-export interface Operation {
-  readonly name: string;
-  readonly id: OperationEnum;
-  readonly solve: (a: number, b: number) => number;
-  readonly display: (a: string, b: string) => string;
-  readonly grouping: (text: string) => string;
-  readonly orderMatters: boolean;
-}
-
 export interface SolverWorkerMessage {
   readonly boardMinNumber: number;
   readonly boardMaxNumber: number;
@@ -56,7 +37,11 @@ export interface SolverWorkerMessage {
 }
 
 export interface SolverWorkerResponse {
-  readonly [total: number]: string[];
+  readonly [total: number]: CalculateResultWithEquation[];
+}
+
+export interface CalculateResultWithEquation extends CalculateResult {
+  readonly equation: string;
 }
 
 export interface TypedWorker<M, R> extends Worker {
