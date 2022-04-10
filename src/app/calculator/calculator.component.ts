@@ -1,4 +1,4 @@
-import {AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DEFAULT_DIE_SELECTED_FACE } from '../const';
 import {
   Configuration,
@@ -23,8 +23,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./calculator.component.scss'],
 })
 export default class CalculatorComponent implements OnInit, OnDestroy {
-  @ViewChild("diceElementRef") diceElementRef?: ElementRef;
-
   readonly dice: Die[] = [];
 
   readonly workerResponseDataArray: SolverWorkerResponseDataArray = [];
@@ -47,7 +45,8 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   scrollToTopVisible = false;
 
-  private readonly onWindowScrolledEventListener = () => this.onWindowScrolled();
+  private readonly onWindowScrolledEventListener = () =>
+    this.onWindowScrolled();
 
   constructor(
     private readonly configurationService: ConfigurationService,
@@ -78,15 +77,17 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       (configuration) => this.onConfigurationUpdated(configuration)
     );
 
-    window.addEventListener("scroll", this.onWindowScrolledEventListener, true);
-
-    this.reload();
+    window.addEventListener('scroll', this.onWindowScrolledEventListener, true);
   }
 
   ngOnDestroy(): void {
     this.configurationSubscription?.unsubscribe();
 
-    window.removeEventListener("scroll", this.onWindowScrolledEventListener, true);
+    window.removeEventListener(
+      'scroll',
+      this.onWindowScrolledEventListener,
+      true
+    );
   }
 
   onWindowScrolled(): void {
@@ -182,10 +183,6 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     this.reload();
   }
 
-  onChange(): void {
-    this.reload();
-  }
-
   groupId(group: string): string {
     return `group_${group}`;
   }
@@ -204,7 +201,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: "smooth",
+      behavior: 'smooth',
     });
   }
 }

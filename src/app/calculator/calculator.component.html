@@ -1,10 +1,6 @@
-<mat-card id="diceOptions" #diceElementRef>
+<mat-card id="diceOptions">
   <mat-card-content>
-    <div
-      fxLayout="row"
-      fxLayoutGap="1em"
-      style="overflow: auto"
-    >
+    <div fxLayout="row" fxLayoutGap="1em" style="overflow: auto">
       <div
         class="die"
         fxFlex.xs="20"
@@ -87,6 +83,14 @@
   </ng-container>
 </mat-card>
 
-<button *ngIf="scrollToTopVisible" class="scrollToTopButton" mat-fab color="primary" aria-label="Goto top of page" title="Goto top of page" (click)="scrollToTop()">
+<button
+  *ngIf="scrollToTopVisible"
+  class="scrollToTopButton"
+  mat-fab
+  color="primary"
+  aria-label="Goto top of page"
+  title="Goto top of page"
+  (click)="scrollToTop()"
+>
   <mat-icon>expand_less</mat-icon>
 </button>
