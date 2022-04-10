@@ -1,3 +1,9 @@
-mat-button-toggle {
-  min-width: 4em;
+.facesWrapper {
+  overflow: auto;
+}
+
+mat-button-toggle-group {
+  mat-button-toggle {
+    min-width: 3em;
+  }
 }

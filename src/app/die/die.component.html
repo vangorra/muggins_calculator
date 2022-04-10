@@ -1,5 +1,7 @@
-<mat-button-toggle-group [formControl]="selectedFace">
-  <mat-button-toggle *ngFor="let face of getFaceOptions()" [value]="face">
-    {{ face }}
-  </mat-button-toggle>
-</mat-button-toggle-group>
+<div class="facesWrapper">
+  <mat-button-toggle-group [formControl]="selectedFace">
+    <mat-button-toggle *ngFor="let face of getFaceOptions()" [value]="face">
+      {{ face }}
+    </mat-button-toggle>
+  </mat-button-toggle-group>
+</div>

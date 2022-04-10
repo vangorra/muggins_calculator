@@ -1,6 +1,11 @@
 .results {
   mat-card-subtitle {
     margin-bottom: 0;
+
+    .jumpButtonWrapper {
+      display: inline-block;
+      padding: 0.1em;
+    }
   }
 
   mat-list-option {

@@ -1,5 +1,6 @@
 <mat-card id="diceOptions">
   <mat-card-title>Dice</mat-card-title>
+  <mat-card-subtitle>Select the rolled face for each die.</mat-card-subtitle>
   <mat-card-content>
     <app-dice
       [dice]="dice"
@@ -43,13 +44,17 @@
         <mat-card-subtitle>
           <div>Jump to solution:</div>
           <div>
-            <button
+            <span
+              class="jumpButtonWrapper"
               *ngFor="let data of workerResponseDataArray"
-              mat-button
-              (click)="scrollToId(groupId(data.total), data.total)"
             >
-              {{ data.total }}
-            </button>
+              <button
+                mat-stroked-button
+                (click)="scrollToId(groupId(data.total), data.total)"
+              >
+                {{ data.total }}
+              </button>
+            </span>
           </div>
         </mat-card-subtitle>
 
