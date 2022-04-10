@@ -1,5 +1,5 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {DEFAULT_DIE_SELECTED_FACE} from '../const';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { DEFAULT_DIE_SELECTED_FACE } from '../const';
 import {
   Configuration,
   Die,
@@ -8,14 +8,14 @@ import {
   SolverWorkerResponseDataArray,
   TypedWorker,
 } from '../general_types';
-import {runSolverWorkerMain} from '../solver/utils';
-import {ConfigurationService} from '../configuration.service';
-import {Subscription} from 'rxjs';
-import {ToolbarService} from '../toolbar.service';
-import {Router} from '@angular/router';
-import {MatDialog} from '@angular/material/dialog';
-import {AboutDialogComponent} from '../about-dialog/about-dialog.component';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { runSolverWorkerMain } from '../solver/utils';
+import { ConfigurationService } from '../configuration.service';
+import { Subscription } from 'rxjs';
+import { ToolbarService } from '../toolbar.service';
+import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { AboutDialogComponent } from '../about-dialog/about-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-calculator',
@@ -135,8 +135,8 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       this.currentWorker.onmessage = (response) =>
         this.onWorkerResponse(response.data);
       this.currentWorker.postMessage(message);
-      // Run process in current thread.
     } else {
+      // Run process in current thread.
       this.onWorkerResponse(runSolverWorkerMain(message));
     }
   }

@@ -36,7 +36,10 @@ export interface SolverWorkerMessage {
   readonly operators: string[];
 }
 
-export type SolverWorkerResponseDataArray = { total: string, results: CalculateResultWithEquation[] }[];
+export type SolverWorkerResponseDataArray = {
+  total: string;
+  results: CalculateResultWithEquation[];
+}[];
 
 export interface SolverWorkerResponse {
   readonly data: SolverWorkerResponseDataArray;

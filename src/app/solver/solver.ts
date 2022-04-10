@@ -3,11 +3,178 @@
  * Tools for providing solutions to muggins dice.
  */
 import { cartesianProduct } from 'cartesian-product-multiple-arrays';
-import { isNumber, uniqWith } from 'lodash';
+import { isNumber, sortBy, sortedUniqBy, uniqWith } from 'lodash';
 
 type PairingPermutation = Array<
   number | PairingPermutation | PairingPermutation[]
 >;
+
+export const enum OperationEnum {
+  PLUS = 'plus',
+  MINUS = 'minus',
+  MULTIPLY = 'multiply',
+  DIVIDE = 'divide',
+  POWER = 'power',
+  ROOT = 'root',
+  MODULO = 'modulo',
+}
+
+export interface Operation {
+  readonly name: string;
+  readonly id: OperationEnum;
+  readonly solve: (a: number, b: number) => number;
+  readonly display: (a: string, b: string) => string;
+  readonly grouping: (text: string) => string;
+  readonly orderMatters: boolean;
+}
+
+export interface MugginsSolverConfig {
+  readonly minTotal: number;
+  readonly maxTotal: number;
+  readonly faces: number[];
+  readonly operations: Operation[];
+}
+
+export interface CalculateResult {
+  readonly total: number;
+  readonly equation: string;
+}
+
+const GROUPING_PARENTHESIS = (text: string) => `(${text})`;
+const GROUPING_NONE = (text: string) => text;
+
+export const OPERATIONS: Operation[] = [
+  {
+    name: 'Plus',
+    id: OperationEnum.PLUS,
+    solve: (a: number, b: number) => a + b,
+    display: (a: string, b: string) => `${a} + ${b}`,
+    grouping: GROUPING_PARENTHESIS,
+    orderMatters: false,
+  },
+  {
+    name: 'Minus',
+    id: OperationEnum.MINUS,
+    solve: (a: number, b: number) => a - b,
+    display: (a: string, b: string) => `${a} - ${b}`,
+    grouping: GROUPING_PARENTHESIS,
+    orderMatters: true,
+  },
+  {
+    name: 'Multiply',
+    id: OperationEnum.MULTIPLY,
+    solve: (a: number, b: number) => a * b,
+    display: (a: string, b: string) => `${a} * ${b}`,
+    grouping: GROUPING_PARENTHESIS,
+    orderMatters: false,
+  },
+  {
+    name: 'Divide',
+    id: OperationEnum.DIVIDE,
+    solve: (a: number, b: number) => a / b,
+    display: (a: string, b: string) => `${a} / ${b}`,
+    grouping: GROUPING_PARENTHESIS,
+    orderMatters: true,
+  },
+  {
+    name: 'Power',
+    id: OperationEnum.POWER,
+    solve: (a: number, b: number) => a ** b,
+    display: (a: string, b: string) => `${a} ^ ${b}`,
+    grouping: GROUPING_NONE,
+    orderMatters: true,
+  },
+  {
+    name: 'Root',
+    id: OperationEnum.ROOT,
+    solve: (a: number, b: number) => Math.pow(a, 1 / b),
+    display: (a: string, b: string) => `root(${a})(${b})`,
+    grouping: GROUPING_NONE,
+    orderMatters: true,
+  },
+  {
+    name: 'Modulo',
+    id: OperationEnum.MODULO,
+    solve: (a: number, b: number) => a % b,
+    display: (a: string, b: string) => `${a} % ${b}`,
+    grouping: GROUPING_PARENTHESIS,
+    orderMatters: true,
+  },
+];
+
+const letters = [
+  'a',
+  'b',
+  'c',
+  'd',
+  'e',
+  'f',
+  'g',
+  'h',
+  'i',
+  'j',
+  'k',
+  'l',
+  'm',
+  'n',
+  'o',
+  'p',
+  'q',
+  'r',
+  's',
+  't',
+  'u',
+  'v',
+  'w',
+  'x',
+  'y',
+  'z',
+  'A',
+  'B',
+  'C',
+  'D',
+  'E',
+  'F',
+  'G',
+  'H',
+  'I',
+  'J',
+  'K',
+  'L',
+  'M',
+  'N',
+  'O',
+  'P',
+  'Q',
+  'R',
+  'S',
+  'T',
+  'U',
+  'V',
+  'W',
+  'X',
+  'Y',
+  'Z',
+];
+
+const operationLetterMap: { [operationId: string]: (value: string) => string } =
+  Object.fromEntries(
+    OPERATIONS.map((operation) => operation.id).map((operationId, index) => [
+      operationId,
+      (value: string) =>
+        value.replace(new RegExp(operationId, 'g'), letters[index]),
+    ])
+  );
+
+export function getSortableEquation(equation: string): string {
+  let sortableEquation = equation;
+
+  for (const operation in operationLetterMap) {
+    sortableEquation = operationLetterMap[operation](sortableEquation);
+  }
+
+  return sortableEquation.replace(/[^0-9a-zA-Z ]/g, 'Z');
+}
 
 abstract class BaseEquation {
   private totalCache: number | undefined = undefined;
@@ -50,7 +217,11 @@ class EquationNumber extends BaseEquation {
 }
 
 class Equation extends BaseEquation {
-  constructor(private readonly num1: BaseEquation, private readonly num2: BaseEquation, private readonly operation: Operation) {
+  constructor(
+    private readonly num1: BaseEquation,
+    private readonly num2: BaseEquation,
+    private readonly operation: Operation
+  ) {
     super();
   }
 
@@ -206,104 +377,19 @@ export class MugginsSolver {
           equation.total() >= this.config.minTotal &&
           equation.total() <= this.config.maxTotal
       )
-      .map((equation) => ({
-        total: equation.total(),
-        equation: equation.toString(false),
-      }));
+      .map((equation) => {
+        const total = equation.total();
+        const equationStr = equation.toString(false);
+        return {
+          total,
+          equation: equationStr,
+          sortableEquation: getSortableEquation(`${total} = ${equationStr}`),
+        };
+      });
 
-    return uniqWith(equations, (a, b) => a.equation === b.equation);
+    return sortedUniqBy(
+      sortBy(equations, (equation) => equation.sortableEquation),
+      (equation) => equation.sortableEquation
+    );
   }
 }
-
-export const enum OperationEnum {
-  PLUS = 'plus',
-  MINUS = 'minus',
-  MULTIPLY = 'multiply',
-  DIVIDE = 'divide',
-  POWER = 'power',
-  ROOT = 'root',
-  MODULO = 'modulo',
-}
-
-export interface Operation {
-  readonly name: string;
-  readonly id: OperationEnum;
-  readonly solve: (a: number, b: number) => number;
-  readonly display: (a: string, b: string) => string;
-  readonly grouping: (text: string) => string;
-  readonly orderMatters: boolean;
-}
-
-export interface MugginsSolverConfig {
-  readonly minTotal: number;
-  readonly maxTotal: number;
-  readonly faces: number[];
-  readonly operations: Operation[];
-}
-
-export interface CalculateResult {
-  readonly total: number;
-  readonly equation: string;
-}
-
-const GROUPING_PARENTHESIS = (text: string) => `(${text})`;
-const GROUPING_NONE = (text: string) => text;
-
-export const OPERATIONS: Operation[] = [
-  {
-    name: 'Plus',
-    id: OperationEnum.PLUS,
-    solve: (a: number, b: number) => a + b,
-    display: (a: string, b: string) => `${a} + ${b}`,
-    grouping: GROUPING_PARENTHESIS,
-    orderMatters: false,
-  },
-  {
-    name: 'Minus',
-    id: OperationEnum.MINUS,
-    solve: (a: number, b: number) => a - b,
-    display: (a: string, b: string) => `${a} - ${b}`,
-    grouping: GROUPING_PARENTHESIS,
-    orderMatters: true,
-  },
-  {
-    name: 'Multiply',
-    id: OperationEnum.MULTIPLY,
-    solve: (a: number, b: number) => a * b,
-    display: (a: string, b: string) => `${a} * ${b}`,
-    grouping: GROUPING_PARENTHESIS,
-    orderMatters: false,
-  },
-  {
-    name: 'Divide',
-    id: OperationEnum.DIVIDE,
-    solve: (a: number, b: number) => a / b,
-    display: (a: string, b: string) => `${a} / ${b}`,
-    grouping: GROUPING_PARENTHESIS,
-    orderMatters: true,
-  },
-  {
-    name: 'Power',
-    id: OperationEnum.POWER,
-    solve: (a: number, b: number) => a ** b,
-    display: (a: string, b: string) => `${a} ^ ${b}`,
-    grouping: GROUPING_NONE,
-    orderMatters: true,
-  },
-  {
-    name: 'Root',
-    id: OperationEnum.ROOT,
-    solve: (a: number, b: number) => Math.pow(a, 1 / b),
-    display: (a: string, b: string) => `root(${a})(${b})`,
-    grouping: GROUPING_NONE,
-    orderMatters: true,
-  },
-  {
-    name: 'Modulo',
-    id: OperationEnum.MODULO,
-    solve: (a: number, b: number) => a % b,
-    display: (a: string, b: string) => `${a} % ${b}`,
-    grouping: GROUPING_PARENTHESIS,
-    orderMatters: true,
-  },
-];

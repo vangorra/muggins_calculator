@@ -10,32 +10,22 @@ export function runSolverWorkerMain(
     minTotal: solverWorkerMessage.boardMinNumber,
     maxTotal: solverWorkerMessage.boardMaxNumber,
     faces: solverWorkerMessage.diceFaces,
-    operations: OPERATIONS.filter((o) => includes(solverWorkerMessage.operators, o.id)),
+    operations: OPERATIONS.filter((o) =>
+      includes(solverWorkerMessage.operators, o.id)
+    ),
   });
 
-  const resultsWithEquations = solver
-    .calculateSolutions()
-    .map((solution) => ({
-      ...solution,
-      equation: `${solution.total} = ${solution.equation}`,
-    }))
-    .sort((a, b) => {
-      if (a.equation < b.equation) {
-        return -1;
-      }
+  const resultsWithEquations = solver.calculateSolutions().map((solution) => ({
+    ...solution,
+    equation: `${solution.total} = ${solution.equation}`,
+  }));
 
-      if (a.equation > b.equation) {
-        return 1;
-      }
-
-      return 0;
-    });
-
-  const data = Object.entries(groupBy(resultsWithEquations, item => item.total))
-    .map(([total, results]) => ({
-        total,
-        results,
-    }));
+  const data = Object.entries(
+    groupBy(resultsWithEquations, (item) => item.total)
+  ).map(([total, results]) => ({
+    total,
+    results,
+  }));
 
   return { data };
 }

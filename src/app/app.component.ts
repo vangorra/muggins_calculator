@@ -10,7 +10,10 @@ import { RouterOutlet } from '@angular/router';
   styleUrls: ['./app.component.scss'],
 })
 export default class AppComponent implements OnInit, OnDestroy {
-  constructor(private readonly themeService: ThemeService, readonly mathJaxService: MathJaxService) {}
+  constructor(
+    private readonly themeService: ThemeService,
+    readonly mathJaxService: MathJaxService
+  ) {}
 
   ngOnInit(): void {
     this.themeService.start();
