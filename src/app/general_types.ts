@@ -38,15 +38,11 @@ export interface SolverWorkerMessage {
 
 export type SolverWorkerResponseDataArray = {
   total: string;
-  results: CalculateResultWithEquation[];
+  results: CalculateResult[];
 }[];
 
 export interface SolverWorkerResponse {
   readonly data: SolverWorkerResponseDataArray;
-}
-
-export interface CalculateResultWithEquation extends CalculateResult {
-  readonly equation: string;
 }
 
 export interface TypedWorker<M, R> extends Worker {

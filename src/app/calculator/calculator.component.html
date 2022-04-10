@@ -50,10 +50,10 @@
               <mat-divider [id]="groupId(data.total)"></mat-divider>
               <mat-list-option
                 *ngFor="let calculateResultWithEquation of data.results"
-                [value]="calculateResultWithEquation.equation"
+                [value]="calculateResultWithEquation.fullEquation"
               >
                 <app-math-jax
-                  [equation]="calculateResultWithEquation.equation"
+                  [equation]="calculateResultWithEquation.fullEquation"
                 ></app-math-jax>
               </mat-list-option>
             </ng-container>

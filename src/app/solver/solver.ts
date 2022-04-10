@@ -38,8 +38,11 @@ export interface MugginsSolverConfig {
 export interface CalculateResult {
   readonly total: number;
   readonly equation: string;
+  readonly fullEquation: string;
+  readonly sortableEquation: string;
 }
 
+export const EQUATION_FORMATTER = (total: number, equation: string) => `${total} = ${equation}`;
 const GROUPING_PARENTHESIS = (text: string) => `(${text})`;
 const GROUPING_NONE = (text: string) => text;
 
@@ -102,76 +105,26 @@ export const OPERATIONS: Operation[] = [
   },
 ];
 
-const letters = [
-  'a',
-  'b',
-  'c',
-  'd',
-  'e',
-  'f',
-  'g',
-  'h',
-  'i',
-  'j',
-  'k',
-  'l',
-  'm',
-  'n',
-  'o',
-  'p',
-  'q',
-  'r',
-  's',
-  't',
-  'u',
-  'v',
-  'w',
-  'x',
-  'y',
-  'z',
-  'A',
-  'B',
-  'C',
-  'D',
-  'E',
-  'F',
-  'G',
-  'H',
-  'I',
-  'J',
-  'K',
-  'L',
-  'M',
-  'N',
-  'O',
-  'P',
-  'Q',
-  'R',
-  'S',
-  'T',
-  'U',
-  'V',
-  'W',
-  'X',
-  'Y',
-  'Z',
-];
+/**
+ * An array of string replace functions that replace an operation in an equation string with a letter.
+ */
+const operationReplaceFunctionsArray: ((value: string) => string)[] =
+  OPERATIONS.map(operation => operation.id).map((operationId, index) => (
+    (value: string) =>
+      value.replace(new RegExp(operationId, 'g'), String.fromCharCode('a'.charCodeAt(0) + index))
+  ));
 
-const operationLetterMap: { [operationId: string]: (value: string) => string } =
-  Object.fromEntries(
-    OPERATIONS.map((operation) => operation.id).map((operationId, index) => [
-      operationId,
-      (value: string) =>
-        value.replace(new RegExp(operationId, 'g'), letters[index]),
-    ])
-  );
-
+/**
+ * In ASCII, operators like + - /, etc come before numbers. This means when sorting equations at the end,
+ * the operators take precedence. So equations like '(8 + 1) + 2' come before '2 + (8 + 1)'. To fix this,
+ * we replace operators with letters and non-alphanum with Z. This ensures the numbers are prioritized and parenthesis
+ * are sort to the bottom.
+ * @param equation
+ */
 export function getSortableEquation(equation: string): string {
   let sortableEquation = equation;
 
-  for (const operation in operationLetterMap) {
-    sortableEquation = operationLetterMap[operation](sortableEquation);
-  }
+  operationReplaceFunctionsArray.forEach(replaceFunction => sortableEquation = replaceFunction(sortableEquation));
 
   return sortableEquation.replace(/[^0-9a-zA-Z ]/g, 'Z');
 }
@@ -380,10 +333,12 @@ export class MugginsSolver {
       .map((equation) => {
         const total = equation.total();
         const equationStr = equation.toString(false);
+        const fullEquation = EQUATION_FORMATTER(total, equationStr);
         return {
           total,
+          fullEquation,
           equation: equationStr,
-          sortableEquation: getSortableEquation(`${total} = ${equationStr}`),
+          sortableEquation: getSortableEquation(fullEquation),
         };
       });
 

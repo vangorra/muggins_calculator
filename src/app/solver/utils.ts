@@ -15,13 +15,8 @@ export function runSolverWorkerMain(
     ),
   });
 
-  const resultsWithEquations = solver.calculateSolutions().map((solution) => ({
-    ...solution,
-    equation: `${solution.total} = ${solution.equation}`,
-  }));
-
   const data = Object.entries(
-    groupBy(resultsWithEquations, (item) => item.total)
+    groupBy(solver.calculateSolutions(), (item) => item.total)
   ).map(([total, results]) => ({
     total,
     results,
