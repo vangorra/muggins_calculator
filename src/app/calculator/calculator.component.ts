@@ -124,13 +124,12 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     this.calculateState = CalculateState.PROCESSING;
 
     const configuration = this.configurationService.value.getValue();
+    const { operations } = configuration;
     const message: SolverWorkerMessage = {
+      operations,
       boardMinNumber: configuration.board.minSize,
       boardMaxNumber: configuration.board.maxSize,
       diceFaces: this.dice.map((die) => die.selectedFace),
-      operators: Object.entries(configuration.operations)
-        .filter((entry) => entry[1])
-        .map((entry) => entry[0]),
     };
 
     // Run process in a worker.

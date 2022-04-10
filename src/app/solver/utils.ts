@@ -11,7 +11,7 @@ export function runSolverWorkerMain(
     maxTotal: solverWorkerMessage.boardMaxNumber,
     faces: solverWorkerMessage.diceFaces,
     operations: OPERATIONS.filter((o) =>
-      includes(solverWorkerMessage.operators, o.id)
+      includes(solverWorkerMessage.operations, o.id)
     ),
   });
 

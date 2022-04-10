@@ -1,13 +1,7 @@
 .theme {
-  mat-radio-group {
-    display: flex;
-    flex-direction: column;
-    margin: 15px 0;
-    align-items: flex-start;
-  }
-
+  // The mat-select-option indents the content (this radio button). Brining it back to line up with other lists.
   mat-radio-button {
-    margin: 5px;
+    margin-left: -16px;
   }
 }
 

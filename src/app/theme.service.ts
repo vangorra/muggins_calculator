@@ -1,13 +1,15 @@
-import { Injectable } from '@angular/core';
-import { ConfigurationService } from './configuration.service';
-import { Configuration, ThemeEnum, ThemeType } from './general_types';
-import { Subscription } from 'rxjs';
-import { DEFAULT_CONFIGURATION } from './const';
+import {Injectable} from '@angular/core';
+import {ConfigurationService} from './configuration.service';
+import {Configuration, ThemeEnum} from './general_types';
+import {Subscription} from 'rxjs';
+import {DEFAULT_CONFIGURATION} from './const';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ThemeService {
+  private static CLASS_NAME_PREFIX = 'color-scheme-';
+
   private readonly mediaQuery: MediaQueryList = window.matchMedia(
     '(prefers-color-scheme)'
   );
@@ -45,8 +47,8 @@ export class ThemeService {
   /**
    * Apply the current color preference css style to the body tag.
    */
-  public applyStyle(theme: ThemeType): void {
-    let selectedTheme: ThemeType = theme;
+  public applyStyle(theme: ThemeEnum): void {
+    let selectedTheme: ThemeEnum = theme;
 
     // Derive based on browser media data.
     if (theme === ThemeEnum.AUTOMATIC) {
@@ -59,10 +61,12 @@ export class ThemeService {
     const { classList } = document.body;
 
     // Remove existing scheme classes.
-    const removeClassNames = Object.values(ThemeEnum)
-      .map((themeValue) => ThemeService.newColorSchemeClass(themeValue))
-      // Exclude the currently selected scheme.
-      .filter((className) => className !== currentColorSchemeClassName);
+    const removeClassNames: string[] = [];
+    classList.forEach(className => {
+      if (className.startsWith(ThemeService.CLASS_NAME_PREFIX)) {
+        removeClassNames.push(className);
+      }
+    });
 
     classList.remove(...removeClassNames);
     classList.add(currentColorSchemeClassName);
@@ -72,7 +76,7 @@ export class ThemeService {
    * Get color scheme dictated by a media query.
    * @private
    */
-  public getMediaColorScheme(defaultValue: ThemeType): ThemeType {
+  public getMediaColorScheme(defaultValue: ThemeEnum): ThemeEnum {
     if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return ThemeEnum.DARK;
     }
@@ -85,7 +89,7 @@ export class ThemeService {
    * @param colorScheme
    * @private
    */
-  private static newColorSchemeClass(colorScheme: ThemeType): string {
-    return `color-scheme-${colorScheme.valueOf()}`;
+  private static newColorSchemeClass(colorScheme: ThemeEnum): string {
+    return ThemeService.CLASS_NAME_PREFIX + colorScheme;
   }
 }

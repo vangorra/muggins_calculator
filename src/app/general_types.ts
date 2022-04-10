@@ -1,22 +1,39 @@
 import { CalculateResult, OperationEnum } from './solver/solver';
 
-export enum ThemeEnum {
+export const enum ThemeEnum {
   AUTOMATIC = 'automatic',
   DARK = 'dark',
   LIGHT = 'light',
 }
 
-export type ThemeType = `${ThemeEnum}`;
+interface ThemeConfig {
+  name: string;
+  theme: ThemeEnum;
+}
+
+export const THEME_CONFIGS: ThemeConfig[] = [
+  {
+    name: 'Automatic',
+    theme: ThemeEnum.AUTOMATIC,
+  },
+  {
+    name: 'Dark',
+    theme: ThemeEnum.DARK,
+  },
+  {
+    name: 'Light',
+    theme: ThemeEnum.LIGHT,
+  },
+];
 
 export interface DiceConfiguration {
   faceCount: number;
 }
 
-export type OperationsConfiguration = { [id in OperationEnum]: boolean };
-
 export interface Configuration {
-  readonly theme: ThemeType;
-  readonly operations: OperationsConfiguration;
+  // readonly theme: ThemeType;
+  readonly theme: ThemeEnum;
+  readonly operations: OperationEnum[];
   readonly board: {
     minSize: number;
     maxSize: number;
@@ -33,7 +50,7 @@ export interface SolverWorkerMessage {
   readonly boardMinNumber: number;
   readonly boardMaxNumber: number;
   readonly diceFaces: number[];
-  readonly operators: string[];
+  readonly operations: string[];
 }
 
 export type SolverWorkerResponseDataArray = {

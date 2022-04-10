@@ -22,10 +22,14 @@ export const enum OperationEnum {
 export interface Operation {
   readonly name: string;
   readonly id: OperationEnum;
-  readonly solve: (a: number, b: number) => number;
-  readonly display: (a: string, b: string) => string;
-  readonly grouping: (text: string) => string;
-  readonly orderMatters: boolean;
+  readonly solve: (left: number, right: number) => number;
+  readonly display: (left: any, right: any) => string;
+  readonly displayGroup: (text: string) => string;
+  readonly isCommutative: boolean;
+  readonly exampleNumbers: {
+    readonly left: number,
+    readonly right: number,
+  };
 }
 
 export interface MugginsSolverConfig {
@@ -50,58 +54,86 @@ export const OPERATIONS: Operation[] = [
   {
     name: 'Plus',
     id: OperationEnum.PLUS,
-    solve: (a: number, b: number) => a + b,
-    display: (a: string, b: string) => `${a} + ${b}`,
-    grouping: GROUPING_PARENTHESIS,
-    orderMatters: false,
+    solve: (left: number, right: number) => left + right,
+    display: (left: any, right: any) => `${left} + ${right}`,
+    displayGroup: GROUPING_PARENTHESIS,
+    isCommutative: true,
+    exampleNumbers: {
+      left: 6,
+      right: 2,
+    },
   },
   {
     name: 'Minus',
     id: OperationEnum.MINUS,
-    solve: (a: number, b: number) => a - b,
-    display: (a: string, b: string) => `${a} - ${b}`,
-    grouping: GROUPING_PARENTHESIS,
-    orderMatters: true,
+    solve: (left: number, right: number) => left - right,
+    display: (left: any, right: any) => `${left} - ${right}`,
+    displayGroup: GROUPING_PARENTHESIS,
+    isCommutative: false,
+    exampleNumbers: {
+      left: 6,
+      right: 2,
+    },
   },
   {
     name: 'Multiply',
     id: OperationEnum.MULTIPLY,
-    solve: (a: number, b: number) => a * b,
-    display: (a: string, b: string) => `${a} * ${b}`,
-    grouping: GROUPING_PARENTHESIS,
-    orderMatters: false,
+    solve: (left: number, right: number) => left * right,
+    display: (left: any, right: any) => `${left} * ${right}`,
+    displayGroup: GROUPING_PARENTHESIS,
+    isCommutative: true,
+    exampleNumbers: {
+      left: 6,
+      right: 2,
+    },
   },
   {
     name: 'Divide',
     id: OperationEnum.DIVIDE,
-    solve: (a: number, b: number) => a / b,
-    display: (a: string, b: string) => `${a} / ${b}`,
-    grouping: GROUPING_PARENTHESIS,
-    orderMatters: true,
+    solve: (left: number, right: number) => left / right,
+    display: (left: any, right: any) => `${left} / ${right}`,
+    displayGroup: GROUPING_PARENTHESIS,
+    isCommutative: false,
+    exampleNumbers: {
+      left: 6,
+      right: 2,
+    },
   },
   {
     name: 'Power',
     id: OperationEnum.POWER,
-    solve: (a: number, b: number) => a ** b,
-    display: (a: string, b: string) => `${a} ^ ${b}`,
-    grouping: GROUPING_NONE,
-    orderMatters: true,
+    solve: (left: number, right: number) => left ** right,
+    display: (left: any, right: any) => `${left} ^ ${right}`,
+    displayGroup: GROUPING_NONE,
+    isCommutative: false,
+    exampleNumbers: {
+      left: 5,
+      right: 2,
+    },
   },
   {
     name: 'Root',
     id: OperationEnum.ROOT,
-    solve: (a: number, b: number) => Math.pow(a, 1 / b),
-    display: (a: string, b: string) => `root(${a})(${b})`,
-    grouping: GROUPING_NONE,
-    orderMatters: true,
+    solve: (left: number, right: number) => Math.pow(left, 1 / right),
+    display: (left: any, right: any) => `root(${left})(${right})`,
+    displayGroup: GROUPING_NONE,
+    isCommutative: false,
+    exampleNumbers: {
+      left: 27,
+      right: 3,
+    },
   },
   {
     name: 'Modulo',
     id: OperationEnum.MODULO,
-    solve: (a: number, b: number) => a % b,
-    display: (a: string, b: string) => `${a} % ${b}`,
-    grouping: GROUPING_PARENTHESIS,
-    orderMatters: true,
+    solve: (left: number, right: number) => left % right,
+    display: (left: any, right: any) => `${left} % ${right}`,
+    displayGroup: GROUPING_PARENTHESIS,
+    isCommutative: false,
+    exampleNumbers: {
+      left: 5,
+      right: 2,
+    },
   },
 ];
 
@@ -171,29 +203,29 @@ class EquationNumber extends BaseEquation {
 
 class Equation extends BaseEquation {
   constructor(
-    private readonly num1: BaseEquation,
-    private readonly num2: BaseEquation,
+    private readonly left: BaseEquation,
+    private readonly right: BaseEquation,
     private readonly operation: Operation
   ) {
     super();
   }
 
   calculateTotal(): number {
-    const num1 = +this.num1.total();
-    const num2 = +this.num2.total();
+    const num1 = +this.left.total();
+    const num2 = +this.right.total();
 
     return this.operation.solve(num1, num2);
   }
 
   calculateToString(withGrouping = true): string {
-    const num1 = this.num1.toString();
-    const num2 = this.num2.toString();
+    const left = this.left.toString();
+    const right = this.right.toString();
 
-    const display = this.operation.display(num1, num2);
+    const display = this.operation.display(left, right);
     if (!withGrouping) {
       return display;
     }
-    return this.operation.grouping(display);
+    return this.operation.displayGroup(display);
   }
 
   static createFromPairingsAndOperations(
@@ -218,7 +250,7 @@ class Equation extends BaseEquation {
     // to make it easy to find and filter out duplicate equations. So duplicate equations like
     // "4 + (3 - 2) = 5" and "(3 - 2) + 4 = 5" would instead become "4 + (3 - 2)" and equations like
     // "4 + 3 = 7" and "3 + 4 = 7" become "3 + 4 = 7".
-    if (!operation.orderMatters) {
+    if (operation.isCommutative) {
       const shouldSwap =
         (isNumber(pairing0) && isNumber(pairing1) && pairing1 < pairing0) ||
         (!isNumber(pairing0) && isNumber(pairing1));
@@ -275,13 +307,12 @@ export class MugginsSolver {
     arr: PairingPermutation,
     depth = 0
   ): PairingPermutation {
-    const permutations: PairingPermutation = [];
-
     // Not enough items to pair.
     if (arr.length < 3) {
       return [arr];
     }
 
+    const permutations: PairingPermutation = [];
     for (let i = 0; i < arr.length - 1; i += 1) {
       const permutation = arr.slice();
       const pair = permutation.slice(i, i + 2);

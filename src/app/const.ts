@@ -1,23 +1,18 @@
-import { Configuration, ThemeEnum } from './general_types';
-import { range } from 'lodash';
-import { OperationEnum, OPERATIONS } from './solver/solver';
+import {Configuration, ThemeEnum} from './general_types';
+import {range} from 'lodash';
+import {OperationEnum} from './solver/solver';
 
 export const DEFAULT_DIE_FACE_COUNT = 6;
 export const DEFAULT_DIE_SELECTED_FACE = 1;
 
-const DEFAULT_OPERATIONS = [
-  OperationEnum.PLUS,
-  OperationEnum.MINUS,
-  OperationEnum.MULTIPLY,
-  OperationEnum.DIVIDE,
-];
-
 export const DEFAULT_CONFIGURATION: Configuration = {
   theme: ThemeEnum.AUTOMATIC,
-  operations: Object.fromEntries([
-    ...OPERATIONS.map((operation) => [operation.id, false]),
-    ...DEFAULT_OPERATIONS.map((operationId) => [operationId, true]),
-  ]),
+  operations: [
+    OperationEnum.PLUS,
+    OperationEnum.MINUS,
+    OperationEnum.MULTIPLY,
+    OperationEnum.DIVIDE,
+  ],
   board: {
     minSize: 1,
     maxSize: 36,

@@ -1,14 +1,14 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { range } from 'lodash';
-import { ConfigurationService } from '../configuration.service';
-import { Configuration, ThemeEnum } from '../general_types';
-import { filter, Subscription } from 'rxjs';
-import { ToolbarService } from '../toolbar.service';
-import { Router } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
-import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
-import { OPERATIONS } from '../solver/solver';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {range} from 'lodash';
+import {ConfigurationService} from '../configuration.service';
+import {Configuration, THEME_CONFIGS, ThemeEnum} from '../general_types';
+import {filter, Subscription} from 'rxjs';
+import {ToolbarService} from '../toolbar.service';
+import {Router} from '@angular/router';
+import {MatDialog} from '@angular/material/dialog';
+import {ConfirmDialogComponent} from '../confirm-dialog/confirm-dialog.component';
+import {EQUATION_FORMATTER, Operation, OPERATIONS} from '../solver/solver';
 
 @Component({
   selector: 'app-configuration',
@@ -16,7 +16,7 @@ import { OPERATIONS } from '../solver/solver';
   styleUrls: ['./configuration.component.scss'],
 })
 export class ConfigurationComponent implements OnInit, OnDestroy {
-  readonly themeEnum = ThemeEnum;
+  readonly availableThemeConfigs = THEME_CONFIGS;
 
   readonly availableOperations = OPERATIONS;
 
@@ -98,7 +98,11 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
 
   onFormChanged(): void {
     if (this.formGroup.valid) {
-      this.configurationService.update(this.formGroup?.value);
+      const newConfiguration = this.formGroup?.value;
+      this.configurationService.update({
+        ...newConfiguration,
+        theme: newConfiguration.theme[0],
+      });
       this.configurationService.save();
     }
   }
@@ -107,8 +111,9 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
     this.formGroupValueChangeSubscription?.unsubscribe();
 
     this.formGroup = this.formBuilder.group({
-      theme: configuration.theme,
-      operations: this.formBuilder.group(configuration.operations),
+      theme: this.formBuilder.control([configuration.theme]),
+      // theme: configuration.theme,
+      operations: this.formBuilder.control(configuration.operations),
       board: this.formBuilder.group({
         minSize: configuration.board.minSize,
         maxSize: configuration.board.maxSize,
@@ -124,6 +129,18 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
       this.formGroup.valueChanges.subscribe(() => this.onFormChanged());
 
     this.configuration = configuration;
+  }
+
+  getFullExampleEquation(operation: Operation): string {
+    const {left, right} = operation.exampleNumbers;
+    return EQUATION_FORMATTER(
+      operation.solve(left, right),
+      operation.display(left, right)
+    );
+  }
+
+  isThemeChecked(theme: ThemeEnum): boolean {
+    return this.configuration.theme === theme;
   }
 
   readonly inputSelectAll = (target?: EventTarget | null) => {

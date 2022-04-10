@@ -3,11 +3,15 @@
     <mat-card-title>Theme</mat-card-title>
     <mat-card-subtitle>Specifies how the app should look.</mat-card-subtitle>
     <mat-card-content>
-      <mat-radio-group formControlName="theme">
-        <mat-radio-button [value]="themeEnum.AUTOMATIC">Auto</mat-radio-button>
-        <mat-radio-button [value]="themeEnum.DARK">Dark</mat-radio-button>
-        <mat-radio-button [value]="themeEnum.LIGHT">Light</mat-radio-button>
-      </mat-radio-group>
+      <mat-selection-list formControlName="theme" [multiple]="false">
+        <mat-list-option *ngFor="let themeConfig of availableThemeConfigs" [value]="themeConfig.theme" checkboxPosition="before">
+          <mat-radio-button [checked]="isThemeChecked(themeConfig.theme)">{{ themeConfig.name }}</mat-radio-button>
+        </mat-list-option>
+      </mat-selection-list>
+
+<!--      <mat-radio-group formControlName="theme">-->
+<!--        <mat-radio-button *ngFor="let theme of availableThemes" [value]="theme.theme">{{ theme.name }}</mat-radio-button>-->
+<!--      </mat-radio-group>-->
     </mat-card-content>
   </mat-card>
 
@@ -18,14 +22,13 @@
     <mat-card-subtitle
       >Expand the game with additional operations.</mat-card-subtitle
     >
-    <mat-card-content formGroupName="operations">
-      <p *ngFor="let operation of availableOperations">
-        <mat-checkbox [formControlName]="operation.id">
-          {{ operation.name }}
-          (<app-math-jax [equation]="operation.display('a', 'b')"></app-math-jax
-          >)
-        </mat-checkbox>
-      </p>
+    <mat-card-content>
+      <mat-selection-list formControlName="operations">
+        <mat-list-option checkboxPosition="before" *ngFor="let operation of availableOperations" [value]="operation.id">
+          <div mat-line class="operationName">{{ operation.name }}</div>
+          <app-math-jax mat-line [equation]="getFullExampleEquation(operation)"></app-math-jax>
+        </mat-list-option>
+      </mat-selection-list>
     </mat-card-content>
   </mat-card>
 
@@ -95,10 +98,10 @@
         <br />
       </ng-container>
       <mat-card-actions>
-        <button type="button" mat-button (click)="addDie()">
+        <button type="button" mat-stroked-button (click)="addDie()" title="Add Die">
           <mat-icon>add</mat-icon>
         </button>
-        <button type="button" mat-button (click)="removeDie()">
+        <button type="button" mat-stroked-button (click)="removeDie()" title="Remove Die">
           <mat-icon>remove</mat-icon>
         </button>
       </mat-card-actions>
