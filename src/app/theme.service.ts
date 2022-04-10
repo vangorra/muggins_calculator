@@ -1,8 +1,8 @@
-import {Injectable} from '@angular/core';
-import {ConfigurationService} from './configuration.service';
-import {Configuration, ThemeEnum} from './general_types';
-import {Subscription} from 'rxjs';
-import {DEFAULT_CONFIGURATION} from './const';
+import { Injectable } from '@angular/core';
+import { ConfigurationService } from './configuration.service';
+import { Configuration, ThemeEnum } from './general_types';
+import { Subscription } from 'rxjs';
+import { DEFAULT_CONFIGURATION } from './const';
 
 @Injectable({
   providedIn: 'root',
@@ -62,7 +62,7 @@ export class ThemeService {
 
     // Remove existing scheme classes.
     const removeClassNames: string[] = [];
-    classList.forEach(className => {
+    classList.forEach((className) => {
       if (className.startsWith(ThemeService.CLASS_NAME_PREFIX)) {
         removeClassNames.push(className);
       }

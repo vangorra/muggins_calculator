@@ -1,14 +1,7 @@
-<div fxLayout="row" fxLayoutGap="1em" style="overflow: auto">
-  <div
-    class="die"
-    fxFlex.xs="20"
-    fxFlex.sm="20"
-    *ngFor="let die of dice; index as dieIndex"
-  >
-    <app-die
-      [label]="'Die ' + (dieIndex + 1)"
-      [die]="die"
-      (faceChanged)="onDieChanged(dieIndex, $event)"
-    ></app-die>
-  </div>
-</div>
+<p *ngFor="let die of dice; index as dieIndex">
+  <app-die
+    [label]="'Die ' + (dieIndex + 1)"
+    [die]="die"
+    (faceChanged)="onDieChanged(dieIndex, $event)"
+  ></app-die>
+</p>

@@ -4,14 +4,16 @@
     <mat-card-subtitle>Specifies how the app should look.</mat-card-subtitle>
     <mat-card-content>
       <mat-selection-list formControlName="theme" [multiple]="false">
-        <mat-list-option *ngFor="let themeConfig of availableThemeConfigs" [value]="themeConfig.theme" checkboxPosition="before">
-          <mat-radio-button [checked]="isThemeChecked(themeConfig.theme)">{{ themeConfig.name }}</mat-radio-button>
+        <mat-list-option
+          *ngFor="let themeConfig of availableThemeConfigs"
+          [value]="themeConfig.theme"
+          checkboxPosition="before"
+        >
+          <mat-radio-button [checked]="isThemeChecked(themeConfig.theme)">{{
+            themeConfig.name
+          }}</mat-radio-button>
         </mat-list-option>
       </mat-selection-list>
-
-<!--      <mat-radio-group formControlName="theme">-->
-<!--        <mat-radio-button *ngFor="let theme of availableThemes" [value]="theme.theme">{{ theme.name }}</mat-radio-button>-->
-<!--      </mat-radio-group>-->
     </mat-card-content>
   </mat-card>
 
@@ -24,9 +26,16 @@
     >
     <mat-card-content>
       <mat-selection-list formControlName="operations">
-        <mat-list-option checkboxPosition="before" *ngFor="let operation of availableOperations" [value]="operation.id">
+        <mat-list-option
+          checkboxPosition="before"
+          *ngFor="let operation of availableOperations"
+          [value]="operation.id"
+        >
           <div mat-line class="operationName">{{ operation.name }}</div>
-          <app-math-jax mat-line [equation]="getFullExampleEquation(operation)"></app-math-jax>
+          <app-math-jax
+            mat-line
+            [equation]="getFullExampleEquation(operation)"
+          ></app-math-jax>
         </mat-list-option>
       </mat-selection-list>
     </mat-card-content>
@@ -48,6 +57,7 @@
           type="number"
           min="1"
           formControlName="minSize"
+          required
           (click)="inputSelectAll($event.target)"
           data-testid="boardMinNumber"
         />
@@ -57,11 +67,11 @@
       <mat-form-field>
         <mat-label>Max Board Number (inclusive)</mat-label>
         <input
-          #maxBoardSize
           matInput
           type="number"
           [min]="+minBoardSize.value + 1 || 1"
           formControlName="maxSize"
+          required
           (click)="inputSelectAll($event.target)"
         />
         <mat-hint>The maximum number on the board (default: 36)</mat-hint>
@@ -74,34 +84,44 @@
   <mat-card>
     <mat-card-title>Dice</mat-card-title>
     <mat-card-subtitle
-      >The number of dice to use for generating equations. Warning: Increasing
-      this beyond 4 will result in considerably slower runs.</mat-card-subtitle
+      >The dice and faces to use for generating equations. Warning: Increasing
+      number of dice beyond 4 will result in considerably slower
+      runs.</mat-card-subtitle
     >
     <mat-card-content formArrayName="dice">
       <ng-container
         *ngFor="let dieConfiguration of configuration.dice; index as dieIndex"
       >
-        <mat-form-field>
-          <ng-container [formGroupName]="dieIndex">
-            <mat-label>Faces for Die #{{ dieIndex + 1 }}</mat-label>
-            <input
-              matInput
-              type="number"
-              min="1"
-              max="10"
-              formControlName="faceCount"
-              (click)="inputSelectAll($event.target)"
-              data-testid="faceCount"
-            />
-          </ng-container>
+        <mat-form-field [formGroupName]="dieIndex">
+          <mat-label>Die #{{ dieIndex + 1 }}</mat-label>
+          <input
+            matInput
+            type="number"
+            min="1"
+            max="10"
+            formControlName="faceCount"
+            (click)="inputSelectAll($event.target)"
+            data-testid="faceCount"
+            required
+          />
         </mat-form-field>
         <br />
       </ng-container>
       <mat-card-actions>
-        <button type="button" mat-stroked-button (click)="addDie()" title="Add Die">
+        <button
+          type="button"
+          mat-stroked-button
+          (click)="addDie()"
+          title="Add Die"
+        >
           <mat-icon>add</mat-icon>
         </button>
-        <button type="button" mat-stroked-button (click)="removeDie()" title="Remove Die">
+        <button
+          type="button"
+          mat-stroked-button
+          (click)="removeDie()"
+          title="Remove Die"
+        >
           <mat-icon>remove</mat-icon>
         </button>
       </mat-card-actions>

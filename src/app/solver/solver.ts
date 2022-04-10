@@ -27,8 +27,8 @@ export interface Operation {
   readonly displayGroup: (text: string) => string;
   readonly isCommutative: boolean;
   readonly exampleNumbers: {
-    readonly left: number,
-    readonly right: number,
+    readonly left: number;
+    readonly right: number;
   };
 }
 
@@ -46,7 +46,8 @@ export interface CalculateResult {
   readonly sortableEquation: string;
 }
 
-export const EQUATION_FORMATTER = (total: number, equation: string) => `${total} = ${equation}`;
+export const EQUATION_FORMATTER = (total: number, equation: string) =>
+  `${total} = ${equation}`;
 const GROUPING_PARENTHESIS = (text: string) => `(${text})`;
 const GROUPING_NONE = (text: string) => text;
 
@@ -141,10 +142,13 @@ export const OPERATIONS: Operation[] = [
  * An array of string replace functions that replace an operation in an equation string with a letter.
  */
 const operationReplaceFunctionsArray: ((value: string) => string)[] =
-  OPERATIONS.map(operation => operation.id).map((operationId, index) => (
-    (value: string) =>
-      value.replace(new RegExp(operationId, 'g'), String.fromCharCode('a'.charCodeAt(0) + index))
-  ));
+  OPERATIONS.map((operation) => operation.id).map(
+    (operationId, index) => (value: string) =>
+      value.replace(
+        new RegExp(operationId, 'g'),
+        String.fromCharCode('a'.charCodeAt(0) + index)
+      )
+  );
 
 /**
  * In ASCII, operators like + - /, etc come before numbers. This means when sorting equations at the end,
@@ -156,7 +160,9 @@ const operationReplaceFunctionsArray: ((value: string) => string)[] =
 export function getSortableEquation(equation: string): string {
   let sortableEquation = equation;
 
-  operationReplaceFunctionsArray.forEach(replaceFunction => sortableEquation = replaceFunction(sortableEquation));
+  operationReplaceFunctionsArray.forEach(
+    (replaceFunction) => (sortableEquation = replaceFunction(sortableEquation))
+  );
 
   return sortableEquation.replace(/[^0-9a-zA-Z ]/g, 'Z');
 }
@@ -332,6 +338,10 @@ export class MugginsSolver {
    * @param selectedOperations
    */
   public calculateSolutions(): CalculateResult[] {
+    if (this.config.faces.length < 2 || this.config.operations.length === 0) {
+      return [];
+    }
+
     const facePermutations = uniqWith(
       MugginsSolver.permutations(this.config.faces),
       (a, b) => a.join('_') === b.join('_')

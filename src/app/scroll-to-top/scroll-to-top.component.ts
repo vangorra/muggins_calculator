@@ -1,12 +1,18 @@
-import {Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges,
+} from '@angular/core';
 
 @Component({
   selector: 'app-scroll-to-top',
   templateUrl: './scroll-to-top.component.html',
-  styleUrls: ['./scroll-to-top.component.scss']
+  styleUrls: ['./scroll-to-top.component.scss'],
 })
 export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
-
   @Input() visibleAfterElementQuery?: string;
 
   @Input() offsetElementQuery?: string;
@@ -17,7 +23,8 @@ export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
 
   private offsetElement?: HTMLElement;
 
-  private readonly onWindowScrolledEventListener = () => this.onWindowScrolled();
+  private readonly onWindowScrolledEventListener = () =>
+    this.onWindowScrolled();
 
   ngOnInit(): void {
     window.addEventListener('scroll', this.onWindowScrolledEventListener, true);
@@ -25,11 +32,15 @@ export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(change: SimpleChanges): void {
     if (!!change.visibleAfterElementQuery) {
-      this.visibleAfterElement = this.maybeQueryForElement(change.visibleAfterElementQuery.currentValue);
+      this.visibleAfterElement = this.maybeQueryForElement(
+        change.visibleAfterElementQuery.currentValue
+      );
     }
 
     if (!!change.offsetElementQuery) {
-      this.offsetElement = this.maybeQueryForElement(change.offsetElementQuery.currentValue);
+      this.offsetElement = this.maybeQueryForElement(
+        change.offsetElementQuery.currentValue
+      );
     }
   }
 
@@ -38,7 +49,7 @@ export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    return document.querySelector(query) as HTMLElement || undefined;
+    return (document.querySelector(query) as HTMLElement) || undefined;
   }
 
   ngOnDestroy(): void {
@@ -55,7 +66,9 @@ export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    const afterScrollY = this.visibleAfterElement.offsetHeight + this.visibleAfterElement.offsetTop;
+    const afterScrollY =
+      this.visibleAfterElement.offsetHeight +
+      this.visibleAfterElement.offsetTop;
     const offset = this.offsetElement ? this.offsetElement.offsetHeight : 0;
 
     this.isVisible = window.scrollY > afterScrollY - offset;

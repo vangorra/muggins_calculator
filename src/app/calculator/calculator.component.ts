@@ -18,9 +18,9 @@ import { AboutDialogComponent } from '../about-dialog/about-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 enum CalculateState {
-  PROCESSING = "processing",
-  CANCELLED = "cancelled",
-  PROCESSED = "processed",
+  PROCESSING = 'processing',
+  CANCELLED = 'cancelled',
+  PROCESSED = 'processed',
 }
 
 @Component({
@@ -164,7 +164,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   onDiceFaceChanged(dice: Die[]): void {
     this.cancel();
-    dice.forEach((die, index) => this.dice[index] = die);
+    dice.forEach((die, index) => (this.dice[index] = die));
     this.reload();
   }
 

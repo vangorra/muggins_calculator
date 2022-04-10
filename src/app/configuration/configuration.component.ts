@@ -1,14 +1,14 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup} from '@angular/forms';
-import {range} from 'lodash';
-import {ConfigurationService} from '../configuration.service';
-import {Configuration, THEME_CONFIGS, ThemeEnum} from '../general_types';
-import {filter, Subscription} from 'rxjs';
-import {ToolbarService} from '../toolbar.service';
-import {Router} from '@angular/router';
-import {MatDialog} from '@angular/material/dialog';
-import {ConfirmDialogComponent} from '../confirm-dialog/confirm-dialog.component';
-import {EQUATION_FORMATTER, Operation, OPERATIONS} from '../solver/solver';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { range } from 'lodash';
+import { ConfigurationService } from '../configuration.service';
+import { Configuration, THEME_CONFIGS, ThemeEnum } from '../general_types';
+import { filter, Subscription } from 'rxjs';
+import { ToolbarService } from '../toolbar.service';
+import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { EQUATION_FORMATTER, Operation, OPERATIONS } from '../solver/solver';
 
 @Component({
   selector: 'app-configuration',
@@ -132,7 +132,7 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
   }
 
   getFullExampleEquation(operation: Operation): string {
-    const {left, right} = operation.exampleNumbers;
+    const { left, right } = operation.exampleNumbers;
     return EQUATION_FORMATTER(
       operation.solve(left, right),
       operation.display(left, right)

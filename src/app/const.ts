@@ -1,6 +1,6 @@
-import {Configuration, ThemeEnum} from './general_types';
-import {range} from 'lodash';
-import {OperationEnum} from './solver/solver';
+import { Configuration, ThemeEnum } from './general_types';
+import { range } from 'lodash';
+import { OperationEnum } from './solver/solver';
 
 export const DEFAULT_DIE_FACE_COUNT = 6;
 export const DEFAULT_DIE_SELECTED_FACE = 1;

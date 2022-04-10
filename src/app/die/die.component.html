@@ -1,6 +1,5 @@
-<mat-label>{{ label }}</mat-label>
-<mat-radio-group [formControl]="selectedFace">
-  <mat-radio-button *ngFor="let face of getFaceOptions()" [value]="face">
+<mat-button-toggle-group [formControl]="selectedFace">
+  <mat-button-toggle *ngFor="let face of getFaceOptions()" [value]="face">
     {{ face }}
-  </mat-radio-button>
-</mat-radio-group>
+  </mat-button-toggle>
+</mat-button-toggle-group>
