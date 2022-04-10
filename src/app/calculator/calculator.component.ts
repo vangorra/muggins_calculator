@@ -17,12 +17,22 @@ import { MatDialog } from '@angular/material/dialog';
 import { AboutDialogComponent } from '../about-dialog/about-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+enum CalculateState {
+  PROCESSING = "processing",
+  CANCELLED = "cancelled",
+  PROCESSED = "processed",
+}
+
 @Component({
   selector: 'app-calculator',
   templateUrl: './calculator.component.html',
   styleUrls: ['./calculator.component.scss'],
 })
 export default class CalculatorComponent implements OnInit, OnDestroy {
+  readonly calculateStates = CalculateState;
+
+  calculateState = CalculateState.PROCESSED;
+
   readonly dice: Die[] = [];
 
   readonly workerResponseDataArray: SolverWorkerResponseDataArray = [];
@@ -33,20 +43,11 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     | TypedWorker<SolverWorkerMessage, SolverWorkerResponse>
     | undefined = undefined;
 
-  isProcessing: boolean = false;
-
-  isCancelled: boolean = false;
-
   selectedEquationString: string | undefined = undefined;
 
   private configurationSubscription?: Subscription;
 
   solverWorkerResponse?: SolverWorkerResponse;
-
-  scrollToTopVisible = false;
-
-  private readonly onWindowScrolledEventListener = () =>
-    this.onWindowScrolled();
 
   constructor(
     private readonly configurationService: ConfigurationService,
@@ -76,27 +77,10 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     this.configurationSubscription = this.configurationService.value.subscribe(
       (configuration) => this.onConfigurationUpdated(configuration)
     );
-
-    window.addEventListener('scroll', this.onWindowScrolledEventListener, true);
   }
 
   ngOnDestroy(): void {
     this.configurationSubscription?.unsubscribe();
-
-    window.removeEventListener(
-      'scroll',
-      this.onWindowScrolledEventListener,
-      true
-    );
-  }
-
-  onWindowScrolled(): void {
-    const element = document.getElementById('diceOptions');
-    if (element && window.scrollY > element.offsetHeight + element.offsetTop) {
-      this.scrollToTopVisible = true;
-    } else {
-      this.scrollToTopVisible = false;
-    }
   }
 
   onConfigurationUpdated(configuration: Configuration): void {
@@ -127,16 +111,17 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
   }
 
   cancel(): void {
-    this.currentWorker?.terminate();
+    if (!!this.currentWorker) {
+      this.currentWorker.onmessage = () => undefined;
+      this.currentWorker.terminate();
+    }
     this.emptyEquationGroups();
-    this.isProcessing = false;
-    this.isCancelled = true;
+    this.calculateState = CalculateState.CANCELLED;
   }
 
   reload() {
     this.cancel();
-    this.isProcessing = true;
-    this.isCancelled = false;
+    this.calculateState = CalculateState.PROCESSING;
 
     const configuration = this.configurationService.value.getValue();
     const message: SolverWorkerMessage = {
@@ -175,11 +160,12 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     this.equationsCount = this.workerResponseDataArray
       .map((data) => data.results.length)
       .reduce((partialSum, a) => partialSum + a, 0);
-    this.isProcessing = false;
+    this.calculateState = CalculateState.PROCESSED;
   }
 
-  onDieChanged(dieIndex: number, die: Die): void {
-    this.dice[dieIndex] = die;
+  onDiceFaceChanged(dice: Die[]): void {
+    this.cancel();
+    dice.forEach((die, index) => this.dice[index] = die);
     this.reload();
   }
 
@@ -194,14 +180,6 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     this.matSnackBar.open(`Jumped to group ${group}.`, '', {
       duration: 2000,
-    });
-  }
-
-  scrollToTop() {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'smooth',
     });
   }
 }

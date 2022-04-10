@@ -32,6 +32,8 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MathJaxComponent } from './math-jax/math-jax.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
+import { ScrollToTopComponent } from './scroll-to-top/scroll-to-top.component';
+import { DiceComponent } from './dice/dice.component';
 
 @NgModule({
   declarations: [
@@ -43,6 +45,8 @@ import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.componen
     AboutDialogComponent,
     MathJaxComponent,
     ConfirmDialogComponent,
+    ScrollToTopComponent,
+    DiceComponent,
   ],
   imports: [
     BrowserModule,

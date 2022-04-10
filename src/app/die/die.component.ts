@@ -24,7 +24,7 @@ export default class DieComponent implements OnInit, OnDestroy {
   die!: Die;
 
   @Output()
-  dieChanged = new EventEmitter<Die>();
+  faceChanged = new EventEmitter<Die>();
 
   readonly selectedFace = new FormControl(DEFAULT_DIE_SELECTED_FACE);
 
@@ -35,7 +35,7 @@ export default class DieComponent implements OnInit, OnDestroy {
 
     this.selectedFaceSubscription = this.selectedFace.valueChanges.subscribe(
       () => {
-        this.dieChanged.emit({
+        this.faceChanged.emit({
           faceCount: this.die.faceCount,
           selectedFace: this.selectedFace.value,
         });

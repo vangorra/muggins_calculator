@@ -13,7 +13,7 @@ describe(DieComponent.name, () => {
     const dieChangedCallback = createSpy();
     const config: Config = { ...DEFAULT_CONFIG };
     await render(
-      `<app-die [config]="config" [die]="die" (dieChanged)="dieChanged($event)"></app-die>`,
+      `<app-die [config]="config" [die]="die" (faceChanged)="dieChanged($event)"></app-die>`,
       {
         declarations: [DieComponent],
         componentProperties: {
@@ -36,7 +36,7 @@ describe(DieComponent.name, () => {
     const dieChangedCallback = createSpy();
     const config: Config = { ...DEFAULT_CONFIG, customizeDieFaceCount: true };
     const { fixture } = await render(
-      `<app-die [config]="config" [die]="die" (dieChanged)="dieChanged($event)"></app-die>`,
+      `<app-die [config]="config" [die]="die" (faceChanged)="dieChanged($event)"></app-die>`,
       {
         declarations: [DieComponent],
         componentProperties: {

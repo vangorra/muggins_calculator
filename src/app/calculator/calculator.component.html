@@ -1,19 +1,6 @@
 <mat-card id="diceOptions">
   <mat-card-content>
-    <div fxLayout="row" fxLayoutGap="1em" style="overflow: auto">
-      <div
-        class="die"
-        fxFlex.xs="20"
-        fxFlex.sm="20"
-        *ngFor="let die of dice; index as dieIndex"
-      >
-        <app-die
-          [label]="'Die ' + (dieIndex + 1)"
-          [die]="die"
-          (dieChanged)="onDieChanged(dieIndex, $event)"
-        ></app-die>
-      </div>
-    </div>
+    <app-dice [dice]="dice" (faceChanged)="onDiceFaceChanged($event)"></app-dice>
   </mat-card-content>
 </mat-card>
 
@@ -24,73 +11,59 @@
     Results
     <span *ngIf="equationsCount > 0"> ({{ equationsCount }})</span>
   </mat-card-title>
-  <div *ngIf="isProcessing">
-    <mat-card-content>
+
+  <ng-container [ngSwitch]="calculateState">
+    <mat-card-content *ngSwitchCase="calculateStates.PROCESSING">
       <p><mat-spinner></mat-spinner></p>
       <button mat-flat-button (click)="cancel()" data-testid="cancelButton">
         Cancel
       </button>
     </mat-card-content>
-  </div>
 
-  <ng-container *ngIf="isCancelled">
-    <mat-card-content>
+    <mat-card-content *ngSwitchCase="calculateStates.CANCELLED">
       <p>Cancelled...</p>
       <button mat-flat-button (click)="reload()" data-testid="reloadButton">
         Reload
       </button>
     </mat-card-content>
-  </ng-container>
 
-  <ng-container
-    *ngIf="!isProcessing && !isCancelled && workerResponseDataArray.length"
-  >
-    <mat-card-subtitle>
-      <div>Jump to solution:</div>
-      <div>
-        <button
-          *ngFor="let data of workerResponseDataArray"
-          mat-button
-          (click)="scrollToId(groupId(data.total), data.total)"
-        >
-          {{ data.total }}
-        </button>
-      </div>
-    </mat-card-subtitle>
+    <ng-container *ngSwitchDefault [ngSwitch]="workerResponseDataArray.length > 0">
+      <mat-card-content *ngSwitchCase="false">No equations could be determined.</mat-card-content>
 
-    <mat-card-content>
-      <mat-selection-list [multiple]="false">
-        <ng-container *ngFor="let data of workerResponseDataArray">
-          <mat-divider [id]="groupId(data.total)"></mat-divider>
-          <mat-list-option
-            *ngFor="let calculateResultWithEquation of data.results"
-            [value]="calculateResultWithEquation.equation"
-          >
-            <app-math-jax
-              [equation]="calculateResultWithEquation.equation"
-            ></app-math-jax>
-          </mat-list-option>
-        </ng-container>
-        <mat-divider></mat-divider>
-      </mat-selection-list>
-    </mat-card-content>
-  </ng-container>
+      <ng-container *ngSwitchDefault>
+        <mat-card-subtitle>
+          <div>Jump to solution:</div>
+          <div>
+            <button
+              *ngFor="let data of workerResponseDataArray"
+              mat-button
+              (click)="scrollToId(groupId(data.total), data.total)"
+            >
+              {{ data.total }}
+            </button>
+          </div>
+        </mat-card-subtitle>
 
-  <ng-container
-    *ngIf="!isProcessing && !isCancelled && !workerResponseDataArray.length"
-  >
-    <mat-card-content>No equations could be determined.</mat-card-content>
+        <mat-card-content>
+          <mat-selection-list [multiple]="false">
+            <ng-container *ngFor="let data of workerResponseDataArray">
+              <mat-divider [id]="groupId(data.total)"></mat-divider>
+              <mat-list-option
+                *ngFor="let calculateResultWithEquation of data.results"
+                [value]="calculateResultWithEquation.equation"
+              >
+                <app-math-jax
+                  [equation]="calculateResultWithEquation.equation"
+                ></app-math-jax>
+              </mat-list-option>
+            </ng-container>
+            <mat-divider></mat-divider>
+          </mat-selection-list>
+        </mat-card-content>
+      </ng-container>
+
+    </ng-container>
   </ng-container>
 </mat-card>
 
-<button
-  *ngIf="scrollToTopVisible"
-  class="scrollToTopButton"
-  mat-fab
-  color="primary"
-  aria-label="Goto top of page"
-  title="Goto top of page"
-  (click)="scrollToTop()"
->
-  <mat-icon>expand_less</mat-icon>
-</button>
+<app-scroll-to-top [visibleAfterElementQuery]="'#diceOptions'" [offsetElementQuery]="'#appToolbar'"></app-scroll-to-top>
