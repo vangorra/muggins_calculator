@@ -28,11 +28,7 @@ export class ConfirmDialogComponent {
     },
   };
 
-  readonly data: ConfirmDialogData;
-
-  constructor(@Inject(MAT_DIALOG_DATA) data: ConfirmDialogData) {
-    this.data = data;
-  }
+  constructor(@Inject(MAT_DIALOG_DATA) readonly data: ConfirmDialogData) {}
 
   buttonsArray(): ButtonOption[] {
     return [this.data.rejectButton, this.data.acceptButton];

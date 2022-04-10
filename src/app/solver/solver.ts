@@ -3,9 +3,11 @@
  * Tools for providing solutions to muggins dice.
  */
 import { cartesianProduct } from 'cartesian-product-multiple-arrays';
-import {isNumber, uniqWith} from 'lodash';
+import { isNumber, uniqWith } from 'lodash';
 
-type PairingPermutation = Array<number | PairingPermutation | PairingPermutation[]>;
+type PairingPermutation = Array<
+  number | PairingPermutation | PairingPermutation[]
+>;
 
 abstract class BaseEquation {
   private totalCache: number | undefined = undefined;
@@ -34,11 +36,8 @@ abstract class BaseEquation {
 }
 
 class EquationNumber extends BaseEquation {
-  private readonly num: number;
-
-  constructor(num: number) {
+  constructor(private readonly num: number) {
     super();
-    this.num = num;
   }
 
   calculateTotal(): number {
@@ -51,17 +50,8 @@ class EquationNumber extends BaseEquation {
 }
 
 class Equation extends BaseEquation {
-  private readonly num1: BaseEquation;
-
-  private readonly num2: BaseEquation;
-
-  private operation: Operation;
-
-  constructor(num1: BaseEquation, num2: BaseEquation, operation: Operation) {
+  constructor(private readonly num1: BaseEquation, private readonly num2: BaseEquation, private readonly operation: Operation) {
     super();
-    this.num1 = num1;
-    this.num2 = num2;
-    this.operation = operation;
   }
 
   calculateTotal(): number {
@@ -106,8 +96,8 @@ class Equation extends BaseEquation {
     // "4 + 3 = 7" and "3 + 4 = 7" become "3 + 4 = 7".
     if (!operation.orderMatters) {
       const shouldSwap =
-        (isNumber(pairing0) && isNumber(pairing1) && pairing1 < pairing0)
-      || isNumber(pairing1);
+        (isNumber(pairing0) && isNumber(pairing1) && pairing1 < pairing0) ||
+        isNumber(pairing1);
 
       if (shouldSwap) {
         const tmp = pairing0;
@@ -136,30 +126,15 @@ class Equation extends BaseEquation {
 }
 
 export class MugginsSolver {
-  private readonly config: MugginsSolverConfig;
-
-  // private readonly maxTotal: number;
-  //
-  // private readonly minTotal: number;
-
-  /**
-   * Create a new solver.
-   * @param minTotal Minimum board size.
-   * @param maxTotal Maximum board size.
-   */
-  // constructor(minTotal: number, maxTotal: number) {
-  //   this.minTotal = minTotal;
-  //   this.maxTotal = maxTotal;
-  // }
-  constructor(config: MugginsSolverConfig) {
-    this.config = config;
-  }
+  constructor(private readonly config: MugginsSolverConfig) {}
 
   private static permutations<T>(items: T[]): T[][] {
     const ret: T[][] = [];
 
     for (let i = 0; i < items.length; i += 1) {
-      const rest = MugginsSolver.permutations(items.slice(0, i).concat(items.slice(i + 1)));
+      const rest = MugginsSolver.permutations(
+        items.slice(0, i).concat(items.slice(i + 1))
+      );
 
       if (!rest.length) {
         ret.push([items[i]]);
@@ -215,9 +190,15 @@ export class MugginsSolver {
       this.pairingPermutations(f)
     );
 
-    const equations = cartesianProduct(facePairingPermutations, operationPermutations)
+    const equations = cartesianProduct(
+      facePairingPermutations,
+      operationPermutations
+    )
       .map(([pairing1, pairing2, operations]) =>
-        Equation.createFromPairingsAndOperations([pairing1, pairing2], operations)
+        Equation.createFromPairingsAndOperations(
+          [pairing1, pairing2],
+          operations
+        )
       )
       .filter(
         (equation) =>
@@ -234,7 +215,7 @@ export class MugginsSolver {
   }
 }
 
-export enum OperationEnum {
+export const enum OperationEnum {
   PLUS = 'plus',
   MINUS = 'minus',
   MULTIPLY = 'multiply',

@@ -1,9 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Configuration } from './general_types';
-import {
-  DEFAULT_CONFIGURATION,
-  DEFAULT_DIE_FACE_COUNT,
-} from './const';
+import { DEFAULT_CONFIGURATION, DEFAULT_DIE_FACE_COUNT } from './const';
 import { cloneDeep } from 'lodash';
 import { BehaviorSubject } from 'rxjs';
 import { ObjectBuilder } from './utils';

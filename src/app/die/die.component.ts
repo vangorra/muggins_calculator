@@ -1,8 +1,15 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output,} from '@angular/core';
-import {FormControl} from '@angular/forms';
-import {Subscription} from 'rxjs';
-import {DEFAULT_DIE_SELECTED_FACE} from '../const';
-import {Die} from '../general_types';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { DEFAULT_DIE_SELECTED_FACE } from '../const';
+import { Die } from '../general_types';
 
 @Component({
   selector: 'app-die',

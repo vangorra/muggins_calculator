@@ -1,4 +1,4 @@
-import {CalculateResult, OperationEnum} from "./solver/solver";
+import { CalculateResult, OperationEnum } from './solver/solver';
 
 export enum ThemeEnum {
   AUTOMATIC = 'automatic',
@@ -36,8 +36,10 @@ export interface SolverWorkerMessage {
   readonly operators: string[];
 }
 
+export type SolverWorkerResponseDataArray = { total: string, results: CalculateResultWithEquation[] }[];
+
 export interface SolverWorkerResponse {
-  readonly [total: number]: CalculateResultWithEquation[];
+  readonly data: SolverWorkerResponseDataArray;
 }
 
 export interface CalculateResultWithEquation extends CalculateResult {

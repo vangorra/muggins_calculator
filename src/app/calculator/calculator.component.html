@@ -51,30 +51,32 @@
     </ng-container>
 
     <ng-container
-      *ngIf="!isProcessing && !isCancelled && equationGroups.length"
+      *ngIf="!isProcessing && !isCancelled && workerResponseDataArray.length"
     >
       <mat-card-subtitle>
         <div>Jump to solution:</div>
         <div>
           <button
+            *ngFor="let data of workerResponseDataArray"
             mat-button
-            (click)="scrollToId(groupId(group[0]), group[0])"
-            *ngFor="let group of equationGroups"
+            (click)="scrollToId(groupId(data.total), data.total)"
           >
-            {{ group[0] }}
+            {{ data.total }}
           </button>
         </div>
       </mat-card-subtitle>
 
       <mat-card-content>
         <mat-selection-list [multiple]="false">
-          <ng-container *ngFor="let group of equationGroups">
-            <mat-divider [id]="groupId(group[0])"></mat-divider>
+          <ng-container *ngFor="let data of workerResponseDataArray">
+            <mat-divider [id]="groupId(data.total)"></mat-divider>
             <mat-list-option
-              *ngFor="let calculateResultWithEquation of group[1]"
+              *ngFor="let calculateResultWithEquation of data.results"
               [value]="calculateResultWithEquation.equation"
             >
-              <app-math-jax [equation]="calculateResultWithEquation.equation"></app-math-jax>
+              <app-math-jax
+                [equation]="calculateResultWithEquation.equation"
+              ></app-math-jax>
             </mat-list-option>
           </ng-container>
           <mat-divider></mat-divider>
@@ -83,7 +85,7 @@
     </ng-container>
 
     <ng-container
-      *ngIf="!isProcessing && !isCancelled && !equationGroups.length"
+      *ngIf="!isProcessing && !isCancelled && !workerResponseDataArray.length"
     >
       <mat-card-content>No equations could be determined.</mat-card-content>
     </ng-container>

@@ -7,11 +7,7 @@ import { MatDialogRef } from '@angular/material/dialog';
   styleUrls: ['./about-dialog.component.scss'],
 })
 export class AboutDialogComponent {
-  private readonly dialogRef: MatDialogRef<AboutDialogComponent>;
-
-  constructor(dialogRef: MatDialogRef<AboutDialogComponent>) {
-    this.dialogRef = dialogRef;
-  }
+  constructor(private readonly dialogRef: MatDialogRef<AboutDialogComponent>) {}
 
   onCloseClick(): void {
     this.dialogRef.close();

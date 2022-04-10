@@ -22,13 +22,9 @@ export class MathJaxComponent implements OnDestroy, AfterViewInit {
 
   isRendered = false;
 
-  private readonly mathJaxService: MathJaxService;
-
   private initializedSubscription?: Subscription;
 
-  constructor(mathJaxService: MathJaxService) {
-    this.mathJaxService = mathJaxService;
-  }
+  constructor(private readonly mathJaxService: MathJaxService) {}
 
   ngAfterViewInit(): void {
     this.initializedSubscription = this.mathJaxService.initialized.subscribe(

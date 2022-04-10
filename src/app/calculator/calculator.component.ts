@@ -1,21 +1,21 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { DEFAULT_DIE_SELECTED_FACE } from '../const';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {DEFAULT_DIE_SELECTED_FACE} from '../const';
 import {
-  CalculateResultWithEquation,
   Configuration,
   Die,
   SolverWorkerMessage,
   SolverWorkerResponse,
+  SolverWorkerResponseDataArray,
   TypedWorker,
 } from '../general_types';
-import { runSolverWorkerMain } from '../solver/utils';
-import { ConfigurationService } from '../configuration.service';
-import { Subscription } from 'rxjs';
-import { ToolbarService } from '../toolbar.service';
-import { Router } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
-import { AboutDialogComponent } from '../about-dialog/about-dialog.component';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import {runSolverWorkerMain} from '../solver/utils';
+import {ConfigurationService} from '../configuration.service';
+import {Subscription} from 'rxjs';
+import {ToolbarService} from '../toolbar.service';
+import {Router} from '@angular/router';
+import {MatDialog} from '@angular/material/dialog';
+import {AboutDialogComponent} from '../about-dialog/about-dialog.component';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-calculator',
@@ -25,7 +25,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export default class CalculatorComponent implements OnInit, OnDestroy {
   readonly dice: Die[] = [];
 
-  readonly equationGroups: [string, CalculateResultWithEquation[]][] = [];
+  readonly workerResponseDataArray: SolverWorkerResponseDataArray = [];
 
   equationsCount: number = 0;
 
@@ -39,32 +39,18 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   selectedEquationString: string | undefined = undefined;
 
-  private readonly configurationService: ConfigurationService;
-
-  private readonly matDialog: MatDialog;
-
-  private readonly matSnackBar: MatSnackBar;
-
-  private configurationSubscription: Subscription;
+  private configurationSubscription?: Subscription;
 
   solverWorkerResponse?: SolverWorkerResponse;
 
   constructor(
-    configurationService: ConfigurationService,
-    toolbarService: ToolbarService,
-    router: Router,
-    matDialog: MatDialog,
-    matSnackBar: MatSnackBar
+    private readonly configurationService: ConfigurationService,
+    private readonly toolbarService: ToolbarService,
+    private readonly router: Router,
+    private readonly matDialog: MatDialog,
+    private readonly matSnackBar: MatSnackBar
   ) {
-    this.configurationService = configurationService;
-    this.matDialog = matDialog;
-    this.matSnackBar = matSnackBar;
-
-    this.configurationSubscription = this.configurationService.value.subscribe(
-      (configuration) => this.onConfigurationUpdated(configuration)
-    );
-
-    toolbarService.set({
+    this.toolbarService.set({
       title: 'Muggins Calculator',
       buttons: [
         ToolbarService.newButton({
@@ -75,18 +61,21 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
         ToolbarService.newButton({
           title: 'Configuration',
           icon: 'settings',
-          onClick: () => router.navigate(['/configuration']),
+          onClick: () => this.router.navigate(['/configuration']),
         }),
       ],
     });
   }
 
   ngOnInit(): void {
+    this.configurationSubscription = this.configurationService.value.subscribe(
+      (configuration) => this.onConfigurationUpdated(configuration)
+    );
     this.reload();
   }
 
   ngOnDestroy(): void {
-    this.configurationSubscription.unsubscribe();
+    this.configurationSubscription?.unsubscribe();
   }
 
   onConfigurationUpdated(configuration: Configuration): void {
@@ -153,21 +142,19 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
   }
 
   emptyEquationGroups() {
-    this.equationGroups.splice(0, this.equationGroups.length);
+    this.workerResponseDataArray.splice(0, this.workerResponseDataArray.length);
     this.equationsCount = 0;
   }
 
-  onWorkerResponse(data: SolverWorkerResponse): void {
+  onWorkerResponse(response: SolverWorkerResponse): void {
     this.emptyEquationGroups();
 
     // Add the new groups.
-    this.equationGroups.push(...Object.entries(data));
-    this.equationsCount = this.equationGroups
-      .map((group) => group[1].length)
+    this.workerResponseDataArray.push(...response.data);
+    this.equationsCount = this.workerResponseDataArray
+      .map((data) => data.results.length)
       .reduce((partialSum, a) => partialSum + a, 0);
     this.isProcessing = false;
-
-    console.log(this.equationGroups);
   }
 
   onDieChanged(dieIndex: number, die: Die): void {

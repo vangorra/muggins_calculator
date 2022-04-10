@@ -40,11 +40,11 @@ export class ToolbarService {
 }
 
 export interface ToolbarButton {
-  icon?: string;
-  title: string;
-  onClick: () => void;
-  disabled: Subject<boolean>;
-  visible: Subject<boolean>;
+  readonly icon?: string;
+  readonly title: string;
+  readonly onClick: () => void;
+  readonly disabled: Subject<boolean>;
+  readonly visible: Subject<boolean>;
 }
 
 export interface ToolbarConfig {

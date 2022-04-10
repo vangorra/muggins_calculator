@@ -8,7 +8,7 @@ import { ToolbarService } from '../toolbar.service';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
-import {OPERATIONS} from "../solver/solver";
+import { OPERATIONS } from '../solver/solver';
 
 @Component({
   selector: 'app-configuration',
@@ -20,10 +20,6 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
 
   readonly availableOperations = OPERATIONS;
 
-  private readonly formBuilder: FormBuilder;
-
-  private readonly configurationService: ConfigurationService;
-
   formGroup!: FormGroup;
 
   configuration!: Configuration;
@@ -32,26 +28,20 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
 
   private configurationSubscription?: Subscription;
 
-  private readonly matDialog: MatDialog;
-
   constructor(
-    formBuilder: FormBuilder,
-    configurationService: ConfigurationService,
-    toolbarService: ToolbarService,
-    router: Router,
-    matDialog: MatDialog
+    private readonly formBuilder: FormBuilder,
+    private readonly configurationService: ConfigurationService,
+    private readonly toolbarService: ToolbarService,
+    private readonly router: Router,
+    private readonly matDialog: MatDialog
   ) {
-    this.formBuilder = formBuilder;
-    this.configurationService = configurationService;
-    this.matDialog = matDialog;
-
-    toolbarService.set({
+    this.toolbarService.set({
       title: 'Configuration',
       buttons: [
         ToolbarService.newButton({
           title: 'Close',
           icon: 'close',
-          onClick: () => router.navigate(['/calculator']),
+          onClick: () => this.router.navigate(['/calculator']),
         }),
       ],
     });

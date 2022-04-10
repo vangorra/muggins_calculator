@@ -6,6 +6,6 @@ import { runSolverWorkerMain } from './solver/utils';
 // https://github.com/microsoft/TypeScript/issues/14877
 declare let self: ServiceWorkerGlobalScope;
 
-self.addEventListener('message', (message) => {
+self.addEventListener('message', message => {
   postMessage(runSolverWorkerMain(message.data));
 });

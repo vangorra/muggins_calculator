@@ -10,13 +10,9 @@ import { Subscription } from 'rxjs';
 export class ToolbarComponent implements OnInit, OnDestroy {
   config?: ToolbarConfig;
 
-  private readonly toolbarService: ToolbarService;
-
   private configSubscription?: Subscription;
 
-  constructor(toolbarService: ToolbarService) {
-    this.toolbarService = toolbarService;
-  }
+  constructor(private readonly toolbarService: ToolbarService) {}
 
   ngOnInit(): void {
     this.configSubscription = this.toolbarService.config.subscribe(

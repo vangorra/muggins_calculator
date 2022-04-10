@@ -22,11 +22,7 @@ export class ThemeService {
 
   private configurationSubscription?: Subscription;
 
-  private readonly configurationService: ConfigurationService;
-
-  constructor(configurationService: ConfigurationService) {
-    this.configurationService = configurationService;
-  }
+  constructor(private readonly configurationService: ConfigurationService) {}
 
   public start() {
     // Listen for configuration changes and apply the style.
