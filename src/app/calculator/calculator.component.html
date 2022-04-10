@@ -1,93 +1,92 @@
-<section class="configuration">
-  <mat-card>
-    <mat-card-content>
+<mat-card id="diceOptions" #diceElementRef>
+  <mat-card-content>
+    <div
+      fxLayout="row"
+      fxLayoutGap="1em"
+      style="overflow: auto"
+    >
       <div
-        fxLayout="row"
-        fxLayoutGap="1em"
-        class="diceConfig"
-        style="overflow: auto"
+        class="die"
+        fxFlex.xs="20"
+        fxFlex.sm="20"
+        *ngFor="let die of dice; index as dieIndex"
       >
-        <div
-          class="die"
-          fxFlex.xs="20"
-          fxFlex.sm="20"
-          *ngFor="let die of dice; index as dieIndex"
-        >
-          <app-die
-            [label]="'Die ' + (dieIndex + 1)"
-            [die]="die"
-            (dieChanged)="onDieChanged(dieIndex, $event)"
-          ></app-die>
-        </div>
+        <app-die
+          [label]="'Die ' + (dieIndex + 1)"
+          [die]="die"
+          (dieChanged)="onDieChanged(dieIndex, $event)"
+        ></app-die>
       </div>
-    </mat-card-content>
-  </mat-card>
-</section>
+    </div>
+  </mat-card-content>
+</mat-card>
 
 <br />
 
-<section class="results">
-  <mat-card>
-    <mat-card-title>
-      Results
-      <span *ngIf="equationsCount > 0"> ({{ equationsCount }})</span>
-    </mat-card-title>
-    <div *ngIf="isProcessing">
-      <mat-card-content>
-        <p><mat-spinner></mat-spinner></p>
-        <button mat-flat-button (click)="cancel()" data-testid="cancelButton">
-          Cancel
-        </button>
-      </mat-card-content>
-    </div>
+<mat-card class="results">
+  <mat-card-title>
+    Results
+    <span *ngIf="equationsCount > 0"> ({{ equationsCount }})</span>
+  </mat-card-title>
+  <div *ngIf="isProcessing">
+    <mat-card-content>
+      <p><mat-spinner></mat-spinner></p>
+      <button mat-flat-button (click)="cancel()" data-testid="cancelButton">
+        Cancel
+      </button>
+    </mat-card-content>
+  </div>
 
-    <ng-container *ngIf="isCancelled">
-      <mat-card-content>
-        <p>Cancelled...</p>
-        <button mat-flat-button (click)="reload()" data-testid="reloadButton">
-          Reload
-        </button>
-      </mat-card-content>
-    </ng-container>
+  <ng-container *ngIf="isCancelled">
+    <mat-card-content>
+      <p>Cancelled...</p>
+      <button mat-flat-button (click)="reload()" data-testid="reloadButton">
+        Reload
+      </button>
+    </mat-card-content>
+  </ng-container>
 
-    <ng-container
-      *ngIf="!isProcessing && !isCancelled && workerResponseDataArray.length"
-    >
-      <mat-card-subtitle>
-        <div>Jump to solution:</div>
-        <div>
-          <button
-            *ngFor="let data of workerResponseDataArray"
-            mat-button
-            (click)="scrollToId(groupId(data.total), data.total)"
+  <ng-container
+    *ngIf="!isProcessing && !isCancelled && workerResponseDataArray.length"
+  >
+    <mat-card-subtitle>
+      <div>Jump to solution:</div>
+      <div>
+        <button
+          *ngFor="let data of workerResponseDataArray"
+          mat-button
+          (click)="scrollToId(groupId(data.total), data.total)"
+        >
+          {{ data.total }}
+        </button>
+      </div>
+    </mat-card-subtitle>
+
+    <mat-card-content>
+      <mat-selection-list [multiple]="false">
+        <ng-container *ngFor="let data of workerResponseDataArray">
+          <mat-divider [id]="groupId(data.total)"></mat-divider>
+          <mat-list-option
+            *ngFor="let calculateResultWithEquation of data.results"
+            [value]="calculateResultWithEquation.equation"
           >
-            {{ data.total }}
-          </button>
-        </div>
-      </mat-card-subtitle>
+            <app-math-jax
+              [equation]="calculateResultWithEquation.equation"
+            ></app-math-jax>
+          </mat-list-option>
+        </ng-container>
+        <mat-divider></mat-divider>
+      </mat-selection-list>
+    </mat-card-content>
+  </ng-container>
 
-      <mat-card-content>
-        <mat-selection-list [multiple]="false">
-          <ng-container *ngFor="let data of workerResponseDataArray">
-            <mat-divider [id]="groupId(data.total)"></mat-divider>
-            <mat-list-option
-              *ngFor="let calculateResultWithEquation of data.results"
-              [value]="calculateResultWithEquation.equation"
-            >
-              <app-math-jax
-                [equation]="calculateResultWithEquation.equation"
-              ></app-math-jax>
-            </mat-list-option>
-          </ng-container>
-          <mat-divider></mat-divider>
-        </mat-selection-list>
-      </mat-card-content>
-    </ng-container>
+  <ng-container
+    *ngIf="!isProcessing && !isCancelled && !workerResponseDataArray.length"
+  >
+    <mat-card-content>No equations could be determined.</mat-card-content>
+  </ng-container>
+</mat-card>
 
-    <ng-container
-      *ngIf="!isProcessing && !isCancelled && !workerResponseDataArray.length"
-    >
-      <mat-card-content>No equations could be determined.</mat-card-content>
-    </ng-container>
-  </mat-card>
-</section>
+<button *ngIf="scrollToTopVisible" class="scrollToTopButton" mat-fab color="primary" aria-label="Goto top of page" title="Goto top of page" (click)="scrollToTop()">
+  <mat-icon>expand_less</mat-icon>
+</button>

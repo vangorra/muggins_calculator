@@ -22,7 +22,6 @@
     "cartesian-product-multiple-arrays": "^1.0.9",
     "lodash": "^4.17.21",
     "mathjax": "^3.2.0",
-    "ngx-scrolltop": "^4.1.2",
     "rxjs": "^7.5.5",
     "rxjs-compat": "^6.6.7",
     "tslib": "^2.3.1",
