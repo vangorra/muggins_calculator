@@ -268,7 +268,7 @@ class Equation extends BaseEquation {
     if (!operation.orderMatters) {
       const shouldSwap =
         (isNumber(pairing0) && isNumber(pairing1) && pairing1 < pairing0) ||
-        isNumber(pairing1);
+        (!isNumber(pairing0) && isNumber(pairing1));
 
       if (shouldSwap) {
         const tmp = pairing0;
