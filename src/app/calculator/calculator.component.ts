@@ -129,7 +129,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       operations,
       boardMinNumber: configuration.board.minSize,
       boardMaxNumber: configuration.board.maxSize,
-      diceFaces: this.dice.map((die) => die.selectedFace),
+      diceFaces: this.dice.map(({ selectedFace }) => selectedFace),
     };
 
     // Run process in a worker.
@@ -137,8 +137,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       this.currentWorker = new Worker(
         new URL('../solver.worker', import.meta.url)
       );
-      this.currentWorker.onmessage = (response) =>
-        this.onWorkerResponse(response.data);
+      this.currentWorker.onmessage = ({ data }) => this.onWorkerResponse(data);
       this.currentWorker.postMessage(message);
     } else {
       // Run process in current thread.

@@ -2,7 +2,6 @@
 /**
  * Tools for providing solutions to muggins dice.
  */
-import { cartesianProduct } from 'cartesian-product-multiple-arrays';
 import { isNumber, sortBy, sortedUniqBy, uniqWith } from 'lodash';
 
 type PairingPermutation = Array<
@@ -138,33 +137,21 @@ export const OPERATIONS: Operation[] = [
   },
 ];
 
-/**
- * An array of string replace functions that replace an operation in an equation string with a letter.
- */
-const operationReplaceFunctionsArray: ((value: string) => string)[] =
-  OPERATIONS.map((operation) => operation.id).map(
-    (operationId, index) => (value: string) =>
-      value.replace(
-        new RegExp(operationId, 'g'),
-        String.fromCharCode('a'.charCodeAt(0) + index)
-      )
-  );
+const cartesianProduct = (...a: any[]): any[][] =>
+  a.reduce((t: any[], b) => t.flatMap((d) => b.map((e: any) => [d, e].flat())));
 
 /**
  * In ASCII, operators like + - /, etc come before numbers. This means when sorting equations at the end,
  * the operators take precedence. So equations like '(8 + 1) + 2' come before '2 + (8 + 1)'. To fix this,
- * we replace operators with letters and non-alphanum with Z. This ensures the numbers are prioritized and parenthesis
+ * we replace non-alphanum with Z. This ensures the numbers are prioritized and parenthesis
  * are sort to the bottom.
  * @param equation
  */
 export function getSortableEquation(equation: string): string {
-  let sortableEquation = equation;
-
-  operationReplaceFunctionsArray.forEach(
-    (replaceFunction) => (sortableEquation = replaceFunction(sortableEquation))
-  );
-
-  return sortableEquation.replace(/[^0-9a-zA-Z ]/g, 'Z');
+  return equation
+    .replace(/[(]/g, 'X')
+    .replace(/[)]/g, 'Y')
+    .replace(/[=]/g, 'Z');
 }
 
 abstract class BaseEquation {
@@ -359,6 +346,16 @@ export class MugginsSolver {
       facePairingPermutations,
       operationPermutations
     )
+      .map((item) => {
+        const pairing1 = item.slice(0, 1);
+        const pairing2 = item.slice(1, 2);
+
+        return [
+          pairing1.length > 1 ? pairing1 : pairing1[0],
+          pairing2.length > 1 ? pairing2 : pairing2[0],
+          item.slice(2, item.length),
+        ];
+      })
       .map(([pairing1, pairing2, operations]) =>
         Equation.createFromPairingsAndOperations(
           [pairing1, pairing2],
