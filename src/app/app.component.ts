@@ -1,31 +1,26 @@
 import '@fontsource/roboto';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ThemeService } from './theme.service';
-import { MathJaxService } from './math-jax.service';
-import { RouterOutlet } from '@angular/router';
+import { MathJaxService } from './math-jax/math-jax.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export default class AppComponent implements OnInit, OnDestroy {
+export default class AppComponent implements OnInit {
+  /**
+   * ThemeService is not used in this component. However, the act of the service being
+   * created in injected means it loaded and set the theme.
+   * @param themeService
+   * @param mathJaxService
+   */
   constructor(
     private readonly themeService: ThemeService,
     readonly mathJaxService: MathJaxService
   ) {}
 
   ngOnInit(): void {
-    this.themeService.start();
-    this.mathJaxService.startPoll();
-  }
-
-  ngOnDestroy() {
-    this.themeService.stop();
-    this.mathJaxService.stopPoll();
-  }
-
-  public getRouterOutletState(outlet: RouterOutlet) {
-    return outlet.isActivated ? outlet.activatedRoute : '';
+    this.mathJaxService.start();
   }
 }

@@ -28,14 +28,8 @@ const context = require.context('./', true, /\.spec\.ts$/);
 // And load the modules.
 context.keys().map(context);
 
-// Don't use web worker.
-Object.defineProperty(window, 'Worker', {
-  value: undefined,
-});
-
-// Assume MathJax is initiated.
+// Setup mathjax.
 Object.defineProperty(window, 'MathJax', {
-  value: {
-    typeset: () => undefined,
-  },
+  value: {},
+  writable: true,
 } as any);

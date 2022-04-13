@@ -1,25 +1,21 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DEFAULT_DIE_SELECTED_FACE } from '../const';
+import { Configuration, Die } from '../general_types';
 import {
-  Configuration,
-  Die,
   SolverWorkerMessage,
   SolverWorkerResponse,
   SolverWorkerResponseDataArray,
-  TypedWorker,
-} from '../general_types';
-import { runSolverWorkerMain } from '../solver/utils';
+} from '../solver/utils';
 import { ConfigurationService } from '../configuration.service';
-import { Subscription } from 'rxjs';
+import { Subscription, take } from 'rxjs';
 import { ToolbarService } from '../toolbar.service';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { AboutDialogComponent } from '../about-dialog/about-dialog.component';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { SolverWorkerService } from '../solver-worker.service';
 
 enum CalculateState {
   PROCESSING = 'processing',
-  CANCELLED = 'cancelled',
   PROCESSED = 'processed',
 }
 
@@ -39,13 +35,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   equationsCount: number = 0;
 
-  private currentWorker:
-    | TypedWorker<SolverWorkerMessage, SolverWorkerResponse>
-    | undefined = undefined;
-
-  selectedEquationString: string | undefined = undefined;
-
-  private configurationSubscription?: Subscription;
+  configurationSubscription?: Subscription;
 
   solverWorkerResponse?: SolverWorkerResponse;
 
@@ -53,8 +43,8 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     private readonly configurationService: ConfigurationService,
     private readonly toolbarService: ToolbarService,
     private readonly router: Router,
-    private readonly matDialog: MatDialog,
-    private readonly matSnackBar: MatSnackBar
+    readonly matDialog: MatDialog,
+    private readonly solverWorkerService: SolverWorkerService
   ) {
     this.toolbarService.set({
       title: 'Muggins Calculator',
@@ -94,55 +84,22 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     this.reload();
   }
 
-  selectEquationString(equationString: string): void {
-    this.selectedEquationString = this.isEquationStringSelected(equationString)
-      ? undefined
-      : equationString;
-  }
-
-  equationStringListItemClass(equationString: string) {
-    return {
-      active: this.isEquationStringSelected(equationString),
-    };
-  }
-
-  isEquationStringSelected(equationString: string): boolean {
-    return this.selectedEquationString === equationString;
-  }
-
-  cancel(): void {
-    if (!!this.currentWorker) {
-      this.currentWorker.onmessage = () => undefined;
-      this.currentWorker.terminate();
-    }
-    this.emptyEquationGroups();
-    this.calculateState = CalculateState.CANCELLED;
-  }
-
   reload() {
-    this.cancel();
     this.calculateState = CalculateState.PROCESSING;
 
     const configuration = this.configurationService.value.getValue();
     const { operations } = configuration;
     const message: SolverWorkerMessage = {
       operations,
-      boardMinNumber: configuration.board.minSize,
-      boardMaxNumber: configuration.board.maxSize,
-      diceFaces: this.dice.map(({ selectedFace }) => selectedFace),
+      minTotal: configuration.board.minSize,
+      maxTotal: configuration.board.maxSize,
+      faces: this.dice.map(({ selectedFace }) => selectedFace),
     };
 
-    // Run process in a worker.
-    if (Worker) {
-      this.currentWorker = new Worker(
-        new URL('../solver.worker', import.meta.url)
-      );
-      this.currentWorker.onmessage = ({ data }) => this.onWorkerResponse(data);
-      this.currentWorker.postMessage(message);
-    } else {
-      // Run process in current thread.
-      this.onWorkerResponse(runSolverWorkerMain(message));
-    }
+    this.solverWorkerService
+      .postMessage(message)
+      .pipe(take(1))
+      .subscribe((response) => this.onWorkerResponse(response));
   }
 
   emptyEquationGroups() {
@@ -162,7 +119,6 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
   }
 
   onDiceFaceChanged(dice: Die[]): void {
-    this.cancel();
     dice.forEach((die, index) => (this.dice[index] = die));
     this.reload();
   }
@@ -171,13 +127,9 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     return `group_${group}`;
   }
 
-  scrollToId(groupId: string, group: string): void {
-    this.matSnackBar.dismiss();
+  scrollToId(groupId: string): void {
     document
       .getElementById(groupId)
       ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    this.matSnackBar.open(`Jumped to group ${group}.`, '', {
-      duration: 2000,
-    });
   }
 }

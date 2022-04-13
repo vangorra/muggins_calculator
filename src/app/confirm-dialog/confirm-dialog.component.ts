@@ -13,7 +13,7 @@ import { ObjectBuilder } from '../utils';
   styleUrls: ['./confirm-dialog.component.scss'],
 })
 export class ConfirmDialogComponent {
-  private static DEFAULT_OPTIONS_DATA: ConfirmDialogData = {
+  static DEFAULT_OPTIONS_DATA: ConfirmDialogData = {
     title: undefined,
     content: undefined,
     acceptButton: {
@@ -30,8 +30,14 @@ export class ConfirmDialogComponent {
 
   constructor(@Inject(MAT_DIALOG_DATA) readonly data: ConfirmDialogData) {}
 
+  getClassName(isAcceptButton: boolean): string {
+    return isAcceptButton ? 'acceptButton' : 'rejectButton';
+  }
+
   buttonsArray(): ButtonOption[] {
-    return [this.data.rejectButton, this.data.acceptButton];
+    return [this.data.rejectButton, this.data.acceptButton].filter(
+      (button) => !!button
+    ) as ButtonOption[];
   }
 
   hasVisibleButtons(): boolean {
@@ -58,8 +64,8 @@ export class ConfirmDialogComponent {
 export interface ConfirmDialogData {
   readonly title?: string;
   readonly content?: string;
-  readonly acceptButton: ButtonOption;
-  readonly rejectButton: ButtonOption;
+  readonly acceptButton?: ButtonOption;
+  readonly rejectButton?: ButtonOption;
 }
 
 export interface ButtonOption {

@@ -1,16 +1,17 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { ConfigurationService } from './configuration.service';
 import { Configuration, ThemeEnum } from './general_types';
 import { Subscription } from 'rxjs';
-import { DEFAULT_CONFIGURATION } from './const';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ThemeService {
+export class ThemeService implements OnDestroy {
   private static CLASS_NAME_PREFIX = 'color-scheme-';
 
-  private readonly mediaQuery: MediaQueryList = window.matchMedia(
+  static MEDIA_EVENT = 'change';
+
+  readonly mediaQuery: MediaQueryList = window.matchMedia(
     '(prefers-color-scheme)'
   );
 
@@ -22,26 +23,30 @@ export class ThemeService {
       this.configurationService.value.getValue()
     );
 
-  private configurationSubscription?: Subscription;
+  private readonly configurationSubscription: Subscription;
 
-  constructor(private readonly configurationService: ConfigurationService) {}
-
-  public start() {
+  constructor(private readonly configurationService: ConfigurationService) {
     // Listen for configuration changes and apply the style.
     this.configurationSubscription = this.configurationService.value.subscribe(
       this.applyStyleFromConfiguration
     );
 
     // Listen for change to the preferred color scheme and apply the style from configuration.
-    this.mediaQuery.addEventListener('change', this.mediaChangeListener);
+    this.mediaQuery.addEventListener(
+      ThemeService.MEDIA_EVENT,
+      this.mediaChangeListener
+    );
   }
 
-  public stop() {
+  ngOnDestroy(): void {
     // Stop listening for config changes.
-    this.configurationSubscription?.unsubscribe();
+    this.configurationSubscription.unsubscribe();
 
     // Stop listening for preferred color scheme changes.
-    this.mediaQuery.removeEventListener('change', this.mediaChangeListener);
+    this.mediaQuery.removeEventListener(
+      ThemeService.MEDIA_EVENT,
+      this.mediaChangeListener
+    );
   }
 
   /**
@@ -52,7 +57,7 @@ export class ThemeService {
 
     // Derive based on browser media data.
     if (theme === ThemeEnum.AUTOMATIC) {
-      selectedTheme = this.getMediaColorScheme(DEFAULT_CONFIGURATION.theme);
+      selectedTheme = this.getMediaColorScheme(ThemeEnum.LIGHT);
     }
 
     const currentColorSchemeClassName =
@@ -63,7 +68,10 @@ export class ThemeService {
     // Remove existing scheme classes.
     const removeClassNames: string[] = [];
     classList.forEach((className) => {
-      if (className.startsWith(ThemeService.CLASS_NAME_PREFIX)) {
+      if (
+        className.startsWith(ThemeService.CLASS_NAME_PREFIX) &&
+        className !== currentColorSchemeClassName
+      ) {
         removeClassNames.push(className);
       }
     });
@@ -89,7 +97,7 @@ export class ThemeService {
    * @param colorScheme
    * @private
    */
-  private static newColorSchemeClass(colorScheme: ThemeEnum): string {
+  static newColorSchemeClass(colorScheme: ThemeEnum): string {
     return ThemeService.CLASS_NAME_PREFIX + colorScheme;
   }
 }

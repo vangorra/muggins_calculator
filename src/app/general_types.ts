@@ -1,4 +1,4 @@
-import { CalculateResult, OperationEnum } from './solver/solver';
+import { OperationEnum } from './solver/solver';
 
 export const enum ThemeEnum {
   AUTOMATIC = 'automatic',
@@ -26,7 +26,7 @@ export const THEME_CONFIGS: ThemeConfig[] = [
   },
 ];
 
-export interface DiceConfiguration {
+export interface DieConfiguration {
   faceCount: number;
 }
 
@@ -38,28 +38,12 @@ export interface Configuration {
     minSize: number;
     maxSize: number;
   };
-  readonly dice: DiceConfiguration[];
+  readonly dice: DieConfiguration[];
 }
 
 export interface Die {
   readonly faceCount: number;
   readonly selectedFace: number;
-}
-
-export interface SolverWorkerMessage {
-  readonly boardMinNumber: number;
-  readonly boardMaxNumber: number;
-  readonly diceFaces: number[];
-  readonly operations: string[];
-}
-
-export type SolverWorkerResponseDataArray = {
-  total: string;
-  results: CalculateResult[];
-}[];
-
-export interface SolverWorkerResponse {
-  readonly data: SolverWorkerResponseDataArray;
 }
 
 export interface TypedWorker<M, R> extends Worker {

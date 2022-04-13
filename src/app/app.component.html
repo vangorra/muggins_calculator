@@ -1,10 +1,13 @@
-<ng-container *ngIf="mathJaxService.initialized | async">
+<ng-container *ngIf="(mathJaxService.state | async) === 'initialized'">
   <app-toolbar id="appToolbar"></app-toolbar>
 
-  <!-- Scroll placeholder to keep content from hiding under the fixed app-toolbar. -->
-  <mat-toolbar><span> </span></mat-toolbar>
-
-  <div class="app">
+  <div
+    class="app"
+    fxLayout="column"
+    fxFlex
+    fxFlexFill
+    [ngStyle.gt-sm]="{ padding: '1em' }"
+  >
     <router-outlet></router-outlet>
   </div>
 </ng-container>

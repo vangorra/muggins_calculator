@@ -1,4 +1,4 @@
-<mat-card id="diceOptions">
+<mat-card class="dice">
   <mat-card-title>Dice</mat-card-title>
   <mat-card-subtitle>Select the rolled face for each die.</mat-card-subtitle>
   <mat-card-content>
@@ -17,66 +17,61 @@
     <span *ngIf="equationsCount > 0"> ({{ equationsCount }})</span>
   </mat-card-title>
 
-  <ng-container [ngSwitch]="calculateState">
-    <mat-card-content *ngSwitchCase="calculateStates.PROCESSING">
-      <p><mat-spinner></mat-spinner></p>
-      <button mat-flat-button (click)="cancel()" data-testid="cancelButton">
-        Cancel
-      </button>
+  <mat-card-content
+    class="loading"
+    *ngIf="calculateState === calculateStates.PROCESSING"
+  >
+    <p><mat-spinner></mat-spinner></p>
+    Loading
+  </mat-card-content>
+
+  <mat-card-content
+    class="none"
+    *ngIf="
+      calculateState === calculateStates.PROCESSED &&
+      workerResponseDataArray.length === 0
+    "
+    >No equations could be determined.</mat-card-content
+  >
+
+  <div
+    class="data"
+    *ngIf="
+      calculateState === calculateStates.PROCESSED &&
+      workerResponseDataArray.length > 0
+    "
+  >
+    <mat-card-subtitle>
+      <div>Jump to solution:</div>
+      <div>
+        <span
+          class="jumpButtonWrapper"
+          *ngFor="let data of workerResponseDataArray"
+        >
+          <button mat-stroked-button (click)="scrollToId(groupId(data.total))">
+            {{ data.total }}
+          </button>
+        </span>
+      </div>
+    </mat-card-subtitle>
+
+    <mat-card-content class="equations">
+      <mat-selection-list [multiple]="false">
+        <ng-container *ngFor="let data of workerResponseDataArray">
+          <mat-divider [id]="groupId(data.total)"></mat-divider>
+          <mat-list-option
+            *ngFor="let calculateResultWithEquation of data.results"
+            [value]="calculateResultWithEquation.fullEquation"
+          >
+            <span appMathJax>{{
+              calculateResultWithEquation.fullEquation
+            }}</span>
+          </mat-list-option>
+        </ng-container>
+        <mat-divider></mat-divider>
+      </mat-selection-list>
     </mat-card-content>
-
-    <mat-card-content *ngSwitchCase="calculateStates.CANCELLED">
-      <p>Cancelled...</p>
-      <button mat-flat-button (click)="reload()" data-testid="reloadButton">
-        Reload
-      </button>
-    </mat-card-content>
-
-    <ng-container
-      *ngSwitchDefault
-      [ngSwitch]="workerResponseDataArray.length > 0"
-    >
-      <mat-card-content *ngSwitchCase="false"
-        >No equations could be determined.</mat-card-content
-      >
-
-      <ng-container *ngSwitchDefault>
-        <mat-card-subtitle>
-          <div>Jump to solution:</div>
-          <div>
-            <span
-              class="jumpButtonWrapper"
-              *ngFor="let data of workerResponseDataArray"
-            >
-              <button
-                mat-stroked-button
-                (click)="scrollToId(groupId(data.total), data.total)"
-              >
-                {{ data.total }}
-              </button>
-            </span>
-          </div>
-        </mat-card-subtitle>
-
-        <mat-card-content>
-          <mat-selection-list [multiple]="false">
-            <ng-container *ngFor="let data of workerResponseDataArray">
-              <mat-divider [id]="groupId(data.total)"></mat-divider>
-              <mat-list-option
-                *ngFor="let calculateResultWithEquation of data.results"
-                [value]="calculateResultWithEquation.fullEquation"
-              >
-                <app-math-jax
-                  [equation]="calculateResultWithEquation.fullEquation"
-                ></app-math-jax>
-              </mat-list-option>
-            </ng-container>
-            <mat-divider></mat-divider>
-          </mat-selection-list>
-        </mat-card-content>
-      </ng-container>
-    </ng-container>
-  </ng-container>
+  </div>
 </mat-card>
 
 <app-scroll-to-top

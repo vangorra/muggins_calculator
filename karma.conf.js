@@ -15,6 +15,9 @@ module.exports = function (config) {
       require('karma-coverage'),
       require('@angular-devkit/build-angular/plugins/karma')
     ],
+    proxies: {
+      '/mathjax/': './node_modules/mathjax/'
+    },
     client: {
       jasmine: {
         // you can add configuration options for Jasmine here

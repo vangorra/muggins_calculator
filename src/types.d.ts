@@ -7,8 +7,8 @@ declare namespace MathJax {
   function typesetPromise(): Promise<void>;
   function typesetClear(): void;
 
-  function asciimath2svg(data: string): string;
-  function asciimath2svgPromise(data: string): Promise<string>;
+  function asciimath2svg(data: string): HTMLElement;
+  function asciimath2svgPromise(data: string): Promise<HTMLElement>;
 
   function svgStylesheet(): string;
 }

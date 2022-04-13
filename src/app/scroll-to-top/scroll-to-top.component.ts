@@ -6,11 +6,23 @@ import {
   OnInit,
   SimpleChanges,
 } from '@angular/core';
+import { animate, style, transition, trigger } from '@angular/animations';
 
 @Component({
   selector: 'app-scroll-to-top',
   templateUrl: './scroll-to-top.component.html',
   styleUrls: ['./scroll-to-top.component.scss'],
+  animations: [
+    trigger('slideUpDown', [
+      transition(':enter', [
+        style({ bottom: '-5em', opacity: 0 }),
+        animate('0.25s ease-out', style({ bottom: '*', opacity: '*' })),
+      ]),
+      transition(':leave', [
+        animate('0.25s ease-in', style({ bottom: '-5em', opacity: 0 })),
+      ]),
+    ]),
+  ],
 })
 export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
   @Input() visibleAfterElementQuery?: string;
@@ -70,7 +82,6 @@ export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
       this.visibleAfterElement.offsetHeight +
       this.visibleAfterElement.offsetTop;
     const offset = this.offsetElement ? this.offsetElement.offsetHeight : 0;
-
     this.isVisible = window.scrollY > afterScrollY - offset;
   }
 

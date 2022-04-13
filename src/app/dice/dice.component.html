@@ -1,5 +1,6 @@
 <p *ngFor="let die of dice; index as dieIndex">
   <app-die
+    [className]="'die' + dieIndex"
     [label]="'Die ' + (dieIndex + 1)"
     [die]="die"
     (faceChanged)="onDieChanged(dieIndex, $event)"

@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { ConfigurationService } from './configuration.service';
 import { DEFAULT_CONFIGURATION } from './const';
 
-describe('ConfigurationService', () => {
+describe(ConfigurationService.name, () => {
   let service: ConfigurationService;
 
   beforeEach(() => {
@@ -13,19 +13,21 @@ describe('ConfigurationService', () => {
     service = TestBed.inject(ConfigurationService);
   });
 
-  fit('modify works', () => {
+  it('modify works', () => {
     expect(service).toBeTruthy();
-    expect(service.get()).toBe(DEFAULT_CONFIGURATION);
-    expect(service.get().dice.length).toBe(DEFAULT_CONFIGURATION.dice.length);
+    expect(service.value.getValue()).toEqual(DEFAULT_CONFIGURATION);
+    expect(service.value.getValue().dice.length).toBe(
+      DEFAULT_CONFIGURATION.dice.length
+    );
 
     service.addDie();
-    expect(service.get().dice.length).toBe(
+    expect(service.value.getValue().dice.length).toBe(
       DEFAULT_CONFIGURATION.dice.length + 1
     );
 
     service.removeDie();
     service.removeDie();
-    expect(service.get().dice.length).toBe(
+    expect(service.value.getValue().dice.length).toBe(
       DEFAULT_CONFIGURATION.dice.length - 1
     );
 
@@ -33,27 +35,27 @@ describe('ConfigurationService', () => {
     service.removeDie();
     service.removeDie();
     service.removeDie();
-    expect(service.get().dice.length).toBe(0);
+    expect(service.value.getValue().dice.length).toBe(0);
 
     service.addDie();
     service.addDie();
     service.addDie();
-    expect(service.get().dice.length).toBe(3);
+    expect(service.value.getValue().dice.length).toBe(3);
 
     service.save();
-    const savedConfiguration = service.get();
+    const savedConfiguration = service.value.getValue();
     service.update({
       board: {
         minSize: 1,
         maxSize: 2,
       },
     });
-    expect(service.get().board).toEqual({
+    expect(service.value.getValue().board).toEqual({
       minSize: 1,
       maxSize: 2,
     });
     service.load();
-    expect(service.get()).toEqual(savedConfiguration);
+    expect(service.value.getValue()).toEqual(savedConfiguration);
 
     service.update({
       board: {
@@ -62,12 +64,12 @@ describe('ConfigurationService', () => {
       },
     });
     service.save();
-    expect(service.get().board).toEqual({
+    expect(service.value.getValue().board).toEqual({
       minSize: 1,
       maxSize: 2,
     });
     service.load();
-    expect(service.get().board).toEqual({
+    expect(service.value.getValue().board).toEqual({
       minSize: 1,
       maxSize: 2,
     });

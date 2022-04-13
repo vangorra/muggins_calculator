@@ -137,6 +137,11 @@ export const OPERATIONS: Operation[] = [
   },
 ];
 
+type OperationMapType = { [id in OperationEnum]: Operation };
+export const OPERATIONS_MAP: OperationMapType = Object.fromEntries(
+  OPERATIONS.map((operation) => [operation.id, operation])
+) as OperationMapType;
+
 const cartesianProduct = (...a: any[]): any[][] =>
   a.reduce((t: any[], b) => t.flatMap((d) => b.map((e: any) => [d, e].flat())));
 

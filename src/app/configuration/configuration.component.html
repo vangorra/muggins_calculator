@@ -19,7 +19,7 @@
 
   <br />
 
-  <mat-card>
+  <mat-card class="operations">
     <mat-card-title>Operations</mat-card-title>
     <mat-card-subtitle
       >Expand the game with additional operations.</mat-card-subtitle
@@ -32,10 +32,7 @@
           [value]="operation.id"
         >
           <div mat-line class="operationName">{{ operation.name }}</div>
-          <app-math-jax
-            mat-line
-            [equation]="getFullExampleEquation(operation)"
-          ></app-math-jax>
+          <div mat-line appMathJax>{{ getFullExampleEquation(operation) }}</div>
         </mat-list-option>
       </mat-selection-list>
     </mat-card-content>
@@ -43,7 +40,7 @@
 
   <br />
 
-  <mat-card>
+  <mat-card class="boardSize">
     <mat-card-title>Board Size</mat-card-title>
     <mat-card-subtitle
       >For the adventurous, choose a larger board.</mat-card-subtitle
@@ -55,25 +52,15 @@
           #minBoardSize
           matInput
           type="number"
-          min="1"
           formControlName="minSize"
           required
-          (click)="inputSelectAll($event.target)"
-          data-testid="boardMinNumber"
         />
         <mat-hint>Minimum number on the board (default: 1)</mat-hint>
       </mat-form-field>
 
       <mat-form-field>
         <mat-label>Max Board Number (inclusive)</mat-label>
-        <input
-          matInput
-          type="number"
-          [min]="+minBoardSize.value + 1 || 1"
-          formControlName="maxSize"
-          required
-          (click)="inputSelectAll($event.target)"
-        />
+        <input matInput type="number" formControlName="maxSize" required />
         <mat-hint>The maximum number on the board (default: 36)</mat-hint>
       </mat-form-field>
     </mat-card-content>
@@ -81,7 +68,7 @@
 
   <br />
 
-  <mat-card>
+  <mat-card class="dice">
     <mat-card-title>Dice</mat-card-title>
     <mat-card-subtitle
       >The dice and faces to use for generating equations. Warning: Increasing
@@ -94,16 +81,7 @@
       >
         <mat-form-field [formGroupName]="dieIndex">
           <mat-label>Die #{{ dieIndex + 1 }}</mat-label>
-          <input
-            matInput
-            type="number"
-            min="1"
-            max="10"
-            formControlName="faceCount"
-            (click)="inputSelectAll($event.target)"
-            data-testid="faceCount"
-            required
-          />
+          <input matInput type="number" formControlName="faceCount" required />
         </mat-form-field>
         <br />
       </ng-container>
@@ -113,6 +91,7 @@
           mat-stroked-button
           (click)="addDie()"
           title="Add Die"
+          class="addDie"
         >
           <mat-icon>add</mat-icon>
         </button>
@@ -121,6 +100,7 @@
           mat-stroked-button
           (click)="removeDie()"
           title="Remove Die"
+          class="removeDie"
         >
           <mat-icon>remove</mat-icon>
         </button>

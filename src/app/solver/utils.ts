@@ -1,17 +1,34 @@
-import { groupBy, includes } from 'lodash';
-import { SolverWorkerMessage, SolverWorkerResponse } from '../general_types';
-import { MugginsSolver, OPERATIONS } from './solver';
+import { groupBy } from 'lodash';
+import {
+  CalculateResult,
+  MugginsSolver,
+  MugginsSolverConfig,
+  OperationEnum,
+  OPERATIONS_MAP,
+} from './solver';
+
+export interface SolverWorkerMessage
+  extends Omit<MugginsSolverConfig, 'operations'> {
+  readonly operations: OperationEnum[];
+}
+
+export type SolverWorkerResponseDataArray = {
+  total: string;
+  results: CalculateResult[];
+}[];
+
+export interface SolverWorkerResponse {
+  readonly data: SolverWorkerResponseDataArray;
+}
 
 /* eslint-disable import/prefer-default-export */
 export function runSolverWorkerMain(
   solverWorkerMessage: SolverWorkerMessage
 ): SolverWorkerResponse {
   const solver = new MugginsSolver({
-    minTotal: solverWorkerMessage.boardMinNumber,
-    maxTotal: solverWorkerMessage.boardMaxNumber,
-    faces: solverWorkerMessage.diceFaces,
-    operations: OPERATIONS.filter((o) =>
-      includes(solverWorkerMessage.operations, o.id)
+    ...solverWorkerMessage,
+    operations: solverWorkerMessage.operations.map(
+      (operation) => OPERATIONS_MAP[operation]
     ),
   });
 

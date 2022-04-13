@@ -1,9 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { range } from 'lodash';
 import { ConfigurationService } from '../configuration.service';
 import { Configuration, THEME_CONFIGS, ThemeEnum } from '../general_types';
-import { filter, Subscription } from 'rxjs';
+import { filter, Subscription, take } from 'rxjs';
 import { ToolbarService } from '../toolbar.service';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
@@ -24,9 +24,7 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
 
   configuration!: Configuration;
 
-  private formGroupValueChangeSubscription?: Subscription;
-
-  private configurationSubscription?: Subscription;
+  configurationSubscription?: Subscription;
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -55,7 +53,6 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.configurationSubscription?.unsubscribe();
-    this.formGroupValueChangeSubscription?.unsubscribe();
   }
 
   resetToDefaults(): void {
@@ -75,7 +72,10 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
       },
     })
       .afterClosed()
-      .pipe(filter((value) => value))
+      .pipe(
+        take(1),
+        filter((value) => value)
+      )
       .subscribe(() => {
         this.configurationService.resetToDefaults();
         this.configurationService.save();
@@ -98,7 +98,7 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
 
   onFormChanged(): void {
     if (this.formGroup.valid) {
-      const newConfiguration = this.formGroup?.value;
+      const newConfiguration = this.formGroup.value;
       this.configurationService.update({
         ...newConfiguration,
         theme: newConfiguration.theme[0],
@@ -108,25 +108,36 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
   }
 
   initForm(configuration: Configuration): void {
-    this.formGroupValueChangeSubscription?.unsubscribe();
-
     this.formGroup = this.formBuilder.group({
       theme: this.formBuilder.control([configuration.theme]),
-      // theme: configuration.theme,
       operations: this.formBuilder.control(configuration.operations),
       board: this.formBuilder.group({
-        minSize: configuration.board.minSize,
-        maxSize: configuration.board.maxSize,
+        minSize: this.formBuilder.control(configuration.board.minSize, [
+          Validators.min(1),
+          Validators.max(configuration.board.maxSize - 1),
+          Validators.required,
+        ]),
+        maxSize: this.formBuilder.control(configuration.board.maxSize, [
+          Validators.min(configuration.board.minSize + 1),
+          Validators.required,
+        ]),
       }),
       dice: this.formBuilder.array(
         configuration.dice.map((dieConfiguration) =>
-          this.formBuilder.group(dieConfiguration)
+          this.formBuilder.group({
+            faceCount: this.formBuilder.control(dieConfiguration.faceCount, [
+              Validators.min(1),
+              Validators.max(25),
+              Validators.required,
+            ]),
+          })
         )
       ),
     });
 
-    this.formGroupValueChangeSubscription =
-      this.formGroup.valueChanges.subscribe(() => this.onFormChanged());
+    this.formGroup.valueChanges
+      .pipe(take(1))
+      .subscribe(() => this.onFormChanged());
 
     this.configuration = configuration;
   }
@@ -142,11 +153,4 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
   isThemeChecked(theme: ThemeEnum): boolean {
     return this.configuration.theme === theme;
   }
-
-  readonly inputSelectAll = (target?: EventTarget | null) => {
-    if (!!target && target instanceof HTMLInputElement) {
-      const inputElement = target as HTMLInputElement;
-      inputElement.select();
-    }
-  };
 }

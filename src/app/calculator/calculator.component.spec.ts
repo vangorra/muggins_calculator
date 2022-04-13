@@ -1,216 +1,285 @@
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatGridListModule } from '@angular/material/grid-list';
 import { MatCardModule } from '@angular/material/card';
 import { MatRadioModule } from '@angular/material/radio';
-import { FlexLayoutModule } from '@angular/flex-layout';
-import { NgxScrollTopModule } from 'ngx-scrolltop';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatInputModule } from '@angular/material/input';
-import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
-import { MatIconModule } from '@angular/material/icon';
-import { render, screen } from '@testing-library/angular';
-import userEvent from '@testing-library/user-event';
-import { BrowserModule } from '@angular/platform-browser';
 import DieComponent from '../die/die.component';
 import CalculatorComponent from './calculator.component';
-import AppRoutingModule from '../app-routing.module';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ConfigurationService } from '../configuration.service';
+import { RouterTestingModule } from '@angular/router/testing';
+import { MatDialogModule } from '@angular/material/dialog';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { expect } from '@angular/flex-layout/_private-utils/testing';
+import { DiceComponent } from '../dice/dice.component';
+import { SolverWorkerService } from '../solver-worker.service';
+import { OperationEnum } from '../solver/solver';
+import { of } from 'rxjs';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { ToolbarButton, ToolbarService } from '../toolbar.service';
+import { MathJaxModule } from '../math-jax/math-jax.module';
+import { MathJaxState } from '../math-jax/math-jax.service';
+import { mockMathJaxProvider } from '../test-utils.spec';
+import { AboutDialogComponent } from '../about-dialog/about-dialog.component';
+import Spy = jasmine.Spy;
 import createSpy = jasmine.createSpy;
 
 describe(CalculatorComponent.name, () => {
-  const renderComponent = () =>
-    render(`<app-calculator></app-calculator>`, {
-      declarations: [
-        // AppComponent,
-        CalculatorComponent,
-        DieComponent,
-      ],
+  let component: CalculatorComponent;
+  let fixture: ComponentFixture<CalculatorComponent>;
+  let element: HTMLElement;
+  let configurationService: ConfigurationService;
+  let postMessageSpy: Spy;
+  let toolbarService: ToolbarService;
+
+  beforeEach(async () => {
+    postMessageSpy = createSpy('postMessage').and.returnValue(
+      of({
+        data: [
+          {
+            total: 1,
+            results: [
+              {
+                total: 1,
+                equation: 'test data',
+                fullEquation: '1 = test data',
+                sortableEquation: 'test data',
+              },
+            ],
+          },
+        ],
+      })
+    );
+
+    await TestBed.configureTestingModule({
       imports: [
-        BrowserModule,
-        AppRoutingModule,
-        MatCheckboxModule,
-        MatSelectModule,
+        MathJaxModule.withConfig(),
         ReactiveFormsModule,
-        MatGridListModule,
+        RouterTestingModule.withRoutes([]),
+        MatDialogModule,
         MatCardModule,
-        MatRadioModule,
-        FlexLayoutModule,
-        NgxScrollTopModule,
-        MatButtonModule,
-        MatDividerModule,
+        MatSelectModule,
         MatListModule,
-        MatProgressSpinnerModule,
         MatInputModule,
-        MatBottomSheetModule,
-        MatIconModule,
+        NoopAnimationsModule,
+        MatRadioModule,
+        MatButtonToggleModule,
       ],
-    });
-
-  let originalWorkerClass: any;
-  beforeAll(() => {
-    originalWorkerClass = window.Worker;
+      declarations: [CalculatorComponent, DiceComponent, DieComponent],
+      providers: [
+        {
+          provide: SolverWorkerService,
+          useValue: {
+            postMessage: postMessageSpy,
+          },
+        },
+        mockMathJaxProvider(MathJaxState.initialized),
+      ],
+    }).compileComponents();
   });
 
-  afterEach(() => {
-    Object.defineProperty(window, 'Worker', {
-      value: originalWorkerClass,
-    });
+  beforeEach(() => {
+    configurationService = TestBed.inject(ConfigurationService);
+    configurationService.resetToDefaults();
+    configurationService.save();
+
+    toolbarService = TestBed.inject(ToolbarService);
+
+    fixture = TestBed.createComponent(CalculatorComponent);
+    component = fixture.componentInstance;
+    element = fixture.nativeElement;
+
+    fixture.detectChanges();
   });
 
-  it('Full run through', async () => {
-    const { container } = await renderComponent();
-    const containerParent = container.parentElement as HTMLElement;
-    expect(containerParent).toBeTruthy();
+  const selectDieFace = (index: number, face: number) => {
+    const dieElement = Array.from(element.querySelectorAll('.dice app-die'))[
+      index
+    ] as HTMLElement;
+    const faceElement = Array.from(
+      dieElement.querySelectorAll('mat-button-toggle button')
+    ).find((faceEl) => faceEl.textContent?.trim() === face + '') as HTMLElement;
 
-    // Setup helper query functions.
-    const getDieFace = (el: HTMLElement, face: number) =>
-      el.querySelector(`input[type='radio'][value='${face}']`) as HTMLElement;
-    const getEquationElements = () =>
-      Array.from(
-        container.querySelectorAll('mat-list-item.equationStr')
-      ) as HTMLElement[];
+    faceElement.dispatchEvent(new Event('click'));
+    fixture.detectChanges();
+  };
 
-    // Assert the default number of radio groups are present.
-    const faceRadioGroups = Array.from(
-      container.querySelectorAll('mat-radio-group')
+  const getEquationElements = () =>
+    Array.from(
+      element.querySelectorAll('.results .equations [appMathJax]')
     ) as HTMLElement[];
-    expect(faceRadioGroups).toBeTruthy();
-    expect(faceRadioGroups.length).toEqual(3);
 
-    // Get the die faces for later use.
-    const die1Face4 = getDieFace(faceRadioGroups[0], 4);
-    expect(die1Face4).toBeTruthy();
-    const die2Face3 = getDieFace(faceRadioGroups[1], 3);
-    expect(die2Face3).toBeTruthy();
-    const die3Face2 = getDieFace(faceRadioGroups[2], 2);
-    expect(die3Face2).toBeTruthy();
-    let equationElements: HTMLElement[];
+  const getEquations = () => {
+    return getEquationElements().map((el) => el.textContent);
+  };
 
-    // Assert the defaults show the correct result.
-    equationElements = getEquationElements();
-    expect(equationElements.length).toEqual(21);
-
-    // Click die and confirm results.
-    userEvent.click(die1Face4);
-    equationElements = getEquationElements();
-    expect(equationElements.length).toEqual(59);
-    expect(equationElements[0].textContent?.trim()).toEqual(
-      '`2 = (4 - 1) - 1`'
-    );
-
-    userEvent.click(die2Face3);
-    equationElements = getEquationElements();
-    expect(equationElements.length).toEqual(101);
-    expect(equationElements[0].textContent?.trim()).toEqual(
-      '`1 = (1 * 4) - 3`'
-    );
-
-    userEvent.click(die3Face2);
-    equationElements = getEquationElements();
-    expect(equationElements.length).toEqual(99);
-    expect(equationElements[0].textContent?.trim()).toEqual(
-      '`1 = (2 + 3) - 4`'
-    );
-
-    const configButton = container.querySelector(
-      'button.configButton'
-    ) as HTMLElement;
-    expect(configButton).toBeTruthy();
-    userEvent.click(configButton);
-
-    // Test config changes.
-    const operationsEl = containerParent.querySelector(
-      "[data-testid='operations']"
-    ) as HTMLInputElement;
-    const boardMinNumberEl = containerParent.querySelector(
-      "[data-testid='boardMinNumber']"
-    ) as HTMLInputElement;
-    const boardMaxNumberEl = containerParent.querySelector(
-      "[data-testid='boardMaxNumber']"
-    ) as HTMLInputElement;
-    const diceCountEl = containerParent.querySelector(
-      "[data-testid='diceCount']"
-    ) as HTMLInputElement;
-    const customizeDieFaceCountEl = containerParent.querySelector(
-      "[data-testid='customizeDieFaceCount']"
-    ) as HTMLInputElement;
-    expect(operationsEl).toBeTruthy();
-    expect(boardMinNumberEl).toBeTruthy();
-    expect(boardMaxNumberEl).toBeTruthy();
-    expect(diceCountEl).toBeTruthy();
-    expect(customizeDieFaceCountEl).toBeTruthy();
-
-    userEvent.type(boardMinNumberEl, '{selectall}2');
-    userEvent.type(boardMaxNumberEl, '{selectall}4');
-    userEvent.type(diceCountEl, '{selectall}4');
-    userEvent.click(customizeDieFaceCountEl);
-    userEvent.click(container);
-
-    equationElements = await getEquationElements();
-    expect(equationElements.length).toEqual(1053);
-    expect(equationElements[0].textContent?.trim()).toEqual(
-      '`2 = ((1 * 2) * 3) - 4`'
-    );
-
-    // Test select equation.
-    expect(equationElements[0].classList.contains('active')).toBeFalse();
-    userEvent.click(equationElements[0]);
-    expect(equationElements[0].classList.contains('active')).toBeTrue();
-    userEvent.click(equationElements[1]);
-    expect(equationElements[0].classList.contains('active')).toBeFalse();
-    expect(equationElements[1].classList.contains('active')).toBeTrue();
-    userEvent.click(equationElements[1]);
-    expect(equationElements[1].classList.contains('active')).toBeFalse();
-    expect(equationElements[1].classList.contains('active')).toBeFalse();
+  it('initial setup', () => {
+    expect(component.dice).toEqual([
+      { selectedFace: 1, faceCount: 6 },
+      { selectedFace: 1, faceCount: 6 },
+      { selectedFace: 1, faceCount: 6 },
+    ]);
+    expect(postMessageSpy).toHaveBeenCalledWith({
+      operations: [
+        OperationEnum.PLUS,
+        OperationEnum.MINUS,
+        OperationEnum.MULTIPLY,
+        OperationEnum.DIVIDE,
+      ],
+      minTotal: 1,
+      maxTotal: 36,
+      faces: [1, 1, 1],
+    });
+    expect(getEquations()).toEqual(['RENDERED 1 = test data RENDERED']);
   });
 
-  it('Cancel Worker', async () => {
-    class MockWorker {
-      public readonly url: URL;
-
-      public readonly importType: string;
-
-      public onmessage!: (this: Worker, ev: MessageEvent) => any;
-
-      public readonly terminate = createSpy();
-
-      cancelTimeout: any;
-
-      constructor(url: URL, importType: string) {
-        this.url = url;
-        this.importType = importType;
-      }
-
-      public postMessage(): void {
-        const self: Worker = this as any as Worker;
-        this.cancelTimeout = setTimeout(
-          // @ts-ignore
-          () =>
-            self.onmessage?.call(
-              self,
-              new MessageEvent('something', {
-                data: {
-                  aaa: '111',
-                },
-              })
-            ),
-          100
-        );
-      }
-    }
-
-    Object.defineProperty(window, 'Worker', {
-      value: MockWorker,
+  it('select die faces', () => {
+    // Select die 1 face
+    postMessageSpy.calls.reset();
+    selectDieFace(0, 2);
+    fixture.detectChanges();
+    expect(postMessageSpy).toHaveBeenCalledWith({
+      operations: [
+        OperationEnum.PLUS,
+        OperationEnum.MINUS,
+        OperationEnum.MULTIPLY,
+        OperationEnum.DIVIDE,
+      ],
+      minTotal: 1,
+      maxTotal: 36,
+      faces: [2, 1, 1],
     });
+    expect(getEquations()).toEqual(['RENDERED 1 = test data RENDERED']);
 
-    await renderComponent();
-    const cancelButton = await screen.getByTestId('cancelButton');
-    userEvent.click(cancelButton);
-    const reloadButton = await screen.getByTestId('reloadButton');
-    expect(!!reloadButton).toBeTrue();
+    // Select die 2 face
+    postMessageSpy.calls.reset();
+    selectDieFace(1, 3);
+    fixture.detectChanges();
+    expect(postMessageSpy).toHaveBeenCalledWith({
+      operations: [
+        OperationEnum.PLUS,
+        OperationEnum.MINUS,
+        OperationEnum.MULTIPLY,
+        OperationEnum.DIVIDE,
+      ],
+      minTotal: 1,
+      maxTotal: 36,
+      faces: [2, 3, 1],
+    });
+    expect(getEquations()).toEqual(['RENDERED 1 = test data RENDERED']);
+
+    // Select die 3 face
+    postMessageSpy.calls.reset();
+    selectDieFace(2, 4);
+    fixture.detectChanges();
+    expect(postMessageSpy).toHaveBeenCalledWith({
+      operations: [
+        OperationEnum.PLUS,
+        OperationEnum.MINUS,
+        OperationEnum.MULTIPLY,
+        OperationEnum.DIVIDE,
+      ],
+      minTotal: 1,
+      maxTotal: 36,
+      faces: [2, 3, 4],
+    });
+    expect(getEquations()).toEqual(['RENDERED 1 = test data RENDERED']);
+  });
+
+  it('loading', () => {
+    postMessageSpy.and.returnValue({});
+
+    selectDieFace(0, 2);
+    fixture.detectChanges();
+    expect(postMessageSpy).toHaveBeenCalledWith({
+      operations: [
+        OperationEnum.PLUS,
+        OperationEnum.MINUS,
+        OperationEnum.MULTIPLY,
+        OperationEnum.DIVIDE,
+      ],
+      minTotal: 1,
+      maxTotal: 36,
+      faces: [2, 1, 1],
+    });
+    expect(
+      element.querySelector('.results mat-card-content.loading')
+    ).toBeTruthy();
+    expect(element.querySelector('.results mat-card-content.none')).toBeFalsy();
+    expect(element.querySelector('.results mat-card-content.data')).toBeFalsy();
+  });
+
+  it('no results', () => {
+    postMessageSpy.and.returnValue(
+      of({
+        data: [],
+      })
+    );
+
+    selectDieFace(0, 2);
+    fixture.detectChanges();
+    expect(postMessageSpy).toHaveBeenCalledWith({
+      operations: [
+        OperationEnum.PLUS,
+        OperationEnum.MINUS,
+        OperationEnum.MULTIPLY,
+        OperationEnum.DIVIDE,
+      ],
+      minTotal: 1,
+      maxTotal: 36,
+      faces: [2, 1, 1],
+    });
+    expect(
+      element.querySelector('.results mat-card-content.loading')
+    ).toBeFalsy();
+    expect(
+      element.querySelector('.results mat-card-content.none')
+    ).toBeTruthy();
+    expect(element.querySelector('.results mat-card-content.data')).toBeFalsy();
+  });
+
+  it('select equation', () => {
+    expect(
+      element.querySelector('.results .mat-list-single-selected-option')
+    ).toBeFalsy();
+    getEquationElements()[0].click();
+    fixture.detectChanges();
+    expect(
+      element.querySelector('.results .mat-list-single-selected-option')
+    ).toBeTruthy();
+  });
+
+  it('scroll to id', () => {
+    const jumpButton = element.querySelector(
+      '.results .jumpButtonWrapper button'
+    ) as HTMLButtonElement;
+    const targetId = component.groupId(jumpButton.textContent?.trim() + '');
+    const targetElement = document.getElementById(targetId);
+    // @ts-ignore
+    const scrollIntoViewSpy = spyOn(
+      targetElement,
+      'scrollIntoView'
+    ).and.callThrough();
+
+    jumpButton.click();
+    expect(scrollIntoViewSpy).toHaveBeenCalled();
+  });
+
+  it('open about dialog', () => {
+    const openSpy = spyOn(component.matDialog, 'open');
+    const button = toolbarService.config
+      .getValue()
+      .buttons.find(
+        (toolbarButton) => toolbarButton.title === 'About'
+      ) as ToolbarButton;
+    expect(button).toBeTruthy();
+    button.onClick();
+    expect(openSpy).toHaveBeenCalledWith(AboutDialogComponent, {});
+  });
+
+  it('destroy', () => {
+    fixture.destroy();
+    expect(component.configurationSubscription?.closed).toBeTruthy();
   });
 });
