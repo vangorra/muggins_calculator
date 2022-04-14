@@ -77,13 +77,11 @@ describe('ConfirmDialogComponent', () => {
         acceptButton: {
           show: true,
           title: 'Accept',
-          color: 'primary',
           type: 'basic',
         },
         rejectButton: {
           show: true,
           title: 'Reject',
-          color: 'accent',
           type: 'raised',
         },
       },
@@ -101,14 +99,12 @@ describe('ConfirmDialogComponent', () => {
     const acceptButton = element.querySelector(
       'button.acceptButton'
     ) as HTMLButtonElement;
-    expect(acceptButton.getAttribute('ng-reflect-color')).toEqual('primary');
     expect(acceptButton.hasAttribute('mat-button')).toBeTrue();
     expect(acceptButton.textContent?.trim()).toEqual('Accept');
 
     const rejectButton = element.querySelector(
       'button.rejectButton'
     ) as HTMLButtonElement;
-    expect(rejectButton.getAttribute('ng-reflect-color')).toEqual('accent');
     expect(rejectButton.hasAttribute('mat-raised-button')).toBeTrue();
     expect(rejectButton.textContent?.trim()).toEqual('Reject');
   });
@@ -119,13 +115,11 @@ describe('ConfirmDialogComponent', () => {
         acceptButton: {
           show: true,
           title: 'Accept',
-          color: 'warn',
           type: 'stroked',
         },
         rejectButton: {
           show: true,
           title: 'Reject',
-          color: 'warn',
           type: 'flat',
         },
       },
@@ -143,14 +137,12 @@ describe('ConfirmDialogComponent', () => {
     const acceptButton = element.querySelector(
       'button.acceptButton'
     ) as HTMLButtonElement;
-    expect(acceptButton.getAttribute('ng-reflect-color')).toEqual('warn');
     expect(acceptButton.hasAttribute('mat-stroked-button')).toBeTrue();
     expect(acceptButton.textContent?.trim()).toEqual('Accept');
 
     const rejectButton = element.querySelector(
       'button.rejectButton'
     ) as HTMLButtonElement;
-    expect(rejectButton.getAttribute('ng-reflect-color')).toEqual('warn');
     expect(rejectButton.hasAttribute('mat-flat-button')).toBeTrue();
     expect(rejectButton.textContent?.trim()).toEqual('Reject');
   });

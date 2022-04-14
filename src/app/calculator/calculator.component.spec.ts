@@ -258,7 +258,7 @@ describe(CalculatorComponent.name, () => {
     const targetElement = document.getElementById(targetId);
     // @ts-ignore
     const scrollIntoViewSpy = spyOn(
-      targetElement,
+      targetElement as any,
       'scrollIntoView'
     ).and.callThrough();
 

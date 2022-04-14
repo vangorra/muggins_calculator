@@ -1,41 +1,37 @@
 <h2 mat-dialog-title *ngIf="!!data.title">{{ data.title }}</h2>
 <div mat-dialog-content *ngIf="!!data.content">{{ data.content }}</div>
-<mat-dialog-actions *ngIf="hasVisibleButtons()">
+<mat-dialog-actions *ngIf="buttonsArray().length">
   <ng-container *ngFor="let button of buttonsArray()">
     <ng-container *ngIf="button.show" [ngSwitch]="button.type">
       <button
         *ngSwitchCase="'raised'"
         mat-raised-button
-        [color]="button.color"
-        [mat-dialog-close]="button === data.acceptButton"
-        [className]="getClassName(button === data.acceptButton)"
+        [mat-dialog-close]="button === data.acceptButton ? '' : null"
+        [ngClass]="button === data.acceptButton ? 'acceptButton' : 'rejectButton'"
       >
         {{ button.title }}
       </button>
       <button
         *ngSwitchCase="'stroked'"
-        mat-stroked-button
-        [color]="button.color"
-        [mat-dialog-close]="button === data.acceptButton"
-        [className]="getClassName(button === data.acceptButton)"
+        [attr.mat-stroked-button]="button.type === 'stroked'"
+        [mat-dialog-close]="button === data.acceptButton ? '' : null"
+        [ngClass]="button === data.acceptButton ? 'acceptButton' : 'rejectButton'"
       >
         {{ button.title }}
       </button>
       <button
         *ngSwitchCase="'flat'"
         mat-flat-button
-        [color]="button.color"
-        [mat-dialog-close]="button === data.acceptButton"
-        [className]="getClassName(button === data.acceptButton)"
+        [mat-dialog-close]="button === data.acceptButton ? '' : null"
+        [ngClass]="button === data.acceptButton ? 'acceptButton' : 'rejectButton'"
       >
         {{ button.title }}
       </button>
       <button
         *ngSwitchDefault
         mat-button
-        [color]="button.color"
-        [mat-dialog-close]="button === data.acceptButton"
-        [className]="getClassName(button === data.acceptButton)"
+        [mat-dialog-close]="button === data.acceptButton ? '' : null"
+        [ngClass]="button === data.acceptButton ? 'acceptButton' : 'rejectButton'"
       >
         {{ button.title }}
       </button>

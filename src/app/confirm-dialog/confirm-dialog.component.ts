@@ -35,13 +35,11 @@ export class ConfirmDialogComponent {
   }
 
   buttonsArray(): ButtonOption[] {
-    return [this.data.rejectButton, this.data.acceptButton].filter(
+    return [this.data.rejectButton, this.data.acceptButton]
+      .filter(button => button?.show)
+      .filter(
       (button) => !!button
     ) as ButtonOption[];
-  }
-
-  hasVisibleButtons(): boolean {
-    return this.buttonsArray().filter((button) => button.show).length > 0;
   }
 
   public static open(
@@ -71,6 +69,5 @@ export interface ConfirmDialogData {
 export interface ButtonOption {
   readonly show: boolean;
   readonly title: string;
-  readonly color?: 'primary' | 'accent' | 'warn';
   readonly type: 'basic' | 'raised' | 'stroked' | 'flat';
 }
