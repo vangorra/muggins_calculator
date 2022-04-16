@@ -1,0 +1,35 @@
+{
+  "collectCoverage": true,
+  "coverageDirectory": "./build/coverage/app",
+  "coverageReporters": [
+    "lcov",
+    "text",
+    "html"
+  ],
+  "coverageThreshold": {
+    "global": {
+      "branches": 80,
+      "functions": 96,
+      "lines": 96,
+      "statements": 90
+    }
+  },
+  "globals": {
+    "__DEV__": true
+  },
+  "globalSetup": "jest-preset-angular/global-setup",
+  "preset": "jest-preset-angular/presets/defaults",
+  "resetMocks": true,
+  "resetModules": true,
+  "roots": [
+    "./src"
+  ],
+  "setupFiles": [
+  ],
+  "setupFilesAfterEnv": [
+    "<rootDir>/src/setup-jest.ts"
+  ],
+  "transformIgnorePatterns": [
+    "node_modules/(?!.*\\.mjs$)"
+  ]
+}

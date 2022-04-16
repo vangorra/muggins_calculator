@@ -1,7 +1,7 @@
 import { MugginsSolver, OPERATIONS } from './solver';
 
 describe(MugginsSolver.name, () => {
-  it('quick return on empty input', () => {
+  test('quick return on empty input', () => {
     const solver1 = new MugginsSolver({
       minTotal: 1,
       maxTotal: 36,
@@ -21,7 +21,7 @@ describe(MugginsSolver.name, () => {
     expect(solver2.calculateSolutions()).toEqual([]);
   });
 
-  it(MugginsSolver.prototype.calculateSolutions.name, () => {
+  test(MugginsSolver.prototype.calculateSolutions.name, () => {
     const solver = new MugginsSolver({
       minTotal: 1,
       maxTotal: 36,

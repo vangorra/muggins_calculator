@@ -7,7 +7,7 @@ export const newMockMathJaxService = (state: MathJaxState) => {
     state: new BehaviorSubject(state),
     getRenderFunction: () => (text: string) => {
       const span = document.createElement('span');
-      span.innerText = `RENDERED ${text} RENDERED`;
+      span.append(`RENDERED ${text} RENDERED`);
       return span;
     },
   };

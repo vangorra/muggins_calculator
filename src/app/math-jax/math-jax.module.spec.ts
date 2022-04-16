@@ -2,7 +2,7 @@ import { MathJaxModule, provideMathJaxConfig } from './math-jax.module';
 import { MathJaxInputLoaderEnum, MathJaxOutputLoaderEnum } from './utils';
 
 describe(MathJaxModule.name, () => {
-  it(provideMathJaxConfig.name, () => {
+  test(provideMathJaxConfig.name, () => {
     expect(provideMathJaxConfig()).toEqual({
       inputLoader: MathJaxInputLoaderEnum.asciimath,
       outputLoader: MathJaxOutputLoaderEnum.svg,

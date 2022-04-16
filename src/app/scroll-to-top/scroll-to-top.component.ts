@@ -1,6 +1,7 @@
 import {
   Component,
   Input,
+  NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -37,6 +38,8 @@ export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
 
   private readonly onWindowScrolledEventListener = () =>
     this.onWindowScrolled();
+
+  constructor(private readonly ngZone: NgZone) {}
 
   ngOnInit(): void {
     window.addEventListener('scroll', this.onWindowScrolledEventListener, true);

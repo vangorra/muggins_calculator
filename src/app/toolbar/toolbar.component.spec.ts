@@ -4,9 +4,10 @@ import { ToolbarComponent } from './toolbar.component';
 import { ToolbarService } from '../toolbar.service';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
-import createSpy = jasmine.createSpy;
+import { MatIconModule } from '@angular/material/icon';
+import { Subject } from 'rxjs';
 
-describe('ToolbarComponent', () => {
+describe(ToolbarComponent.name, () => {
   let component: ToolbarComponent;
   let toolbarService: ToolbarService;
   let fixture: ComponentFixture<ToolbarComponent>;
@@ -14,7 +15,7 @@ describe('ToolbarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MatToolbarModule, MatButtonModule],
+      imports: [MatToolbarModule, MatButtonModule, MatIconModule],
       declarations: [ToolbarComponent],
     }).compileComponents();
     toolbarService = TestBed.inject(ToolbarService);
@@ -27,14 +28,14 @@ describe('ToolbarComponent', () => {
     fixture.detectChanges();
   });
 
-  it('confirm defaults', () => {
+  test('confirm defaults', () => {
     expect(element.querySelector('.configTitle')?.textContent).toEqual(
       ToolbarService.DEFAULT_TOOLBAR_CONFIG.title
     );
     expect(element.querySelectorAll('.buttons button')?.length).toEqual(0);
   });
 
-  it('set title', () => {
+  test('set title', () => {
     toolbarService.set({
       title: 'Test title',
     });
@@ -45,7 +46,7 @@ describe('ToolbarComponent', () => {
     expect(element.querySelectorAll('.buttons button')?.length).toEqual(0);
   });
 
-  it('set button with icon', () => {
+  test('set button with icon', () => {
     toolbarService.set({
       buttons: [
         ToolbarService.newButton({
@@ -59,16 +60,16 @@ describe('ToolbarComponent', () => {
     const buttonElement = element.querySelector(
       '.buttons button'
     ) as HTMLButtonElement;
-    expect(buttonElement.title).toEqual('button1');
-    expect(buttonElement.ariaLabel).toEqual('button1');
-    expect(buttonElement.disabled).toBeFalse();
+    expect(buttonElement.getAttribute('title')).toEqual('button1');
+    expect(buttonElement.getAttribute('aria-label')).toEqual('button1');
+    expect(buttonElement.getAttribute('disabled')).toBeFalsy();
     expect(buttonElement.querySelectorAll('.title').length).toEqual(0);
 
     const iconElement = buttonElement.querySelector('mat-icon') as HTMLElement;
-    expect(iconElement.innerText).toEqual('test_icon');
+    expect(iconElement.textContent).toEqual('test_icon');
   });
 
-  it('set button without icon', () => {
+  test('set button without icon', () => {
     toolbarService.set({
       buttons: [
         ToolbarService.newButton({
@@ -81,19 +82,19 @@ describe('ToolbarComponent', () => {
     const buttonElement = element.querySelector(
       '.buttons button'
     ) as HTMLButtonElement;
-    expect(buttonElement.title).toEqual('button1');
-    expect(buttonElement.ariaLabel).toEqual('button1');
-    expect(buttonElement.disabled).toBeFalse();
+    expect(buttonElement.getAttribute('title')).toEqual('button1');
+    expect(buttonElement.getAttribute('aria-label')).toEqual('button1');
+    expect(buttonElement.getAttribute('disabled')).toBeFalsy();
     expect(buttonElement.querySelectorAll('mat-icon').length).toEqual(0);
 
     const spanElement = buttonElement.querySelector(
       '.title'
     ) as HTMLSpanElement;
-    expect(spanElement.innerText).toEqual('button1');
+    expect(spanElement.textContent).toEqual('button1');
   });
 
-  it('on button click', () => {
-    const clickedFn = createSpy();
+  test('on button click', () => {
+    const clickedFn = jest.fn();
     toolbarService.set({
       buttons: [
         ToolbarService.newButton({
@@ -113,7 +114,34 @@ describe('ToolbarComponent', () => {
     expect(clickedFn).toHaveBeenCalled();
   });
 
-  it('destroy unsubscribes', () => {
+  test('disable button', () => {
+    const disabled = new Subject<boolean>();
+    toolbarService.set({
+      buttons: [
+        ToolbarService.newButton({
+          title: 'button1',
+          onClick: jest.fn(),
+          disabledObserver: () => disabled,
+        }),
+      ],
+    });
+    fixture.detectChanges();
+
+    const buttonElement = element.querySelector(
+      '.buttons button'
+    ) as HTMLButtonElement;
+    expect(buttonElement.getAttribute('disabled')).toBeFalsy();
+
+    disabled.next(true);
+    fixture.detectChanges();
+    expect(buttonElement.getAttribute('disabled')).toBeTruthy();
+
+    disabled.next(false);
+    fixture.detectChanges();
+    expect(buttonElement.getAttribute('disabled')).toBeFalsy();
+  });
+
+  test('destroy unsubscribes', () => {
     expect(component.configSubscription?.closed).toBeFalsy();
     fixture.destroy();
     expect(component.configSubscription?.closed).toBeTruthy();

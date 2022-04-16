@@ -20,7 +20,10 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 })
 class AppTestComponent {}
 
-describe('ScrollToTopComponent', () => {
+const scrollToSpy = jest.fn();
+global.scrollTo = scrollToSpy;
+
+describe(ScrollToTopComponent.name, () => {
   let fixture: ComponentFixture<AppTestComponent>;
 
   beforeEach(async () => {
@@ -35,7 +38,7 @@ describe('ScrollToTopComponent', () => {
     fixture.detectChanges();
   });
 
-  it('button shows on scroll', () => {
+  test('button shows on scroll', async () => {
     const element = fixture.nativeElement as Element;
     const offsetElement = element.querySelector(
       '.offsetElement'
@@ -54,37 +57,39 @@ describe('ScrollToTopComponent', () => {
     window.dispatchEvent(new Event('scroll'));
     expect(getScrollToTopButton()).toBeFalsy();
 
-    spyOnProperty(offsetElement, 'offsetTop', 'get').and.returnValue(0);
-    spyOnProperty(offsetElement, 'offsetHeight', 'get').and.returnValue(10);
-    spyOnProperty(visibleAfterElement, 'offsetTop', 'get').and.returnValue(50);
-    spyOnProperty(visibleAfterElement, 'offsetHeight', 'get').and.returnValue(
-      10
-    );
-    const windowScrollYSpy = spyOnProperty(window, 'scrollY', 'get');
+    jest.spyOn(offsetElement, 'offsetTop', 'get').mockReturnValue(0);
+    jest.spyOn(offsetElement, 'offsetHeight', 'get').mockReturnValue(10);
+    jest.spyOn(visibleAfterElement, 'offsetTop', 'get').mockReturnValue(50);
+    jest.spyOn(visibleAfterElement, 'offsetHeight', 'get').mockReturnValue(10);
 
-    windowScrollYSpy.and.returnValue(40);
+    const setScrollY = (value: number) =>
+      Object.defineProperty(window, 'scrollY', {
+        value,
+      });
+
+    setScrollY(40);
     window.dispatchEvent(new Event('scroll'));
     fixture.detectChanges();
     expect(getScrollToTopButton()).toBeFalsy();
 
-    windowScrollYSpy.and.returnValue(70);
+    setScrollY(70);
     window.dispatchEvent(new Event('scroll'));
     fixture.detectChanges();
     expect(getScrollToTopButton()).toBeTruthy();
 
-    const scrollToSpy = spyOn(window, 'scrollTo');
     getScrollToTopButton()?.click();
     expect(scrollToSpy).toHaveBeenCalled();
-    windowScrollYSpy.and.returnValue(0);
+    setScrollY(0);
     window.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
 
-    // // Unsure why this isn't working despite the component reporting the button is no longer visible.
-    // fixture.detectChanges();
-    // expect(getScrollToTopButton()).toBeFalsy();
+    // wait for animation to finish and confirm the button is gone.
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    expect(getScrollToTopButton()).toBeFalsy();
   });
 
-  it('add/remove event listener', () => {
-    const removeEventListenerSpy = spyOn(window, 'removeEventListener');
+  test('add/remove event listener', () => {
+    const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
     fixture.destroy();
     expect(removeEventListenerSpy).toHaveBeenCalled();
   });

@@ -7,16 +7,14 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import createSpy = jasmine.createSpy;
-import Spy = jasmine.Spy;
 
-describe('AboutDialogComponent', () => {
+describe(AboutDialogComponent.name, () => {
   let fixture: ComponentFixture<AboutDialogComponent>;
   let element: Element;
-  let closeSpy: Spy;
+  let closeSpy: jest.Mock;
 
   beforeEach(async () => {
-    closeSpy = createSpy();
+    closeSpy = jest.fn();
     await TestBed.configureTestingModule({
       declarations: [AboutDialogComponent],
       imports: [MatDialogModule, MatButtonModule],
@@ -33,7 +31,7 @@ describe('AboutDialogComponent', () => {
     fixture.detectChanges();
   });
 
-  it('close', () => {
+  test('close', () => {
     expect(closeSpy).not.toHaveBeenCalled();
     const button = element.querySelector(
       'button[mat-dialog-close]'

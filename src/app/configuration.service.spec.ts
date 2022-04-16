@@ -13,7 +13,7 @@ describe(ConfigurationService.name, () => {
     service = TestBed.inject(ConfigurationService);
   });
 
-  it('modify works', () => {
+  test('modify works', () => {
     expect(service).toBeTruthy();
     expect(service.value.getValue()).toEqual(DEFAULT_CONFIGURATION);
     expect(service.value.getValue().dice.length).toBe(

@@ -19,15 +19,17 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { MathJaxModule } from '../math-jax/math-jax.module';
 import { MathJaxState } from '../math-jax/math-jax.service';
-import { mockMathJaxProvider } from '../test-utils.spec';
-import Spy = jasmine.Spy;
+import { mockMathJaxProvider } from '../test-utils';
+import { MatIconModule } from '@angular/material/icon';
+import { FlexLayoutModule } from '@angular/flex-layout';
+import SpyInstance = jest.SpyInstance;
 
 describe(ConfigurationComponent.name, () => {
   let component: ConfigurationComponent;
   let fixture: ComponentFixture<ConfigurationComponent>;
   let element: HTMLElement;
   let configurationService: ConfigurationService;
-  let configurationSaveSpy: Spy;
+  let configurationSaveSpy: SpyInstance;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -42,6 +44,8 @@ describe(ConfigurationComponent.name, () => {
         MatInputModule,
         NoopAnimationsModule,
         MatRadioModule,
+        MatIconModule,
+        FlexLayoutModule,
       ],
       declarations: [ConfigurationComponent],
       providers: [mockMathJaxProvider(MathJaxState.initialized)],
@@ -52,10 +56,7 @@ describe(ConfigurationComponent.name, () => {
     configurationService = TestBed.inject(ConfigurationService);
     configurationService.resetToDefaults();
     configurationService.save();
-    configurationSaveSpy = spyOn(
-      configurationService,
-      'save'
-    ).and.callThrough();
+    configurationSaveSpy = jest.spyOn(configurationService, 'save');
 
     fixture = TestBed.createComponent(ConfigurationComponent);
     component = fixture.componentInstance;
@@ -64,7 +65,7 @@ describe(ConfigurationComponent.name, () => {
     fixture.detectChanges();
   });
 
-  it('change theme', () => {
+  test('change theme', () => {
     const getOptionWithText = (text: string) =>
       Array.from(element.querySelectorAll('.theme mat-list-option')).find(
         (el) => (el as HTMLElement).textContent?.trim() === text
@@ -97,7 +98,7 @@ describe(ConfigurationComponent.name, () => {
       } else {
         expect(configurationSaveSpy).not.toHaveBeenCalled();
       }
-      configurationSaveSpy.calls.reset();
+      configurationSaveSpy.mockClear();
     };
 
     // Check initial.
@@ -120,7 +121,7 @@ describe(ConfigurationComponent.name, () => {
     expectSelectedTheme(ThemeEnum.AUTOMATIC, 'Automatic');
   });
 
-  it('change operations', () => {
+  test('change operations', () => {
     const getOptionWithText = (text: string) =>
       Array.from(element.querySelectorAll('.operations mat-list-option')).find(
         (el) => el.querySelector('.operationName')?.textContent?.trim() === text
@@ -146,7 +147,7 @@ describe(ConfigurationComponent.name, () => {
       } else {
         expect(configurationSaveSpy).not.toHaveBeenCalled();
       }
-      configurationSaveSpy.calls.reset();
+      configurationSaveSpy.mockClear();
     };
 
     const expectToggleWithText = (text: string, toggleBack = true) => {
@@ -215,7 +216,7 @@ describe(ConfigurationComponent.name, () => {
     ]);
   });
 
-  it('change board size', () => {
+  test('change board size', () => {
     const minSizeElement = element.querySelector(
       '.boardSize [formcontrolname="minSize"]'
     ) as HTMLInputElement;
@@ -256,7 +257,7 @@ describe(ConfigurationComponent.name, () => {
       } else {
         expect(configurationSaveSpy).not.toHaveBeenCalled();
       }
-      configurationSaveSpy.calls.reset();
+      configurationSaveSpy.mockClear();
     };
 
     expect(minSizeElement.value).toEqual(
@@ -277,7 +278,7 @@ describe(ConfigurationComponent.name, () => {
     expectSetValue(maxSizeElement, 1, false, false, true);
   });
 
-  it('change dice count', () => {
+  test('change dice count', () => {
     const addDieElement = getByTitle(element, 'Add Die');
     const removeDieElement = getByTitle(element, 'Remove Die');
     const getDiceInputElements = () =>
@@ -313,7 +314,7 @@ describe(ConfigurationComponent.name, () => {
       } else {
         expect(configurationSaveSpy).not.toHaveBeenCalled();
       }
-      configurationSaveSpy.calls.reset();
+      configurationSaveSpy.mockClear();
     };
 
     const setDieFaceCount = (
@@ -346,7 +347,7 @@ describe(ConfigurationComponent.name, () => {
       } else {
         expect(configurationSaveSpy).not.toHaveBeenCalled();
       }
-      configurationSaveSpy.calls.reset();
+      configurationSaveSpy.mockClear();
     };
 
     // Check initial.
@@ -428,7 +429,7 @@ describe(ConfigurationComponent.name, () => {
     ]);
   });
 
-  it('Reset to default config', async () => {
+  test('Reset to default config', async () => {
     configurationService.update({
       theme: ThemeEnum.LIGHT,
       operations: [],
@@ -472,7 +473,7 @@ describe(ConfigurationComponent.name, () => {
     ).toEqual(0);
 
     let afterClosedObservable: Observable<boolean> = new Subject<boolean>();
-    spyOn(ConfirmDialogComponent, 'open').and.returnValue({
+    jest.spyOn(ConfirmDialogComponent, 'open').mockReturnValue({
       afterClosed: () => afterClosedObservable,
     } as any);
 
@@ -500,7 +501,7 @@ describe(ConfigurationComponent.name, () => {
     );
   });
 
-  it('destroy', () => {
+  test('destroy', () => {
     fixture.destroy();
     expect(component.configurationSubscription?.closed).toBeTruthy();
   });

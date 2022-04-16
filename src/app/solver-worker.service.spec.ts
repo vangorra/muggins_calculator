@@ -3,23 +3,9 @@ import { TestBed } from '@angular/core/testing';
 import { SolverWorkerService } from './solver-worker.service';
 import { OperationEnum } from './solver/solver';
 import { take } from 'rxjs';
+import { SOLVER_WORKER_URL } from './__mocks__/solver-worker.url';
 
-class MockWorker {
-  public onmessage: (response: any) => undefined = () => undefined;
-
-  public onerror: (errorEvent: ErrorEvent) => undefined = () => undefined;
-
-  public onmessageerror: (messageEvent: MessageEvent) => undefined = () =>
-    undefined;
-
-  public postedMessage: any;
-
-  public postMessage(message: any) {
-    this.postedMessage = message;
-  }
-}
-
-describe('SolverWorkerService', () => {
+describe(SolverWorkerService.name, () => {
   let service: SolverWorkerService;
 
   beforeEach(() => {
@@ -27,52 +13,49 @@ describe('SolverWorkerService', () => {
     service = TestBed.inject(SolverWorkerService);
   });
 
-  const runIt = (preferWorker: boolean, done: () => void) => {
-    service
-      .postMessage(
-        {
-          operations: [OperationEnum.PLUS],
-          faces: [2, 2, 2],
-          minTotal: 1,
-          maxTotal: 10,
-        },
-        preferWorker
-      )
-      .pipe(take(1))
-      .subscribe((response) => {
-        expect(response).toEqual({
-          data: [
-            {
-              total: '6',
-              results: [
-                {
-                  total: 6,
-                  fullEquation: '6 = 2 + (2 + 2)',
-                  equation: '2 + (2 + 2)',
-                  sortableEquation: '6 Z 2 + X2 + 2Y',
-                },
-              ],
-            },
-          ],
+  const testPostMessage = (preferWorker: boolean) => {
+    test(`Post message ${preferWorker ? 'with' : 'without'} worker`, (done) => {
+      service
+        .postMessage(
+          {
+            operations: [OperationEnum.PLUS],
+            faces: [2, 2, 2],
+            minTotal: 1,
+            maxTotal: 10,
+          },
+          preferWorker
+        )
+        .pipe(take(1))
+        .subscribe((response) => {
+          expect(response).toEqual({
+            data: [
+              {
+                total: '6',
+                results: [
+                  {
+                    total: 6,
+                    fullEquation: '6 = 2 + (2 + 2)',
+                    equation: '2 + (2 + 2)',
+                    sortableEquation: '6 Z 2 + X2 + 2Y',
+                  },
+                ],
+              },
+            ],
+          });
+          done();
         });
-        done();
-      });
+    });
   };
 
-  it(SolverWorkerService.prototype.postMessage + ' with Worker', (done) => {
-    runIt(true, done);
-  });
+  testPostMessage(true);
+  testPostMessage(false);
 
-  it(SolverWorkerService.prototype.postMessage + ' without Worker', (done) => {
-    runIt(false, done);
-  });
-
-  it('worker fails with onerror', (done) => {
-    const mockWorker = new MockWorker();
-    spyOn(mockWorker, 'postMessage').and.callFake(() => {
-      mockWorker.onerror(new ErrorEvent('Test error'));
+  test('worker fails with onerror', (done) => {
+    window.mockWorkerManager.setCreateListener(SOLVER_WORKER_URL, (worker) => {
+      jest.spyOn(worker, 'postMessage').mockImplementation(() => {
+        worker.onerror(new ErrorEvent('Test error'));
+      });
     });
-    spyOn(window, 'Worker').and.returnValue(mockWorker as any);
 
     new SolverWorkerService().postMessage({} as any).subscribe({
       next: () => {
@@ -86,12 +69,12 @@ describe('SolverWorkerService', () => {
     });
   });
 
-  it('worker fails with onmessageerror', (done) => {
-    const mockWorker = new MockWorker();
-    spyOn(mockWorker, 'postMessage').and.callFake(() => {
-      mockWorker.onmessageerror(new MessageEvent<any>('Test error'));
+  test('worker fails with onmessageerror', (done) => {
+    window.mockWorkerManager.setCreateListener(SOLVER_WORKER_URL, (worker) => {
+      jest.spyOn(worker, 'postMessage').mockImplementation(() => {
+        worker.onmessageerror(new MessageEvent<any>('Test error'));
+      });
     });
-    spyOn(window, 'Worker').and.returnValue(mockWorker as any);
 
     new SolverWorkerService().postMessage({} as any).subscribe({
       next: () => {

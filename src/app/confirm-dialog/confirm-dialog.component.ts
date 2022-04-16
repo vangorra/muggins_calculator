@@ -36,10 +36,8 @@ export class ConfirmDialogComponent {
 
   buttonsArray(): ButtonOption[] {
     return [this.data.rejectButton, this.data.acceptButton]
-      .filter(button => button?.show)
-      .filter(
-      (button) => !!button
-    ) as ButtonOption[];
+      .filter((button) => button?.show)
+      .filter((button) => !!button) as ButtonOption[];
   }
 
   public static open(

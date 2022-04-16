@@ -13,12 +13,12 @@ describe(ToolbarService.name, () => {
   /**
    * Only doing this to satisfy coverage requirements. These functions do nothing.
    */
-  it('run noop functions', () => {
+  test('run noop functions', () => {
     expect(ToolbarService.NOOP_ONCLICK()).toBeFalsy();
     expect(ToolbarService.NOOP_OBSERVER()).toBeTruthy();
   });
 
-  it('should be created', () => {
+  test('should be created', () => {
     expect(service.config.getValue()).toEqual(
       ToolbarService.DEFAULT_TOOLBAR_CONFIG
     );

@@ -8,9 +8,8 @@ import {
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import createSpy = jasmine.createSpy;
 
-describe('ConfirmDialogComponent', () => {
+describe(ConfirmDialogComponent.name, () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MatDialogModule, MatButtonModule, NoopAnimationsModule],
@@ -18,7 +17,7 @@ describe('ConfirmDialogComponent', () => {
     }).compileComponents();
   });
 
-  it('empty values', () => {
+  test('empty values', () => {
     TestBed.overrideProvider(MAT_DIALOG_DATA, {
       useValue: {},
     });
@@ -33,7 +32,7 @@ describe('ConfirmDialogComponent', () => {
     ).toEqual(0);
   });
 
-  it('set title', () => {
+  test('set title', () => {
     TestBed.overrideProvider(MAT_DIALOG_DATA, {
       useValue: {
         title: 'Test title',
@@ -52,7 +51,7 @@ describe('ConfirmDialogComponent', () => {
     ).toEqual(0);
   });
 
-  it('set content', () => {
+  test('set content', () => {
     TestBed.overrideProvider(MAT_DIALOG_DATA, {
       useValue: {
         content: 'Test content',
@@ -71,7 +70,7 @@ describe('ConfirmDialogComponent', () => {
     ).toEqual(0);
   });
 
-  it('set basic and raised buttons', () => {
+  test('set basic and raised buttons', () => {
     TestBed.overrideProvider(MAT_DIALOG_DATA, {
       useValue: {
         acceptButton: {
@@ -99,17 +98,17 @@ describe('ConfirmDialogComponent', () => {
     const acceptButton = element.querySelector(
       'button.acceptButton'
     ) as HTMLButtonElement;
-    expect(acceptButton.hasAttribute('mat-button')).toBeTrue();
+    expect(acceptButton.hasAttribute('mat-button')).toBeTruthy();
     expect(acceptButton.textContent?.trim()).toEqual('Accept');
 
     const rejectButton = element.querySelector(
       'button.rejectButton'
     ) as HTMLButtonElement;
-    expect(rejectButton.hasAttribute('mat-raised-button')).toBeTrue();
+    expect(rejectButton.hasAttribute('mat-raised-button')).toBeTruthy();
     expect(rejectButton.textContent?.trim()).toEqual('Reject');
   });
 
-  it('set basic and raised buttons', () => {
+  test('set basic and raised buttons', () => {
     TestBed.overrideProvider(MAT_DIALOG_DATA, {
       useValue: {
         acceptButton: {
@@ -137,20 +136,20 @@ describe('ConfirmDialogComponent', () => {
     const acceptButton = element.querySelector(
       'button.acceptButton'
     ) as HTMLButtonElement;
-    expect(acceptButton.hasAttribute('mat-stroked-button')).toBeTrue();
+    expect(acceptButton.hasAttribute('mat-stroked-button')).toBeTruthy();
     expect(acceptButton.textContent?.trim()).toEqual('Accept');
 
     const rejectButton = element.querySelector(
       'button.rejectButton'
     ) as HTMLButtonElement;
-    expect(rejectButton.hasAttribute('mat-flat-button')).toBeTrue();
+    expect(rejectButton.hasAttribute('mat-flat-button')).toBeTruthy();
     expect(rejectButton.textContent?.trim()).toEqual('Reject');
   });
 
-  it('open with static', () => {
+  test('open with static', () => {
     const dialogRef = {};
     const matDialog = {
-      open: createSpy().and.returnValue(dialogRef),
+      open: jest.fn().mockReturnValue(dialogRef),
     } as any as MatDialog;
 
     const dialogConfig = {};

@@ -28,7 +28,10 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
-import { newMockMathJaxService } from './test-utils.spec';
+import { newMockMathJaxService } from './test-utils';
+import { ScrollToTopComponent } from './scroll-to-top/scroll-to-top.component';
+import { DiceComponent } from './dice/dice.component';
+import DieComponent from './die/die.component';
 
 describe(AppComponent.name, () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -63,6 +66,9 @@ describe(AppComponent.name, () => {
         CalculatorComponent,
         ConfigurationComponent,
         ToolbarComponent,
+        ScrollToTopComponent,
+        DiceComponent,
+        DieComponent,
       ],
       providers: [
         {
@@ -89,7 +95,7 @@ describe(AppComponent.name, () => {
     fixture.detectChanges();
   });
 
-  it('routes work', async () => {
+  test('routes work', async () => {
     await router.navigate(['/']);
     fixture.detectChanges();
 

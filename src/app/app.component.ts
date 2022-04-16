@@ -1,4 +1,3 @@
-import '@fontsource/roboto';
 import { Component, OnInit } from '@angular/core';
 import { ThemeService } from './theme.service';
 import { MathJaxService } from './math-jax/math-jax.service';

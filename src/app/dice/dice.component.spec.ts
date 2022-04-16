@@ -5,7 +5,7 @@ import DieComponent from '../die/die.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ReactiveFormsModule } from '@angular/forms';
 
-describe('DiceComponent', () => {
+describe(DiceComponent.name, () => {
   let component: DiceComponent;
   let element: Element;
   let fixture: ComponentFixture<DiceComponent>;
@@ -24,8 +24,8 @@ describe('DiceComponent', () => {
     fixture.detectChanges();
   });
 
-  it('select faces', () => {
-    const emitSpy = spyOn(component.faceChanged, 'emit');
+  test('select faces', () => {
+    const emitSpy = jest.spyOn(component.faceChanged, 'emit');
     component.dice = [
       { faceCount: 6, selectedFace: 1 },
       { faceCount: 7, selectedFace: 2 },
@@ -33,37 +33,37 @@ describe('DiceComponent', () => {
     ];
     fixture.detectChanges();
 
-    emitSpy.calls.reset();
+    emitSpy.mockClear();
     (
       element.querySelector(
         'app-die.die0 mat-button-toggle.face3 button'
       ) as HTMLElement
     ).dispatchEvent(new Event('click'));
-    expect(component.faceChanged.emit).toHaveBeenCalledOnceWith([
+    expect(emitSpy).toHaveBeenCalledWith([
       { faceCount: 6, selectedFace: 4 },
       { faceCount: 7, selectedFace: 2 },
       { faceCount: 8, selectedFace: 3 },
     ]);
 
-    emitSpy.calls.reset();
+    emitSpy.mockClear();
     (
       element.querySelector(
         'app-die.die1 mat-button-toggle.face4 button'
       ) as HTMLElement
     ).click();
-    expect(component.faceChanged.emit).toHaveBeenCalledOnceWith([
+    expect(emitSpy).toHaveBeenCalledWith([
       { faceCount: 6, selectedFace: 4 },
       { faceCount: 7, selectedFace: 5 },
       { faceCount: 8, selectedFace: 3 },
     ]);
 
-    emitSpy.calls.reset();
+    emitSpy.mockClear();
     (
       element.querySelector(
         'app-die.die2 mat-button-toggle.face5 button'
       ) as HTMLElement
     ).click();
-    expect(component.faceChanged.emit).toHaveBeenCalledOnceWith([
+    expect(emitSpy).toHaveBeenCalledWith([
       { faceCount: 6, selectedFace: 4 },
       { faceCount: 7, selectedFace: 5 },
       { faceCount: 8, selectedFace: 6 },

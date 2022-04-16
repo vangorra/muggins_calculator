@@ -7,12 +7,17 @@ import { Subscription } from 'rxjs';
   providedIn: 'root',
 })
 export class ThemeService implements OnDestroy {
-  private static CLASS_NAME_PREFIX = 'color-scheme-';
+  private static readonly CLASS_NAME_PREFIX = 'color-scheme-';
 
-  static MEDIA_EVENT = 'change';
+  static readonly PREFERS_DARK_COLOR_SCHEME_MEDIA_QUERY =
+    '(prefers-color-scheme: dark)';
+
+  static readonly PREFERS_COLOR_SCHEME_MEDIA_QUERY = '(prefers-color-scheme)';
+
+  static readonly MEDIA_EVENT = 'change';
 
   readonly mediaQuery: MediaQueryList = window.matchMedia(
-    '(prefers-color-scheme)'
+    ThemeService.PREFERS_COLOR_SCHEME_MEDIA_QUERY
   );
 
   readonly applyStyleFromConfiguration = (configuration: Configuration) =>
@@ -57,7 +62,7 @@ export class ThemeService implements OnDestroy {
 
     // Derive based on browser media data.
     if (theme === ThemeEnum.AUTOMATIC) {
-      selectedTheme = this.getMediaColorScheme(ThemeEnum.LIGHT);
+      selectedTheme = this.getMediaColorScheme();
     }
 
     const currentColorSchemeClassName =
@@ -84,12 +89,15 @@ export class ThemeService implements OnDestroy {
    * Get color scheme dictated by a media query.
    * @private
    */
-  public getMediaColorScheme(defaultValue: ThemeEnum): ThemeEnum {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  public getMediaColorScheme(): ThemeEnum {
+    if (
+      window.matchMedia(ThemeService.PREFERS_DARK_COLOR_SCHEME_MEDIA_QUERY)
+        .matches
+    ) {
       return ThemeEnum.DARK;
     }
 
-    return defaultValue;
+    return ThemeEnum.LIGHT;
   }
 
   /**

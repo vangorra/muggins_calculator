@@ -2,20 +2,18 @@ import { TestBed } from '@angular/core/testing';
 
 import { MathJaxService, MathJaxState } from './math-jax.service';
 import { MathJaxInputLoaderEnum, MathJaxOutputLoaderEnum } from './utils';
-import clock = jasmine.clock;
 
-describe('MathJaxService', () => {
+jest.useFakeTimers();
+
+describe(MathJaxService.name, () => {
   let service: MathJaxService;
 
   beforeEach(() => {
-    clock().install();
     TestBed.configureTestingModule({});
     service = TestBed.inject(MathJaxService);
   });
 
   afterEach(() => {
-    clock().uninstall();
-
     // Clear out mathjax object.
     const mathJax = window.MathJax as any;
     if (!!mathJax) {
@@ -25,11 +23,11 @@ describe('MathJaxService', () => {
     }
   });
 
-  it('start', async () => {
-    const startPollForInitializedSpy = spyOn(
+  test('start', async () => {
+    const startPollForInitializedSpy = jest.spyOn(
       service,
       'startPollForInitialized'
-    ).and.callThrough();
+    );
 
     expect(document.getElementById(MathJaxService.SCRIPT_ID)).toBeFalsy();
     expect(service.state.getValue()).toEqual(MathJaxState.none);
@@ -45,18 +43,18 @@ describe('MathJaxService', () => {
     expect(service.state.getValue()).toEqual(MathJaxState.initializing);
 
     window.MathJax.typeset = () => undefined;
-    clock().tick(MathJaxService.POLL_INTERVAL * 1.5);
+    jest.advanceTimersByTime(MathJaxService.POLL_INTERVAL * 1.5);
     expect(service.initializeCheckInterval).toBeFalsy();
     expect(service.state.getValue()).toEqual(MathJaxState.initialized);
 
     // Attempt to start again, which does nothing.
-    startPollForInitializedSpy.calls.reset();
+    startPollForInitializedSpy.mockReset();
     service.start();
     expect(startPollForInitializedSpy).toHaveBeenCalled();
     expect(service.state.getValue()).toEqual(MathJaxState.initialized);
   }, 10000);
 
-  it('destroy stops poll', () => {
+  test('destroy stops poll', () => {
     service.state.next(MathJaxState.initialized);
 
     service.ngOnDestroy();
@@ -64,7 +62,7 @@ describe('MathJaxService', () => {
     expect(service.state.getValue()).toEqual(MathJaxState.none);
   });
 
-  it('Get render function maps correctly', () => {
+  test('Get render function maps correctly', () => {
     window.MathJax.asciimath2svg = 'AAAAA' as any;
 
     const service1 = new MathJaxService({
@@ -82,7 +80,7 @@ describe('MathJaxService', () => {
     );
   });
 
-  it('noop render function returns span with original text', () => {
+  test('noop render function returns span with original text', () => {
     expect(MathJaxService.NOOP_RENDER_FUNCTION('AAAAA').textContent).toEqual(
       'AAAAA'
     );

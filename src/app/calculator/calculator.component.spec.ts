@@ -20,21 +20,21 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ToolbarButton, ToolbarService } from '../toolbar.service';
 import { MathJaxModule } from '../math-jax/math-jax.module';
 import { MathJaxState } from '../math-jax/math-jax.service';
-import { mockMathJaxProvider } from '../test-utils.spec';
+import { mockMathJaxProvider } from '../test-utils';
 import { AboutDialogComponent } from '../about-dialog/about-dialog.component';
-import Spy = jasmine.Spy;
-import createSpy = jasmine.createSpy;
+import { ScrollToTopComponent } from '../scroll-to-top/scroll-to-top.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 describe(CalculatorComponent.name, () => {
   let component: CalculatorComponent;
   let fixture: ComponentFixture<CalculatorComponent>;
   let element: HTMLElement;
   let configurationService: ConfigurationService;
-  let postMessageSpy: Spy;
+  let postMessageSpy: jest.Mock;
   let toolbarService: ToolbarService;
 
   beforeEach(async () => {
-    postMessageSpy = createSpy('postMessage').and.returnValue(
+    postMessageSpy = jest.fn().mockReturnValue(
       of({
         data: [
           {
@@ -65,8 +65,14 @@ describe(CalculatorComponent.name, () => {
         NoopAnimationsModule,
         MatRadioModule,
         MatButtonToggleModule,
+        MatProgressSpinnerModule,
       ],
-      declarations: [CalculatorComponent, DiceComponent, DieComponent],
+      declarations: [
+        CalculatorComponent,
+        DiceComponent,
+        DieComponent,
+        ScrollToTopComponent,
+      ],
       providers: [
         {
           provide: SolverWorkerService,
@@ -114,7 +120,7 @@ describe(CalculatorComponent.name, () => {
     return getEquationElements().map((el) => el.textContent);
   };
 
-  it('initial setup', () => {
+  test('initial setup', () => {
     expect(component.dice).toEqual([
       { selectedFace: 1, faceCount: 6 },
       { selectedFace: 1, faceCount: 6 },
@@ -134,9 +140,9 @@ describe(CalculatorComponent.name, () => {
     expect(getEquations()).toEqual(['RENDERED 1 = test data RENDERED']);
   });
 
-  it('select die faces', () => {
+  test('select die faces', () => {
     // Select die 1 face
-    postMessageSpy.calls.reset();
+    postMessageSpy.mockClear();
     selectDieFace(0, 2);
     fixture.detectChanges();
     expect(postMessageSpy).toHaveBeenCalledWith({
@@ -153,7 +159,7 @@ describe(CalculatorComponent.name, () => {
     expect(getEquations()).toEqual(['RENDERED 1 = test data RENDERED']);
 
     // Select die 2 face
-    postMessageSpy.calls.reset();
+    postMessageSpy.mockClear();
     selectDieFace(1, 3);
     fixture.detectChanges();
     expect(postMessageSpy).toHaveBeenCalledWith({
@@ -170,7 +176,7 @@ describe(CalculatorComponent.name, () => {
     expect(getEquations()).toEqual(['RENDERED 1 = test data RENDERED']);
 
     // Select die 3 face
-    postMessageSpy.calls.reset();
+    postMessageSpy.mockClear();
     selectDieFace(2, 4);
     fixture.detectChanges();
     expect(postMessageSpy).toHaveBeenCalledWith({
@@ -187,8 +193,8 @@ describe(CalculatorComponent.name, () => {
     expect(getEquations()).toEqual(['RENDERED 1 = test data RENDERED']);
   });
 
-  it('loading', () => {
-    postMessageSpy.and.returnValue({});
+  test('loading', () => {
+    postMessageSpy.mockReturnValue(of({}));
 
     selectDieFace(0, 2);
     fixture.detectChanges();
@@ -210,8 +216,8 @@ describe(CalculatorComponent.name, () => {
     expect(element.querySelector('.results mat-card-content.data')).toBeFalsy();
   });
 
-  it('no results', () => {
-    postMessageSpy.and.returnValue(
+  test('no results', () => {
+    postMessageSpy.mockReturnValue(
       of({
         data: [],
       })
@@ -239,7 +245,7 @@ describe(CalculatorComponent.name, () => {
     expect(element.querySelector('.results mat-card-content.data')).toBeFalsy();
   });
 
-  it('select equation', () => {
+  test('select equation', () => {
     expect(
       element.querySelector('.results .mat-list-single-selected-option')
     ).toBeFalsy();
@@ -250,24 +256,21 @@ describe(CalculatorComponent.name, () => {
     ).toBeTruthy();
   });
 
-  it('scroll to id', () => {
+  test('scroll to id', () => {
     const jumpButton = element.querySelector(
       '.results .jumpButtonWrapper button'
     ) as HTMLButtonElement;
     const targetId = component.groupId(jumpButton.textContent?.trim() + '');
-    const targetElement = document.getElementById(targetId);
-    // @ts-ignore
-    const scrollIntoViewSpy = spyOn(
-      targetElement as any,
-      'scrollIntoView'
-    ).and.callThrough();
+    const targetElement = document.getElementById(targetId) as HTMLElement;
+    const scrollIntoViewSpy = jest.fn();
+    targetElement.scrollIntoView = scrollIntoViewSpy;
 
     jumpButton.click();
     expect(scrollIntoViewSpy).toHaveBeenCalled();
   });
 
-  it('open about dialog', () => {
-    const openSpy = spyOn(component.matDialog, 'open');
+  test('open about dialog', () => {
+    const openSpy = jest.spyOn(component.matDialog, 'open');
     const button = toolbarService.config
       .getValue()
       .buttons.find(
@@ -278,7 +281,7 @@ describe(CalculatorComponent.name, () => {
     expect(openSpy).toHaveBeenCalledWith(AboutDialogComponent, {});
   });
 
-  it('destroy', () => {
+  test('destroy', () => {
     fixture.destroy();
     expect(component.configurationSubscription?.closed).toBeTruthy();
   });

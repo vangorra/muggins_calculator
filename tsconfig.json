@@ -6,6 +6,7 @@
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    "esModuleInterop": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
@@ -31,6 +32,12 @@
   },
   "include": [
     "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "src/**/.mock.ts",
+    "src/**/.spec.ts",
+    "src/setup-jest.ts",
+    "src/**/__mocks__/*.ts"
   ],
   "ts-node": {
     "compilerOptions": {

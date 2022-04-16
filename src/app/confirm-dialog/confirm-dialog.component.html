@@ -7,7 +7,9 @@
         *ngSwitchCase="'raised'"
         mat-raised-button
         [mat-dialog-close]="button === data.acceptButton ? '' : null"
-        [ngClass]="button === data.acceptButton ? 'acceptButton' : 'rejectButton'"
+        [ngClass]="
+          button === data.acceptButton ? 'acceptButton' : 'rejectButton'
+        "
       >
         {{ button.title }}
       </button>
@@ -15,7 +17,9 @@
         *ngSwitchCase="'stroked'"
         [attr.mat-stroked-button]="button.type === 'stroked'"
         [mat-dialog-close]="button === data.acceptButton ? '' : null"
-        [ngClass]="button === data.acceptButton ? 'acceptButton' : 'rejectButton'"
+        [ngClass]="
+          button === data.acceptButton ? 'acceptButton' : 'rejectButton'
+        "
       >
         {{ button.title }}
       </button>
@@ -23,7 +27,9 @@
         *ngSwitchCase="'flat'"
         mat-flat-button
         [mat-dialog-close]="button === data.acceptButton ? '' : null"
-        [ngClass]="button === data.acceptButton ? 'acceptButton' : 'rejectButton'"
+        [ngClass]="
+          button === data.acceptButton ? 'acceptButton' : 'rejectButton'
+        "
       >
         {{ button.title }}
       </button>
@@ -31,7 +37,9 @@
         *ngSwitchDefault
         mat-button
         [mat-dialog-close]="button === data.acceptButton ? '' : null"
-        [ngClass]="button === data.acceptButton ? 'acceptButton' : 'rejectButton'"
+        [ngClass]="
+          button === data.acceptButton ? 'acceptButton' : 'rejectButton'
+        "
       >
         {{ button.title }}
       </button>

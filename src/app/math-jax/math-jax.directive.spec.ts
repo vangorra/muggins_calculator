@@ -2,7 +2,7 @@ import { MathJaxDirective } from './math-jax.directive';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MathJaxService, MathJaxState } from './math-jax.service';
-import { newMockMathJaxService } from '../test-utils.spec';
+import { mockMathJaxProvider, newMockMathJaxService } from '../test-utils';
 import { expect } from '@angular/flex-layout/_private-utils/testing';
 
 @Component({
@@ -19,12 +19,7 @@ describe(MathJaxDirective.name, () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
         declarations: [TestComponent, MathJaxDirective],
-        providers: [
-          {
-            provide: MathJaxService,
-            useValue: newMockMathJaxService(MathJaxState.initialized),
-          },
-        ],
+        providers: [mockMathJaxProvider(MathJaxState.initialized)],
       }).compileComponents();
     });
 
@@ -34,9 +29,9 @@ describe(MathJaxDirective.name, () => {
       fixture.detectChanges();
     });
 
-    it('run', () => {
-      expect(element.innerText.startsWith('RENDERED ')).toBeTruthy();
-      expect(element.innerText.endsWith(' RENDERED')).toBeTruthy();
+    test('run', () => {
+      expect(element.textContent?.startsWith('RENDERED ')).toBeTruthy();
+      expect(element.textContent?.endsWith(' RENDERED')).toBeTruthy();
     });
   });
 
@@ -62,9 +57,9 @@ describe(MathJaxDirective.name, () => {
       fixture.detectChanges();
     });
 
-    it('run', () => {
-      expect(element.innerText.startsWith('RENDERED ')).toBeFalsy();
-      expect(element.innerText.endsWith(' RENDERED')).toBeFalsy();
+    test('run', () => {
+      expect(element.textContent?.startsWith('RENDERED ')).toBeFalsy();
+      expect(element.textContent?.endsWith(' RENDERED')).toBeFalsy();
     });
   });
 });

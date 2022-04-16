@@ -5,101 +5,137 @@ import { ConfigurationService } from './configuration.service';
 import { ThemeEnum } from './general_types';
 import { expect } from '@angular/flex-layout/_private-utils/testing';
 
-describe('ThemeServiceService', () => {
+describe(ThemeService.name, () => {
   let configurationService: ConfigurationService;
-  let themeService: ThemeService;
 
   beforeEach(() => {
+    window.mockMatchMediaManager.reset();
+
     TestBed.configureTestingModule({});
     configurationService = TestBed.inject(ConfigurationService);
-    themeService = TestBed.inject(ThemeService);
+    TestBed.inject(ThemeService);
   });
 
-  it('dark mode detected on startup', () => {
-    spyOn(window, 'matchMedia').and.returnValue({
-      matches: true,
-    } as any);
+  const expectTheme = (theme: ThemeEnum) => {
+    expect(
+      document.body.classList.contains(ThemeService.newColorSchemeClass(theme))
+    ).toBeTruthy();
+  };
 
-    expect(themeService.getMediaColorScheme(ThemeEnum.LIGHT)).toEqual(
+  const expectNotTheme = (theme: ThemeEnum) => {
+    expect(
+      document.body.classList.contains(ThemeService.newColorSchemeClass(theme))
+    ).toBeFalsy();
+  };
+
+  describe('when config is automatic, change theme from browser', () => {
+    beforeEach(() => {
+      configurationService.update({
+        theme: ThemeEnum.AUTOMATIC,
+      });
+    });
+
+    const testFromTo = (
+      fromMedia: string,
+      toMedia: string,
+      fromTheme: ThemeEnum,
+      toTheme: ThemeEnum
+    ) => {
+      test(`from ${fromTheme} to ${toTheme}`, () => {
+        window.mockMatchMediaManager.set(fromMedia, ThemeService.MEDIA_EVENT);
+        expectTheme(fromTheme);
+        expectNotTheme(toTheme);
+
+        window.mockMatchMediaManager.set(toMedia, ThemeService.MEDIA_EVENT);
+        expectTheme(toTheme);
+        expectNotTheme(fromTheme);
+      });
+    };
+
+    testFromTo(
+      ThemeService.PREFERS_DARK_COLOR_SCHEME_MEDIA_QUERY,
+      ThemeService.PREFERS_COLOR_SCHEME_MEDIA_QUERY,
+      ThemeEnum.DARK,
+      ThemeEnum.LIGHT
+    );
+
+    testFromTo(
+      ThemeService.PREFERS_COLOR_SCHEME_MEDIA_QUERY,
+      ThemeService.PREFERS_DARK_COLOR_SCHEME_MEDIA_QUERY,
+      ThemeEnum.LIGHT,
       ThemeEnum.DARK
     );
   });
 
-  it('user changes browser to light color profile', () => {
-    configurationService.update({
-      theme: ThemeEnum.AUTOMATIC,
-    });
+  describe('change theme from browser will not apply when', () => {
+    const testFromTo = (
+      config: ThemeEnum,
+      notMedia: string,
+      notTheme: ThemeEnum
+    ) => {
+      test(`config is ${config}`, () => {
+        configurationService.update({
+          theme: config,
+        });
 
-    spyOn(window, 'matchMedia').and.returnValue({
-      matches: false,
-    } as any);
+        window.mockMatchMediaManager.set(notMedia, ThemeService.MEDIA_EVENT);
+        expectNotTheme(notTheme);
+      });
+    };
 
-    themeService.mediaChangeListener();
+    testFromTo(
+      ThemeEnum.DARK,
+      ThemeService.PREFERS_COLOR_SCHEME_MEDIA_QUERY,
+      ThemeEnum.LIGHT
+    );
 
-    expect(
-      document.body.classList.contains(
-        ThemeService.newColorSchemeClass(ThemeEnum.LIGHT)
-      )
-    ).toBeTrue();
+    testFromTo(
+      ThemeEnum.LIGHT,
+      ThemeService.PREFERS_DARK_COLOR_SCHEME_MEDIA_QUERY,
+      ThemeEnum.DARK
+    );
   });
 
-  it('user changes browser to dark color profile', () => {
-    configurationService.update({
-      theme: ThemeEnum.AUTOMATIC,
+  describe('change theme through configuration', () => {
+    const testFromTo = (fromTheme: ThemeEnum, toTheme: ThemeEnum) => {
+      test(`to ${toTheme} always changes`, () => {
+        configurationService.update({
+          theme: fromTheme,
+        });
+        expectTheme(fromTheme);
+
+        configurationService.update({
+          theme: toTheme,
+        });
+        expectTheme(toTheme);
+      });
+    };
+
+    testFromTo(ThemeEnum.DARK, ThemeEnum.LIGHT);
+
+    testFromTo(ThemeEnum.LIGHT, ThemeEnum.DARK);
+
+    test('automatic adopts media', () => {
+      window.mockMatchMediaManager.set(
+        ThemeService.PREFERS_COLOR_SCHEME_MEDIA_QUERY,
+        ThemeService.MEDIA_EVENT
+      );
+      configurationService.update({
+        theme: ThemeEnum.AUTOMATIC,
+      });
+      expectTheme(ThemeEnum.LIGHT);
+
+      window.mockMatchMediaManager.set(
+        ThemeService.PREFERS_DARK_COLOR_SCHEME_MEDIA_QUERY,
+        ThemeService.MEDIA_EVENT
+      );
+      expectTheme(ThemeEnum.DARK);
+
+      window.mockMatchMediaManager.set(
+        ThemeService.PREFERS_COLOR_SCHEME_MEDIA_QUERY,
+        ThemeService.MEDIA_EVENT
+      );
+      expectTheme(ThemeEnum.LIGHT);
     });
-
-    spyOn(window, 'matchMedia').and.returnValue({
-      matches: true,
-    } as any);
-
-    themeService.mediaChangeListener();
-
-    expect(
-      document.body.classList.contains(
-        ThemeService.newColorSchemeClass(ThemeEnum.DARK)
-      )
-    ).toBeTrue();
-  });
-
-  it('change theme', () => {
-    expect(configurationService.value.observed).toBe(true);
-    // @ts-ignore
-    expect(
-      (themeService.mediaQuery as any).eventListeners(ThemeService.MEDIA_EVENT)
-        .length
-    ).toBe(1);
-    expect(
-      document.body.classList.contains(
-        ThemeService.newColorSchemeClass(ThemeEnum.LIGHT)
-      )
-    ).toBeTrue();
-
-    // Change the theme to dark.
-    configurationService.update({
-      theme: ThemeEnum.DARK,
-    });
-    expect(
-      document.body.classList.contains(
-        ThemeService.newColorSchemeClass(ThemeEnum.DARK)
-      )
-    ).toBeTrue();
-
-    // Change the theme to auto.
-    configurationService.update({
-      theme: ThemeEnum.LIGHT,
-    });
-    expect(
-      document.body.classList.contains(
-        ThemeService.newColorSchemeClass(ThemeEnum.LIGHT)
-      )
-    ).toBeTrue();
-
-    themeService.ngOnDestroy();
-    expect(configurationService.value.observed).toBe(false);
-    // @ts-ignore
-    expect(
-      (themeService.mediaQuery as any).eventListeners(ThemeService.MEDIA_EVENT)
-        .length
-    ).toBe(0);
   });
 });

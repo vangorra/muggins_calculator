@@ -7,7 +7,7 @@ import { filter, Subscription, take } from 'rxjs';
 import { ToolbarService } from '../toolbar.service';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import {ConfirmDialogComponent} from '../confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { EQUATION_FORMATTER, Operation, OPERATIONS } from '../solver/solver';
 
 @Component({

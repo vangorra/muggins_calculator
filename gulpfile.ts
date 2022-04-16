@@ -18,10 +18,6 @@ const buildDir = resolve("build");
 const distDir = resolve("dist");
 const targetDirs = [buildDir, distDir];
 
-const testBrowsers = ["Chromium", "ChromeHeadless", "Firefox", "FirefoxHeadless"];
-const testBrowsersStr = testBrowsers.join(",");
-const testCiBrowsers = ["ChromeHeadless", "FirefoxHeadless"];
-const testCiBrowsersStr = testCiBrowsers.join(",");
 const targetDirsStr = targetDirs.join(",");
 
 const browserSync = BrowserSync.create()
@@ -99,20 +95,18 @@ export async function test() {
     resolve(binDir, "ng"),
     "test",
     "--watch", "false",
-    "--browsers", testBrowsersStr
   );
 }
-test.description = `Test code with browsers: ${testBrowsersStr}`;
+test.description = `Test code`;
 
 export async function testCi() {
   await spawnCommand(
     resolve(binDir, "ng"),
     "test",
     "--watch", "false",
-    "--browsers", testCiBrowsersStr
   );
 }
-test.description = `Test code in continuous integration with browsers: ${testCiBrowsersStr}`;
+test.description = `Test code in continuous integration`;
 
 export async function testWatch() {
   await spawnCommand(

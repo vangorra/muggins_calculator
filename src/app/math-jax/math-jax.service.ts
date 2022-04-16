@@ -25,7 +25,7 @@ export class MathJaxService implements OnDestroy {
 
   public readonly state = new BehaviorSubject<MathJaxState>(MathJaxState.none);
 
-  initializeCheckInterval?: number;
+  initializeCheckInterval?: any;
 
   constructor(private readonly config: MathJaxConfig) {}
 

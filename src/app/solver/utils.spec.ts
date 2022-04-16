@@ -2,7 +2,7 @@ import { runSolverWorkerMain } from './utils';
 import { OperationEnum } from './solver';
 
 describe('Solver utils', () => {
-  it(runSolverWorkerMain.name, () => {
+  test(runSolverWorkerMain.name, () => {
     const response = runSolverWorkerMain({
       minTotal: 1,
       maxTotal: 36,
