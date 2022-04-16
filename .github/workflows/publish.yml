@@ -20,7 +20,7 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./build/coverage/app/report-lcov/lcov.info
+          path-to-lcov: ./build/coverage/app/lcov.info
       - name: Check GitHub Pages status
         uses: crazy-max/ghaction-github-status@v2
         with:
