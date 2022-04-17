@@ -33,12 +33,6 @@
   "include": [
     "src/**/*.d.ts"
   ],
-  "exclude": [
-    "src/**/.mock.ts",
-    "src/**/.spec.ts",
-    "src/setup-jest.ts",
-    "src/**/__mocks__/*.ts"
-  ],
   "ts-node": {
     "compilerOptions": {
       "module": "commonjs"

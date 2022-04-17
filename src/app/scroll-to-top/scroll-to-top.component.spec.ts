@@ -23,7 +23,7 @@ class AppTestComponent {}
 const scrollToSpy = jest.fn();
 global.scrollTo = scrollToSpy;
 
-describe(ScrollToTopComponent.name, () => {
+describe(ScrollToTopComponent.name + ' through parent element', () => {
   let fixture: ComponentFixture<AppTestComponent>;
 
   beforeEach(async () => {
@@ -92,5 +92,34 @@ describe(ScrollToTopComponent.name, () => {
     const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
     fixture.destroy();
     expect(removeEventListenerSpy).toHaveBeenCalled();
+  });
+});
+
+describe(ScrollToTopComponent.name, () => {
+  let fixture: ComponentFixture<ScrollToTopComponent>;
+  let component: ScrollToTopComponent;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [MatButtonModule, MatIconModule, NoopAnimationsModule],
+      declarations: [ScrollToTopComponent],
+    }).compileComponents();
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(ScrollToTopComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  test('onWindowScrolled sets to not visible when visibleAfterElement is falsey', () => {
+    expect(component.isVisible).toBeFalsy();
+    component.onWindowScrolled();
+    expect(component.isVisible).toBeFalsy();
+
+    window.scrollY = 20;
+    component.visibleAfterElement = document.createElement('span');
+    component.onWindowScrolled();
+    expect(component.isVisible).toBeTruthy();
   });
 });

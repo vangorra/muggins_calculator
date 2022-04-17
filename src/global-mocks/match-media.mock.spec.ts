@@ -63,9 +63,54 @@ describe(Media.name, function () {
     Media.parse('(att1) and (att2:value2) and (att3:value3)'),
     '(att1) and (att2: value2) and (att3: value3)'
   );
+
+  test('add, list, remove', () => {
+    const media = new Media();
+    expect(media.getNames()).toEqual([]);
+
+    media.add('aaa');
+    expect(media.getNames()).toEqual(['aaa']);
+
+    media.add('bbb');
+    expect(media.getNames()).toEqual(['aaa', 'bbb']);
+
+    media.add('ccc');
+    expect(media.getNames()).toEqual(['aaa', 'bbb', 'ccc']);
+
+    media.remove('bbb');
+    expect(media.getNames()).toEqual(['aaa', 'ccc']);
+
+    media.remove('aaa');
+    expect(media.getNames()).toEqual(['ccc']);
+
+    media.remove('ccc');
+    expect(media.getNames()).toEqual([]);
+  });
 });
 
 describe(MockMediaQueryList.name, () => {
+  test('add and remove falsey listeners', () => {
+    const getCurrentMedia = jest.fn();
+
+    const mediaQueryList = new MockMediaQueryList(
+      getCurrentMedia,
+      Media.parse('')
+    );
+
+    mediaQueryList.addEventListener(
+      undefined as any,
+      undefined as any,
+      undefined
+    );
+    expect(mediaQueryList.eventListeners()).toEqual([]);
+    mediaQueryList.removeEventListener(
+      undefined as any,
+      undefined as any,
+      undefined
+    );
+    expect(mediaQueryList.eventListeners()).toEqual([]);
+  });
+
   test('add and remove listeners', () => {
     const getCurrentMedia = jest.fn();
     const changeListener1 = jest.fn();
@@ -152,6 +197,9 @@ describe(MockMediaQueryList.name, () => {
     const getCurrentMedia = jest.fn().mockReturnValue('');
     const listener1 = jest.fn();
     const listener2 = jest.fn();
+    const listener3 = {
+      handleEvent: jest.fn(),
+    };
 
     const event1 = {
       type: 'change',
@@ -171,12 +219,54 @@ describe(MockMediaQueryList.name, () => {
     );
     mediaQueryList.addEventListener('change', listener1);
     mediaQueryList.addEventListener('other', listener2);
+    mediaQueryList.addEventListener('change', listener3);
 
     mediaQueryList.dispatchEvent(event1);
     mediaQueryList.dispatchEvent(event2);
 
     expect(listener1).toHaveBeenCalledWith(event1);
     expect(listener2).not.toHaveBeenCalled();
+    expect(listener3.handleEvent).toHaveBeenCalledWith(event1);
+  });
+
+  test('dispatchEvent with type change only calls onchange callback', () => {
+    const onchangeMock = jest.fn();
+    const mediaQueryList = new MockMediaQueryList(jest.fn(), Media.parse(''));
+    mediaQueryList.onchange = onchangeMock;
+
+    const changeEvent = {
+      type: 'change',
+      matches: true,
+      media: '',
+    } as MediaQueryListEvent;
+    const otherEvent = {
+      type: 'other',
+      matches: true,
+      media: '',
+    } as MediaQueryListEvent;
+
+    mediaQueryList.dispatchEvent(changeEvent);
+    expect(onchangeMock).toHaveBeenCalledWith(changeEvent);
+
+    onchangeMock.mockReset();
+    mediaQueryList.dispatchEvent(otherEvent);
+    expect(onchangeMock).not.toHaveBeenCalled();
+  });
+
+  test('calling media property returns query.toString()', () => {
+    const mediaString = '(a: 1) and (b: 2) and (c)';
+    const mediaQueryList = new MockMediaQueryList(
+      jest.fn(),
+      Media.parse(mediaString)
+    );
+    expect(mediaQueryList.media).toEqual(mediaString);
+  });
+
+  test('addListener and removeListener throw not implemented errors', () => {
+    const mediaQueryList = new MockMediaQueryList(jest.fn(), Media.parse(''));
+
+    expect(() => mediaQueryList.addListener(jest.fn())).toThrow();
+    expect(() => mediaQueryList.removeListener(jest.fn())).toThrow();
   });
 });
 

@@ -144,6 +144,8 @@ describe(ToolbarComponent.name, () => {
   test('destroy unsubscribes', () => {
     expect(component.configSubscription?.closed).toBeFalsy();
     fixture.destroy();
-    expect(component.configSubscription?.closed).toBeTruthy();
+    expect(component.configSubscription).toBeFalsy();
+    component.ngOnDestroy();
+    expect(component.configSubscription).toBeFalsy();
   });
 });

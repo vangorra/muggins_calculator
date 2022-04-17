@@ -1,3 +1,4 @@
+import * as solverUtils from './solver/utils';
 import { TestBed } from '@angular/core/testing';
 
 import { SolverWorkerService } from './solver-worker.service';
@@ -77,6 +78,23 @@ describe(SolverWorkerService.name, () => {
     });
 
     new SolverWorkerService().postMessage({} as any).subscribe({
+      next: () => {
+        expect(false).toBeTruthy();
+        done();
+      },
+      error: (err) => {
+        expect(err).toBeTruthy();
+        done();
+      },
+    });
+  });
+
+  test('local worker fails with onerror', (done) => {
+    jest.spyOn(solverUtils, 'runSolverWorkerMain').mockImplementation(() => {
+      throw new Error('Test failure');
+    });
+
+    new SolverWorkerService().postMessage({} as any, false).subscribe({
       next: () => {
         expect(false).toBeTruthy();
         done();

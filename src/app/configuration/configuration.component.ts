@@ -1,6 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { range } from 'lodash';
 import { ConfigurationService } from '../configuration.service';
 import { Configuration, THEME_CONFIGS, ThemeEnum } from '../general_types';
 import { filter, Subscription, take } from 'rxjs';
@@ -79,10 +78,6 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
         this.configurationService.resetToDefaults();
         this.configurationService.save();
       });
-  }
-
-  dieFaces(faceCount: number): number[] {
-    return range(faceCount).map((value) => value + 1);
   }
 
   addDie(): void {

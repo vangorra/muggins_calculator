@@ -30,10 +30,6 @@ export class ConfirmDialogComponent {
 
   constructor(@Inject(MAT_DIALOG_DATA) readonly data: ConfirmDialogData) {}
 
-  getClassName(isAcceptButton: boolean): string {
-    return isAcceptButton ? 'acceptButton' : 'rejectButton';
-  }
-
   buttonsArray(): ButtonOption[] {
     return [this.data.rejectButton, this.data.acceptButton]
       .filter((button) => button?.show)

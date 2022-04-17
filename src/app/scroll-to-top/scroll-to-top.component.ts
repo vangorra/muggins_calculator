@@ -32,9 +32,9 @@ export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
 
   isVisible = false;
 
-  private visibleAfterElement?: HTMLElement;
+  visibleAfterElement?: HTMLElement;
 
-  private offsetElement?: HTMLElement;
+  offsetElement?: HTMLElement;
 
   private readonly onWindowScrolledEventListener = () =>
     this.onWindowScrolled();
@@ -60,11 +60,7 @@ export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private maybeQueryForElement(query?: string): HTMLElement | undefined {
-    if (!query) {
-      return;
-    }
-
-    return (document.querySelector(query) as HTMLElement) || undefined;
+    return document.querySelector(query as string) as HTMLElement;
   }
 
   ngOnDestroy(): void {
@@ -80,7 +76,6 @@ export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
       this.isVisible = false;
       return;
     }
-
     const afterScrollY =
       this.visibleAfterElement.offsetHeight +
       this.visibleAfterElement.offsetTop;

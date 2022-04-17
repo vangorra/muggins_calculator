@@ -102,7 +102,7 @@ export class MockMediaQueryList implements MediaQueryList {
     [eventName: string]: EventListenerOrEventListenerObject[];
   } = {};
 
-  public onchange = () => undefined;
+  public onchange: (event: MediaQueryListEvent) => undefined = () => undefined;
 
   constructor(
     private readonly getSystemMedia: () => Media,
@@ -110,7 +110,7 @@ export class MockMediaQueryList implements MediaQueryList {
   ) {}
 
   get media(): string {
-    return this.media.toString();
+    return this.query.toString();
   }
 
   get matches(): boolean {
@@ -156,6 +156,10 @@ export class MockMediaQueryList implements MediaQueryList {
   }
 
   dispatchEvent(event: MediaQueryListEvent): boolean {
+    if (event.type === 'change') {
+      this.onchange(event);
+    }
+
     this.getEventListenersByName(event.type).forEach((callback) => {
       if (callback.hasOwnProperty('handleEvent')) {
         (callback as EventListenerObject).handleEvent.call(this, event);

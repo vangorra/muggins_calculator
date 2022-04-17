@@ -21,6 +21,7 @@ describe(MathJaxService.name, () => {
         delete mathJax[key];
       });
     }
+    jest.restoreAllMocks();
   });
 
   test('start', async () => {
@@ -28,6 +29,16 @@ describe(MathJaxService.name, () => {
       service,
       'startPollForInitialized'
     );
+    const scriptElement = document.createElement('script');
+    const createElementOriginal = document.createElement;
+    const createElementSpy = jest
+      .spyOn(document, 'createElement')
+      .mockImplementation((tag) => {
+        if (tag === 'script') {
+          return scriptElement;
+        }
+        return createElementOriginal(tag);
+      });
 
     expect(document.getElementById(MathJaxService.SCRIPT_ID)).toBeFalsy();
     expect(service.state.getValue()).toEqual(MathJaxState.none);
@@ -36,9 +47,12 @@ describe(MathJaxService.name, () => {
     expect(document.getElementById(MathJaxService.SCRIPT_ID)).toBeTruthy();
     expect(service.state.getValue()).toEqual(MathJaxState.loadingAssets);
 
-    // Script added to document never actually loads in a place where our test can see it.
-    // Simulate the script loaded.
-    service.startPollForInitialized();
+    createElementSpy.mockRestore();
+    expect(scriptElement.id).toEqual(MathJaxService.SCRIPT_ID);
+    expect(scriptElement.type).toEqual('text/javascript');
+    expect(scriptElement.src).toContain('/mathjax/es5/startup.js');
+    expect(scriptElement.onload).toBeTruthy();
+    (scriptElement.onload as any)();
 
     expect(service.state.getValue()).toEqual(MathJaxState.initializing);
 
@@ -84,5 +98,20 @@ describe(MathJaxService.name, () => {
     expect(MathJaxService.NOOP_RENDER_FUNCTION('AAAAA').textContent).toEqual(
       'AAAAA'
     );
+  });
+
+  test('startPollInitialized but is immediately ready', (done) => {
+    window.MathJax.typeset = 'AAAAA' as any;
+
+    service.state.subscribe((state) => {
+      if (state === MathJaxState.initialized) {
+        done();
+      } else {
+        expect(true).toBeFalsy();
+        done();
+      }
+    });
+
+    service.startPollForInitialized();
   });
 });

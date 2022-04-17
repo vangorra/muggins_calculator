@@ -28,7 +28,7 @@ export default class DieComponent implements OnInit, OnDestroy {
 
   readonly selectedFace = new FormControl(DEFAULT_DIE_SELECTED_FACE);
 
-  private selectedFaceSubscription?: Subscription;
+  selectedFaceSubscription?: Subscription;
 
   ngOnInit(): void {
     this.selectedFace.setValue(this.die.selectedFace);
@@ -45,6 +45,7 @@ export default class DieComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.selectedFaceSubscription?.unsubscribe();
+    this.selectedFaceSubscription = undefined;
   }
 
   getFaceOptions(): number[] {

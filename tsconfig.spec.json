@@ -15,10 +15,8 @@
     "node_modules/@types/node/globals.global.d.ts"
   ],
   "include": [
-    "src/**/*.d.ts",
-    "src/**/.mock.ts",
-    "src/**/.spec.ts",
     "src/setup-jest.ts",
-    "src/**/__mocks__/*.ts"
+    "src/**/*.spec.ts",
+    "src/**/*.d.ts"
   ]
 }

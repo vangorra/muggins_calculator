@@ -66,7 +66,7 @@ export class MathJaxService implements OnDestroy {
   }
 
   private pollForInitialized() {
-    if (!!window?.MathJax && !!window?.MathJax.typeset) {
+    if (!!window.MathJax && !!window.MathJax.typeset) {
       this.stopPollForInitialized();
       this.state.next(MathJaxState.initialized);
       return true;
