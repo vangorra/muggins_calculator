@@ -1,4 +1,3 @@
-import 'jest-preset-angular/setup-jest'; // eslint-disable-line import/no-extraneous-dependencies
 import './global-mocks/match-media.mock';
 import './global-mocks/computed-style.mock';
 import './global-mocks/worker.mock';
