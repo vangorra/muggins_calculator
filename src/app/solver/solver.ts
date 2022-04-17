@@ -132,7 +132,7 @@ export const OPERATIONS: Operation[] = [
     isCommutative: false,
     exampleNumbers: {
       left: 5,
-      right: 2,
+      right: 3,
     },
   },
 ];
