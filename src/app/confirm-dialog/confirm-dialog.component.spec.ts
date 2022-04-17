@@ -1,165 +1,229 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ConfirmDialogComponent } from './confirm-dialog.component';
 import {
-  MAT_DIALOG_DATA,
-  MatDialog,
-  MatDialogModule,
-} from '@angular/material/dialog';
+  ButtonTypeEnum,
+  ConfirmDialogComponent,
+  ConfirmDialogData,
+} from './confirm-dialog.component';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+} from '@angular/core';
+import { Subscription } from 'rxjs';
+
+@Component({
+  selector: 'app-test-component',
+  template: ` <button (click)="openDialog()">Open Dialog</button> `,
+})
+class TestComponent implements OnDestroy {
+  @Output()
+  readonly dialogClosedState = new EventEmitter<boolean>();
+
+  @Input()
+  dialogData!: RecursivePartial<ConfirmDialogData>;
+
+  private afterClosedSubscription?: Subscription;
+
+  constructor(private readonly matDialog: MatDialog) {}
+
+  ngOnDestroy(): void {
+    this.afterClosedSubscription?.unsubscribe();
+  }
+
+  openDialog(): void {
+    this.afterClosedSubscription = ConfirmDialogComponent.open(this.matDialog, {
+      data: this.dialogData,
+    })
+      .afterClosed()
+      .subscribe((state) => {
+        this.dialogClosedState.emit(state);
+      });
+  }
+}
 
 describe(ConfirmDialogComponent.name, () => {
+  let fixture: ComponentFixture<TestComponent>;
+  let component: TestComponent;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MatDialogModule, MatButtonModule, NoopAnimationsModule],
-      declarations: [ConfirmDialogComponent],
+      declarations: [TestComponent, ConfirmDialogComponent],
     }).compileComponents();
   });
 
-  test('empty values', () => {
-    TestBed.overrideProvider(MAT_DIALOG_DATA, {
-      useValue: {},
-    });
-    const fixture = TestBed.createComponent(ConfirmDialogComponent);
-    const element = fixture.debugElement.nativeElement as Element;
-    fixture.detectChanges();
+  beforeEach(() => {
+    fixture = TestBed.createComponent(TestComponent);
+    component = fixture.componentInstance;
 
-    expect(element.querySelectorAll('[mat-dialog-title]').length).toEqual(0);
-    expect(element.querySelectorAll('[mat-dialog-content]').length).toEqual(0);
+    fixture.detectChanges();
+  });
+
+  const openAndClickButton = (
+    clickAccept: boolean,
+    expectState: boolean | null
+  ) => {
+    test(`Open and click ${
+      clickAccept ? 'Accept' : 'Reject'
+    } button and expect state '${expectState}'.`, (done) => {
+      component.dialogData = {
+        acceptButton: {
+          show: true,
+        },
+        rejectButton: {
+          show: true,
+        },
+      };
+
+      component.dialogClosedState.subscribe((state) => {
+        expect(state).toEqual(expectState);
+        done();
+      });
+      component.openDialog();
+      fixture.detectChanges();
+
+      const dialogElement = document.querySelector(
+        'app-confirm-dialog'
+      ) as HTMLElement;
+      expect(dialogElement).toBeTruthy();
+
+      let button: HTMLButtonElement;
+      if (clickAccept) {
+        button = dialogElement.querySelector(
+          'button.acceptButton'
+        ) as HTMLButtonElement;
+      } else {
+        button = dialogElement.querySelector(
+          'button.rejectButton'
+        ) as HTMLButtonElement;
+      }
+
+      console.log(dialogElement.outerHTML);
+      expect(button).toBeTruthy();
+      button.click();
+      fixture.detectChanges();
+    });
+  };
+
+  openAndClickButton(true, true);
+  openAndClickButton(false, null);
+
+  test('empty values', () => {
+    component.openDialog();
+    fixture.detectChanges();
+    const dialogElement = document.querySelector(
+      'app-confirm-dialog'
+    ) as HTMLElement;
+    expect(dialogElement).toBeTruthy();
+
+    expect(dialogElement.querySelectorAll('[mat-dialog-title]').length).toEqual(
+      0
+    );
     expect(
-      element.querySelectorAll('mat-dialog-actions button').length
+      dialogElement.querySelectorAll('[mat-dialog-content]').length
+    ).toEqual(0);
+    expect(
+      dialogElement.querySelectorAll('mat-dialog-actions button').length
     ).toEqual(0);
   });
 
   test('set title', () => {
-    TestBed.overrideProvider(MAT_DIALOG_DATA, {
-      useValue: {
-        title: 'Test title',
-      },
-    });
-    const fixture = TestBed.createComponent(ConfirmDialogComponent);
-    const element = fixture.debugElement.nativeElement as Element;
+    component.dialogData = {
+      title: 'Test title',
+    };
+    component.openDialog();
     fixture.detectChanges();
+    const dialogElement = document.querySelector(
+      'app-confirm-dialog'
+    ) as HTMLElement;
+    expect(dialogElement).toBeTruthy();
 
-    expect(element.querySelector('[mat-dialog-title]')?.textContent).toEqual(
-      'Test title'
-    );
-    expect(element.querySelectorAll('[mat-dialog-content]').length).toEqual(0);
     expect(
-      element.querySelectorAll('mat-dialog-actions button').length
+      dialogElement.querySelector('[mat-dialog-title]')?.textContent
+    ).toEqual('Test title');
+    expect(
+      dialogElement.querySelectorAll('[mat-dialog-content]').length
+    ).toEqual(0);
+    expect(
+      dialogElement.querySelectorAll('mat-dialog-actions button').length
     ).toEqual(0);
   });
 
   test('set content', () => {
-    TestBed.overrideProvider(MAT_DIALOG_DATA, {
-      useValue: {
-        content: 'Test content',
-      },
-    });
-    const fixture = TestBed.createComponent(ConfirmDialogComponent);
-    const element = fixture.debugElement.nativeElement as Element;
+    component.dialogData = {
+      content: 'Test content',
+    };
+    component.openDialog();
     fixture.detectChanges();
+    const dialogElement = document.querySelector(
+      'app-confirm-dialog'
+    ) as HTMLElement;
+    expect(dialogElement).toBeTruthy();
 
-    expect(element.querySelectorAll('[mat-dialog-title]').length).toEqual(0);
-    expect(element.querySelector('[mat-dialog-content]')?.textContent).toEqual(
-      'Test content'
+    expect(dialogElement.querySelectorAll('[mat-dialog-title]').length).toEqual(
+      0
     );
     expect(
-      element.querySelectorAll('mat-dialog-actions button').length
+      dialogElement.querySelector('[mat-dialog-content]')?.textContent
+    ).toEqual('Test content');
+    expect(
+      dialogElement.querySelectorAll('mat-dialog-actions button').length
     ).toEqual(0);
   });
 
-  test('set basic and raised buttons', () => {
-    TestBed.overrideProvider(MAT_DIALOG_DATA, {
-      useValue: {
-        acceptButton: {
+  const expectButtonStyle = (
+    useAccept: boolean,
+    buttonType: ButtonTypeEnum | undefined,
+    expectAttribute: string
+  ) => {
+    const buttonToAttributeMap: { [key: string]: string } = {
+      flat: 'mat-flat-button',
+      raised: 'mat-raised-button',
+      stroked: 'mat-stroked-button',
+    };
+
+    test(`button with type ${buttonType} has attribute ${expectAttribute}`, () => {
+      const propName = useAccept ? 'acceptButton' : 'rejectButton';
+      component.dialogData = {
+        [propName]: {
           show: true,
           title: 'Accept',
-          type: 'basic',
+          type: buttonType || ButtonTypeEnum.basic,
         },
-        rejectButton: {
-          show: true,
-          title: 'Reject',
-          type: 'raised',
-        },
-      },
+      };
+      component.openDialog();
+      fixture.detectChanges();
+      const dialogElement = document.querySelector(
+        'app-confirm-dialog'
+      ) as HTMLElement;
+      expect(dialogElement).toBeTruthy();
+
+      const query = useAccept ? 'button.acceptButton' : 'button.rejectButton';
+      const button = dialogElement.querySelector(query) as HTMLButtonElement;
+
+      Object.keys(buttonToAttributeMap)
+        .filter((bt) => bt !== buttonType)
+        .forEach((bt) => {
+          expect(button.hasAttribute(buttonToAttributeMap[bt])).toBeFalsy();
+        });
+      expect(button.hasAttribute('mat-button')).toBeTruthy();
+      expect(button.hasAttribute(expectAttribute)).toBeTruthy();
     });
-    const fixture = TestBed.createComponent(ConfirmDialogComponent);
-    const element = fixture.debugElement.nativeElement as Element;
-    fixture.detectChanges();
+  };
 
-    expect(element.querySelectorAll('[mat-dialog-title]').length).toEqual(0);
-    expect(element.querySelectorAll('[mat-dialog-content]').length).toEqual(0);
-    expect(
-      element.querySelectorAll('mat-dialog-actions button').length
-    ).toEqual(2);
+  expectButtonStyle(true, ButtonTypeEnum.basic, 'mat-button');
+  expectButtonStyle(true, ButtonTypeEnum.raised, 'mat-raised-button');
+  expectButtonStyle(true, ButtonTypeEnum.stroked, 'mat-stroked-button');
+  expectButtonStyle(true, ButtonTypeEnum.flat, 'mat-flat-button');
 
-    const acceptButton = element.querySelector(
-      'button.acceptButton'
-    ) as HTMLButtonElement;
-    expect(acceptButton.hasAttribute('mat-button')).toBeTruthy();
-    expect(acceptButton.textContent?.trim()).toEqual('Accept');
-
-    const rejectButton = element.querySelector(
-      'button.rejectButton'
-    ) as HTMLButtonElement;
-    expect(rejectButton.hasAttribute('mat-raised-button')).toBeTruthy();
-    expect(rejectButton.textContent?.trim()).toEqual('Reject');
-  });
-
-  test('set basic and raised buttons', () => {
-    TestBed.overrideProvider(MAT_DIALOG_DATA, {
-      useValue: {
-        acceptButton: {
-          show: true,
-          title: 'Accept',
-          type: 'stroked',
-        },
-        rejectButton: {
-          show: true,
-          title: 'Reject',
-          type: 'flat',
-        },
-      },
-    });
-    const fixture = TestBed.createComponent(ConfirmDialogComponent);
-    const element = fixture.debugElement.nativeElement as Element;
-    fixture.detectChanges();
-
-    expect(element.querySelectorAll('[mat-dialog-title]').length).toEqual(0);
-    expect(element.querySelectorAll('[mat-dialog-content]').length).toEqual(0);
-    expect(
-      element.querySelectorAll('mat-dialog-actions button').length
-    ).toEqual(2);
-
-    const acceptButton = element.querySelector(
-      'button.acceptButton'
-    ) as HTMLButtonElement;
-    expect(acceptButton.hasAttribute('mat-stroked-button')).toBeTruthy();
-    expect(acceptButton.textContent?.trim()).toEqual('Accept');
-
-    const rejectButton = element.querySelector(
-      'button.rejectButton'
-    ) as HTMLButtonElement;
-    expect(rejectButton.hasAttribute('mat-flat-button')).toBeTruthy();
-    expect(rejectButton.textContent?.trim()).toEqual('Reject');
-  });
-
-  test('open with static', () => {
-    const dialogRef = {};
-    const matDialog = {
-      open: jest.fn().mockReturnValue(dialogRef),
-    } as any as MatDialog;
-
-    const dialogConfig = {};
-    const returnedDialogRef = ConfirmDialogComponent.open(
-      matDialog,
-      dialogConfig
-    );
-    expect(matDialog.open).toHaveBeenCalledWith(ConfirmDialogComponent, {
-      data: ConfirmDialogComponent.DEFAULT_OPTIONS_DATA,
-    });
-    expect(returnedDialogRef).toBe(dialogRef as any);
-  });
+  expectButtonStyle(false, ButtonTypeEnum.basic, 'mat-button');
+  expectButtonStyle(false, ButtonTypeEnum.raised, 'mat-raised-button');
+  expectButtonStyle(false, ButtonTypeEnum.stroked, 'mat-stroked-button');
+  expectButtonStyle(false, ButtonTypeEnum.flat, 'mat-flat-button');
 });

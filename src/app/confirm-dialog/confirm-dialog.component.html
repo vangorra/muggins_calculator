@@ -2,47 +2,15 @@
 <div mat-dialog-content *ngIf="!!data.content">{{ data.content }}</div>
 <mat-dialog-actions *ngIf="buttonsArray().length">
   <ng-container *ngFor="let button of buttonsArray()">
-    <ng-container *ngIf="button.show" [ngSwitch]="button.type">
-      <button
-        *ngSwitchCase="'raised'"
-        mat-raised-button
-        [mat-dialog-close]="button === data.acceptButton ? '' : null"
-        [ngClass]="
-          button === data.acceptButton ? 'acceptButton' : 'rejectButton'
-        "
-      >
-        {{ button.title }}
-      </button>
-      <button
-        *ngSwitchCase="'stroked'"
-        [attr.mat-stroked-button]="button.type === 'stroked'"
-        [mat-dialog-close]="button === data.acceptButton ? '' : null"
-        [ngClass]="
-          button === data.acceptButton ? 'acceptButton' : 'rejectButton'
-        "
-      >
-        {{ button.title }}
-      </button>
-      <button
-        *ngSwitchCase="'flat'"
-        mat-flat-button
-        [mat-dialog-close]="button === data.acceptButton ? '' : null"
-        [ngClass]="
-          button === data.acceptButton ? 'acceptButton' : 'rejectButton'
-        "
-      >
-        {{ button.title }}
-      </button>
-      <button
-        *ngSwitchDefault
-        mat-button
-        [mat-dialog-close]="button === data.acceptButton ? '' : null"
-        [ngClass]="
-          button === data.acceptButton ? 'acceptButton' : 'rejectButton'
-        "
-      >
-        {{ button.title }}
-      </button>
-    </ng-container>
+    <button
+      mat-button
+      [attr.mat-raised-button]="button.type === 'raised' ? '' : null"
+      [attr.mat-stroked-button]="button.type === 'stroked' ? '' : null"
+      [attr.mat-flat-button]="button.type === 'flat' ? '' : null"
+      [mat-dialog-close]="button === data.acceptButton ? true : null"
+      [ngClass]="button === data.acceptButton ? 'acceptButton' : 'rejectButton'"
+    >
+      {{ button.title }}
+    </button>
   </ng-container>
 </mat-dialog-actions>

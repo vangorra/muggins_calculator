@@ -7,6 +7,13 @@ import {
 import { MatDialogConfig } from '@angular/material/dialog/dialog-config';
 import { ObjectBuilder } from '../utils';
 
+export const enum ButtonTypeEnum {
+  basic = 'basic',
+  raised = 'raised',
+  stroked = 'stroked',
+  flat = 'flat',
+}
+
 @Component({
   selector: 'app-confirm-dialog',
   templateUrl: './confirm-dialog.component.html',
@@ -19,12 +26,12 @@ export class ConfirmDialogComponent {
     acceptButton: {
       show: false,
       title: 'Okay',
-      type: 'basic',
+      type: ButtonTypeEnum.basic,
     },
     rejectButton: {
       show: false,
       title: 'Cancel',
-      type: 'basic',
+      type: ButtonTypeEnum.basic,
     },
   };
 
@@ -63,5 +70,5 @@ export interface ConfirmDialogData {
 export interface ButtonOption {
   readonly show: boolean;
   readonly title: string;
-  readonly type: 'basic' | 'raised' | 'stroked' | 'flat';
+  readonly type: ButtonTypeEnum;
 }
