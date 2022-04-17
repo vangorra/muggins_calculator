@@ -5,7 +5,7 @@ import {
   SolverWorkerMessage,
   SolverWorkerResponse,
 } from './solver/utils';
-import { SOLVER_WORKER_URL } from './solver-worker.url';
+import { solverWorkerFactory } from './solver-worker.url';
 
 type RunSolverWorkerDoneType = (
   err: any,
@@ -31,7 +31,7 @@ export class SolverWorkerService {
     if (Worker && preferWorker) {
       // Run process in a worker.
       runnerFn = (done: RunSolverWorkerDoneType) => {
-        const worker = new Worker(SOLVER_WORKER_URL);
+        const worker = solverWorkerFactory();
         worker.onmessage = ({ data }) => done(undefined, data);
         worker.onerror = (e) => done(e, undefined as any);
         worker.onmessageerror = (e) => done(e, undefined as any);
