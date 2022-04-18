@@ -7,13 +7,14 @@ import { expect } from '@angular/flex-layout/_private-utils/testing';
 
 describe(ThemeService.name, () => {
   let configurationService: ConfigurationService;
+  let themeService: ThemeService;
 
   beforeEach(() => {
     window.mockMatchMediaManager.reset();
 
     TestBed.configureTestingModule({});
     configurationService = TestBed.inject(ConfigurationService);
-    TestBed.inject(ThemeService);
+    themeService = TestBed.inject(ThemeService);
   });
 
   const expectTheme = (theme: ThemeEnum) => {
@@ -137,5 +138,16 @@ describe(ThemeService.name, () => {
       );
       expectTheme(ThemeEnum.LIGHT);
     });
+  });
+
+  test(ThemeService.prototype.ngOnDestroy.name, () => {
+    expect(themeService.configurationSubscription.closed).toBeFalsy();
+    const unsubscribeSpy = jest.spyOn(
+      themeService.configurationSubscription,
+      'unsubscribe'
+    );
+    themeService.ngOnDestroy();
+    expect(unsubscribeSpy).toHaveBeenCalled();
+    expect((themeService.mediaQuery as any).eventListeners()).toEqual([]);
   });
 });

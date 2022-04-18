@@ -111,6 +111,22 @@ describe(MockMediaQueryList.name, () => {
     expect(mediaQueryList.eventListeners()).toEqual([]);
   });
 
+  test(MockMediaQueryList.deleteFromArray.name, () => {
+    const items = [1, 2, 3, 4, 5, 6];
+
+    MockMediaQueryList.deleteFromArray(items, 3);
+    expect(items).toEqual([1, 2, 4, 5, 6]);
+
+    MockMediaQueryList.deleteFromArray(items, 1);
+    expect(items).toEqual([2, 4, 5, 6]);
+
+    MockMediaQueryList.deleteFromArray(items, 6);
+    expect(items).toEqual([2, 4, 5]);
+
+    MockMediaQueryList.deleteFromArray(items, 4);
+    expect(items).toEqual([2, 5]);
+  });
+
   test('add and remove listeners', () => {
     const getCurrentMedia = jest.fn();
     const changeListener1 = jest.fn();
@@ -149,6 +165,7 @@ describe(MockMediaQueryList.name, () => {
     ]);
 
     mediaQueryList.removeAllListeners('new');
+    expect(mediaQueryList.eventListeners('new')).toEqual([]);
     expect(mediaQueryList.eventListeners()).toEqual([
       changeListener1,
       changeListener2,
@@ -157,7 +174,6 @@ describe(MockMediaQueryList.name, () => {
       changeListener1,
       changeListener2,
     ]);
-    expect(mediaQueryList.eventListeners('new')).toEqual([]);
 
     mediaQueryList.removeEventListener('change', changeListener2);
     expect(mediaQueryList.eventListeners()).toEqual([changeListener1]);
@@ -262,11 +278,23 @@ describe(MockMediaQueryList.name, () => {
     expect(mediaQueryList.media).toEqual(mediaString);
   });
 
-  test('addListener and removeListener throw not implemented errors', () => {
+  test('addListener and removeListener register and are called on any event', () => {
+    const event = {
+      type: 'other',
+      matches: true,
+      media: '',
+    } as MediaQueryListEvent;
+    const callback = jest.fn();
     const mediaQueryList = new MockMediaQueryList(jest.fn(), Media.parse(''));
 
-    expect(() => mediaQueryList.addListener(jest.fn())).toThrow();
-    expect(() => mediaQueryList.removeListener(jest.fn())).toThrow();
+    mediaQueryList.addListener(callback);
+    mediaQueryList.dispatchEvent(event);
+    expect(callback).toHaveBeenCalled();
+
+    callback.mockReset();
+    mediaQueryList.removeListener(callback);
+    mediaQueryList.dispatchEvent(event);
+    expect(callback).not.toHaveBeenCalled();
   });
 });
 

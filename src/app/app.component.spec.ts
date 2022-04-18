@@ -32,6 +32,7 @@ import { newMockMathJaxService } from './test-utils';
 import { ScrollToTopComponent } from './scroll-to-top/scroll-to-top.component';
 import { DiceComponent } from './dice/dice.component';
 import DieComponent from './die/die.component';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 describe(AppComponent.name, () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -42,7 +43,7 @@ describe(AppComponent.name, () => {
     await TestBed.configureTestingModule({
       imports: [
         BrowserModule,
-        RouterTestingModule.withRoutes(routes),
+        RouterTestingModule.withRoutes(routes, { useHash: false }),
         NoopAnimationsModule,
         MatCheckboxModule,
         MatSelectModule,
@@ -60,6 +61,7 @@ describe(AppComponent.name, () => {
         MatIconModule,
         MatToolbarModule,
         MatDialogModule,
+        MatSnackBarModule,
       ],
       declarations: [
         AppComponent,
@@ -74,9 +76,10 @@ describe(AppComponent.name, () => {
         {
           provide: SolverWorkerService,
           useValue: {
-            postMessage: new BehaviorSubject<SolverWorkerResponse>({
-              data: [],
-            }),
+            postMessage: () =>
+              new BehaviorSubject<SolverWorkerResponse>({
+                data: [],
+              }),
           },
         },
         {
@@ -109,6 +112,9 @@ describe(AppComponent.name, () => {
       'button[title="Configuration"]'
     ) as HTMLButtonElement;
     configurationButton.click();
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     await fixture.whenStable();
     fixture.detectChanges();
 

@@ -19,5 +19,6 @@ export const DEFAULT_CONFIGURATION: Configuration = {
   },
   dice: range(3).map(() => ({
     faceCount: DEFAULT_DIE_FACE_COUNT,
+    selectedFace: DEFAULT_DIE_SELECTED_FACE,
   })),
 };

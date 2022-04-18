@@ -1,5 +1,4 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { DEFAULT_DIE_SELECTED_FACE } from '../const';
 import { Configuration, Die } from '../general_types';
 import {
   SolverWorkerMessage,
@@ -71,13 +70,15 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.configurationSubscription?.unsubscribe();
+    this.configurationSubscription = undefined;
   }
 
   onConfigurationUpdated(configuration: Configuration): void {
+    // Set the dice from configuration.
     this.dice.splice(0, configuration.dice.length);
-    const newDice = configuration.dice.map((die) => ({
-      faceCount: die.faceCount,
-      selectedFace: DEFAULT_DIE_SELECTED_FACE,
+    const newDice = configuration.dice.map(({ faceCount, selectedFace }) => ({
+      faceCount,
+      selectedFace,
     }));
     this.dice.push(...newDice);
 
@@ -120,6 +121,16 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   onDiceFaceChanged(dice: Die[]): void {
     dice.forEach((die, index) => (this.dice[index] = die));
+
+    // Save the selected faces to the configuration.
+    this.configurationService.update({
+      dice: dice.map(({ faceCount, selectedFace }) => ({
+        faceCount,
+        selectedFace,
+      })),
+    });
+    this.configurationService.save();
+
     this.reload();
   }
 

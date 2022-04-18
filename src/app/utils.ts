@@ -1,5 +1,4 @@
 import { cloneDeep, isArray, mergeWith } from 'lodash';
-
 export class ObjectBuilder {
   private static readonly mergeWithCustomizer = (
     objValue: any,

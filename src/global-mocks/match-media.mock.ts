@@ -97,10 +97,17 @@ export class Media {
   }
 }
 
+type DeprecatedMediaEventCallback = (
+  this: MediaQueryList,
+  ev: MediaQueryListEvent
+) => any;
+
 export class MockMediaQueryList implements MediaQueryList {
   private readonly events: {
     [eventName: string]: EventListenerOrEventListenerObject[];
   } = {};
+
+  private readonly deprecatedListeners: DeprecatedMediaEventCallback[] = [];
 
   public onchange: (event: MediaQueryListEvent) => undefined = () => undefined;
 
@@ -122,9 +129,11 @@ export class MockMediaQueryList implements MediaQueryList {
    * @param callback
    */
   public addListener(
-    callback: ((this: MediaQueryList, ev: MediaQueryListEvent) => any) | null // eslint-disable-line @typescript-eslint/no-unused-vars
+    callback: DeprecatedMediaEventCallback | null // eslint-disable-line @typescript-eslint/no-unused-vars
   ): void {
-    throw new Error('Method not implemented.');
+    if (!!callback) {
+      this.deprecatedListeners.push(callback);
+    }
   }
 
   /**
@@ -132,9 +141,11 @@ export class MockMediaQueryList implements MediaQueryList {
    * @param callback
    */
   public removeListener(
-    callback: ((this: MediaQueryList, ev: MediaQueryListEvent) => any) | null // eslint-disable-line @typescript-eslint/no-unused-vars
+    callback: DeprecatedMediaEventCallback | null // eslint-disable-line @typescript-eslint/no-unused-vars
   ): void {
-    throw new Error('Method not implemented.');
+    if (!!callback) {
+      MockMediaQueryList.deleteFromArray(this.deprecatedListeners, callback);
+    }
   }
 
   addEventListener(
@@ -156,13 +167,18 @@ export class MockMediaQueryList implements MediaQueryList {
   }
 
   dispatchEvent(event: MediaQueryListEvent): boolean {
+    const callbacks = [];
+
     if (event.type === 'change') {
-      this.onchange(event);
+      callbacks.push(this.onchange);
     }
 
-    this.getEventListenersByName(event.type).forEach((callback) => {
+    callbacks.push(...this.getEventListenersByName(event.type));
+    callbacks.push(...this.deprecatedListeners);
+
+    callbacks.forEach((callback) => {
       if (callback.hasOwnProperty('handleEvent')) {
-        (callback as EventListenerObject).handleEvent.call(this, event);
+        (callback as any).handleEvent.call(this, event);
         return;
       }
 
@@ -200,9 +216,18 @@ export class MockMediaQueryList implements MediaQueryList {
   ): void {
     if (!!callback) {
       const events = this.getEventListenersByName(type);
-      const index = events.indexOf(callback);
-      events.splice(index, 1);
+      MockMediaQueryList.deleteFromArray(events, callback);
     }
+  }
+
+  static deleteFromArray(items: any[], removeItem: any): void {
+    items
+      .map((item, index) => [item, index])
+      .filter(([item]) => item === removeItem)
+      .reverse()
+      .forEach(([, index]) => {
+        items.splice(index, 1);
+      });
   }
 }
 

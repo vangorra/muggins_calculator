@@ -28,7 +28,7 @@ export class ThemeService implements OnDestroy {
       this.configurationService.value.getValue()
     );
 
-  private readonly configurationSubscription: Subscription;
+  readonly configurationSubscription: Subscription;
 
   constructor(private readonly configurationService: ConfigurationService) {
     // Listen for configuration changes and apply the style.

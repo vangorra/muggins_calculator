@@ -13,7 +13,7 @@ import { ConfigurationService } from '../configuration.service';
 import { MatRadioModule } from '@angular/material/radio';
 import { DieConfiguration, ThemeEnum } from '../general_types';
 import { OperationEnum } from '../solver/solver';
-import { DEFAULT_CONFIGURATION } from '../const';
+import { DEFAULT_CONFIGURATION, DEFAULT_DIE_SELECTED_FACE } from '../const';
 import { getByText, getByTitle } from '@testing-library/dom';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
@@ -23,6 +23,7 @@ import { mockMathJaxProvider } from '../test-utils';
 import { MatIconModule } from '@angular/material/icon';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import SpyInstance = jest.SpyInstance;
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 describe(ConfigurationComponent.name, () => {
   let component: ConfigurationComponent;
@@ -46,6 +47,7 @@ describe(ConfigurationComponent.name, () => {
         MatRadioModule,
         MatIconModule,
         FlexLayoutModule,
+        MatSnackBarModule,
       ],
       declarations: [ConfigurationComponent],
       providers: [mockMathJaxProvider(MathJaxState.initialized)],
@@ -282,13 +284,23 @@ describe(ConfigurationComponent.name, () => {
     const addDieElement = getByTitle(element, 'Add Die');
     const removeDieElement = getByTitle(element, 'Remove Die');
     const getDiceInputElements = () =>
-      Array.from(
-        element.querySelectorAll('input[formControlName="faceCount"]')
-      ) as any as HTMLInputElement[];
+      (
+        Array.from(
+          element.querySelectorAll('mat-form-field.dieField')
+        ) as HTMLElement[]
+      ).map((fieldElement: HTMLElement) => ({
+        faceCountElement: fieldElement.querySelector(
+          'input[formControlName="faceCount"]'
+        ) as HTMLInputElement,
+        selectedFaceElement: fieldElement.querySelector(
+          'input[formControlName="selectedFace"]'
+        ) as HTMLInputElement,
+      }));
 
     const getDiceValues = () => {
-      return getDiceInputElements().map((el) => ({
-        faceCount: +el.value,
+      return getDiceInputElements().map((elMap) => ({
+        faceCount: +elMap.faceCountElement.value,
+        selectedFace: +elMap.selectedFaceElement.value,
       })) as DieConfiguration[];
     };
 
@@ -324,7 +336,7 @@ describe(ConfigurationComponent.name, () => {
       expectConfigUpdate = true,
       expectInvalid = false
     ) => {
-      const inputElement = getDiceInputElements()[index];
+      const inputElement = getDiceInputElements()[index].faceCountElement;
       inputElement.value = faceCount + '';
       inputElement.dispatchEvent(new Event('input'));
       fixture.detectChanges();
@@ -357,55 +369,57 @@ describe(ConfigurationComponent.name, () => {
     addRemoveDie(true);
     expect(getDiceValues().length).toEqual(4);
     expect(getConfigurationDiceValues()).toEqual([
-      { faceCount: 6 },
-      { faceCount: 6 },
-      { faceCount: 6 },
-      { faceCount: 6 },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
     ]);
     setDieFaceCount(0, 2);
     expect(getConfigurationDiceValues()).toEqual([
-      { faceCount: 2 },
-      { faceCount: 6 },
-      { faceCount: 6 },
-      { faceCount: 6 },
+      { faceCount: 2, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
     ]);
     setDieFaceCount(1, 3);
     expect(getConfigurationDiceValues()).toEqual([
-      { faceCount: 2 },
-      { faceCount: 3 },
-      { faceCount: 6 },
-      { faceCount: 6 },
+      { faceCount: 2, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 3, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
     ]);
     setDieFaceCount(2, 4);
     expect(getConfigurationDiceValues()).toEqual([
-      { faceCount: 2 },
-      { faceCount: 3 },
-      { faceCount: 4 },
-      { faceCount: 6 },
+      { faceCount: 2, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 3, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 4, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
     ]);
     setDieFaceCount(3, 5);
     expect(getConfigurationDiceValues()).toEqual([
-      { faceCount: 2 },
-      { faceCount: 3 },
-      { faceCount: 4 },
-      { faceCount: 5 },
+      { faceCount: 2, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 3, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 4, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 5, selectedFace: DEFAULT_DIE_SELECTED_FACE },
     ]);
 
     // Remove die
     addRemoveDie(false);
     expect(getDiceValues().length).toEqual(3);
     expect(getConfigurationDiceValues()).toEqual([
-      { faceCount: 2 },
-      { faceCount: 3 },
-      { faceCount: 4 },
+      { faceCount: 2, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 3, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 4, selectedFace: DEFAULT_DIE_SELECTED_FACE },
     ]);
     addRemoveDie(false);
     expect(getConfigurationDiceValues()).toEqual([
-      { faceCount: 2 },
-      { faceCount: 3 },
+      { faceCount: 2, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 3, selectedFace: DEFAULT_DIE_SELECTED_FACE },
     ]);
     addRemoveDie(false);
-    expect(getConfigurationDiceValues()).toEqual([{ faceCount: 2 }]);
+    expect(getConfigurationDiceValues()).toEqual([
+      { faceCount: 2, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+    ]);
     addRemoveDie(false);
     expect(getConfigurationDiceValues()).toEqual([]);
 
@@ -415,17 +429,19 @@ describe(ConfigurationComponent.name, () => {
 
     // Add them all back.
     addRemoveDie(true);
-    expect(getConfigurationDiceValues()).toEqual([{ faceCount: 6 }]);
-    addRemoveDie(true);
     expect(getConfigurationDiceValues()).toEqual([
-      { faceCount: 6 },
-      { faceCount: 6 },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
     ]);
     addRemoveDie(true);
     expect(getConfigurationDiceValues()).toEqual([
-      { faceCount: 6 },
-      { faceCount: 6 },
-      { faceCount: 6 },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+    ]);
+    addRemoveDie(true);
+    expect(getConfigurationDiceValues()).toEqual([
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
+      { faceCount: 6, selectedFace: DEFAULT_DIE_SELECTED_FACE },
     ]);
   });
 
@@ -501,8 +517,19 @@ describe(ConfigurationComponent.name, () => {
     );
   });
 
-  test('destroy', () => {
+  test(ConfigurationComponent.prototype.ngOnDestroy.name, () => {
+    expect(component.configurationSubscription?.closed).toBeFalsy();
+    const unsubscribeSpy = jest.spyOn(
+      component.configurationSubscription as any,
+      'unsubscribe'
+    );
     fixture.destroy();
-    expect(component.configurationSubscription?.closed).toBeTruthy();
+    expect(unsubscribeSpy).toHaveBeenCalled();
+    expect(component.configurationSubscription).toBeFalsy();
+
+    unsubscribeSpy.mockReset();
+    component.ngOnDestroy();
+    expect(unsubscribeSpy).not.toHaveBeenCalled();
+    expect(component.configurationSubscription).toBeFalsy();
   });
 });

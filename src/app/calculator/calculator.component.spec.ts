@@ -281,8 +281,19 @@ describe(CalculatorComponent.name, () => {
     expect(openSpy).toHaveBeenCalledWith(AboutDialogComponent, {});
   });
 
-  test('destroy', () => {
+  test(CalculatorComponent.prototype.ngOnDestroy.name, () => {
+    expect(component.configurationSubscription?.closed).toBeFalsy();
+    const unsubscribeSpy = jest.spyOn(
+      component.configurationSubscription as any,
+      'unsubscribe'
+    );
     fixture.destroy();
-    expect(component.configurationSubscription?.closed).toBeTruthy();
+    expect(unsubscribeSpy).toHaveBeenCalled();
+    expect(component.configurationSubscription).toBeFalsy();
+
+    unsubscribeSpy.mockReset();
+    component.ngOnDestroy();
+    expect(unsubscribeSpy).not.toHaveBeenCalled();
+    expect(component.configurationSubscription).toBeFalsy();
   });
 });

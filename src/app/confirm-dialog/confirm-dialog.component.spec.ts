@@ -104,7 +104,6 @@ describe(ConfirmDialogComponent.name, () => {
         ) as HTMLButtonElement;
       }
 
-      console.log(dialogElement.outerHTML);
       expect(button).toBeTruthy();
       button.click();
       fixture.detectChanges();

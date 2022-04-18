@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import DieComponent from './die.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { expect } from '@angular/flex-layout/_private-utils/testing';
 
 describe(DieComponent.name, () => {
   let component: DieComponent;
@@ -24,11 +25,19 @@ describe(DieComponent.name, () => {
     fixture.detectChanges();
   });
 
-  test.only('destroy unsubscribes', () => {
+  test(DieComponent.prototype.ngOnDestroy.name, () => {
     expect(component.selectedFaceSubscription?.closed).toBeFalsy();
+    const unsubscribeSpy = jest.spyOn(
+      component.selectedFaceSubscription as any,
+      'unsubscribe'
+    );
     fixture.destroy();
+    expect(unsubscribeSpy).toHaveBeenCalled();
     expect(component.selectedFaceSubscription).toBeFalsy();
+
+    unsubscribeSpy.mockReset();
     component.ngOnDestroy();
+    expect(unsubscribeSpy).not.toHaveBeenCalled();
     expect(component.selectedFaceSubscription).toBeFalsy();
   });
 });

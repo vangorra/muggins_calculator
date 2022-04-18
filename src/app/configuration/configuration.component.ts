@@ -11,6 +11,7 @@ import {
   ConfirmDialogComponent,
 } from '../confirm-dialog/confirm-dialog.component';
 import { EQUATION_FORMATTER, Operation, OPERATIONS } from '../solver/solver';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-configuration',
@@ -33,7 +34,8 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
     private readonly configurationService: ConfigurationService,
     private readonly toolbarService: ToolbarService,
     private readonly router: Router,
-    private readonly matDialog: MatDialog
+    private readonly matDialog: MatDialog,
+    private readonly matSnackBar: MatSnackBar
   ) {
     this.toolbarService.set({
       title: 'Configuration',
@@ -55,6 +57,7 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.configurationSubscription?.unsubscribe();
+    this.configurationSubscription = undefined;
   }
 
   resetToDefaults(): void {
@@ -80,6 +83,9 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.configurationService.resetToDefaults();
         this.configurationService.save();
+        this.matSnackBar.open('Configuration reset to defaults.', '', {
+          duration: 3000,
+        });
       });
   }
 
@@ -127,6 +133,9 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
               Validators.max(25),
               Validators.required,
             ]),
+            selectedFace: this.formBuilder.control(
+              dieConfiguration.selectedFace
+            ),
           })
         )
       ),

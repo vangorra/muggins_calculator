@@ -31,6 +31,7 @@ import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.componen
 import { ScrollToTopComponent } from './scroll-to-top/scroll-to-top.component';
 import { DiceComponent } from './dice/dice.component';
 import { MathJaxModule } from './math-jax/math-jax.module';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 @NgModule({
   declarations: [
@@ -65,6 +66,7 @@ import { MathJaxModule } from './math-jax/math-jax.module';
     MatIconModule,
     MatToolbarModule,
     MatDialogModule,
+    MatSnackBarModule,
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: environment.production,
       // Register the ServiceWorker as soon as the app is stable

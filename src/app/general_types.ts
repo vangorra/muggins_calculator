@@ -27,11 +27,11 @@ export const THEME_CONFIGS: ThemeConfig[] = [
 ];
 
 export interface DieConfiguration {
-  faceCount: number;
+  readonly faceCount: number;
+  readonly selectedFace: number;
 }
 
 export interface Configuration {
-  // readonly theme: ThemeType;
   readonly theme: ThemeEnum;
   readonly operations: OperationEnum[];
   readonly board: {

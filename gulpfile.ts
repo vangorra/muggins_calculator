@@ -23,9 +23,15 @@ const targetDirsStr = targetDirs.join(",");
 const browserSync = BrowserSync.create()
 
 async function spawnCommand(command: string, ...args: string[]): Promise<number> {
-  return new Promise<number>(res => {
+  return new Promise<number>((res, rej) => {
     const process = spawn(command, args, { stdio: 'inherit' });
-    process.on("close", res);
+    process.on("close", (status) => {
+      if (status === 0) {
+        res(status);
+      } else {
+        rej(status);
+      }
+    });
   });
 }
 

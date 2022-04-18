@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Configuration } from './general_types';
-import { DEFAULT_CONFIGURATION, DEFAULT_DIE_FACE_COUNT } from './const';
+import {
+  DEFAULT_CONFIGURATION,
+  DEFAULT_DIE_FACE_COUNT,
+  DEFAULT_DIE_SELECTED_FACE,
+} from './const';
 import { cloneDeep } from 'lodash';
 import { BehaviorSubject } from 'rxjs';
 import { ObjectBuilder } from './utils';
@@ -45,6 +49,7 @@ export class ConfigurationService {
       JSON.parse(
         localStorage.getItem(ConfigurationService.STORAGE_KEY) || 'null'
       ) || DEFAULT_CONFIGURATION;
+
     this.update(configuration);
   }
 
@@ -61,6 +66,7 @@ export class ConfigurationService {
         ...this.configuration.dice,
         {
           faceCount: DEFAULT_DIE_FACE_COUNT,
+          selectedFace: DEFAULT_DIE_SELECTED_FACE,
         },
       ],
     });

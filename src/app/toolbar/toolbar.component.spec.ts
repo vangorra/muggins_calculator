@@ -6,6 +6,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
+import { expect } from '@angular/flex-layout/_private-utils/testing';
 
 describe(ToolbarComponent.name, () => {
   let component: ToolbarComponent;
@@ -141,11 +142,19 @@ describe(ToolbarComponent.name, () => {
     expect(buttonElement.getAttribute('disabled')).toBeFalsy();
   });
 
-  test('destroy unsubscribes', () => {
+  test(ToolbarComponent.prototype.ngOnDestroy.name, () => {
     expect(component.configSubscription?.closed).toBeFalsy();
+    const unsubscribeSpy = jest.spyOn(
+      component.configSubscription as any,
+      'unsubscribe'
+    );
     fixture.destroy();
+    expect(unsubscribeSpy).toHaveBeenCalled();
     expect(component.configSubscription).toBeFalsy();
+
+    unsubscribeSpy.mockReset();
     component.ngOnDestroy();
+    expect(unsubscribeSpy).not.toHaveBeenCalled();
     expect(component.configSubscription).toBeFalsy();
   });
 });
