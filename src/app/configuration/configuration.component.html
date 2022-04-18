@@ -77,11 +77,21 @@
     >
     <mat-card-content formArrayName="dice">
       <ng-container
-        *ngFor="let dieConfiguration of configuration.dice; index as dieIndex"
+        *ngFor="
+          let dieConfiguration of configuration.dice;
+          index as dieIndex;
+          trackBy: trackDieByIndex
+        "
       >
         <mat-form-field [formGroupName]="dieIndex" class="dieField">
           <mat-label>Die #{{ dieIndex + 1 }}</mat-label>
-          <input matInput type="number" formControlName="faceCount" required />
+          <input
+            matInput
+            type="number"
+            formControlName="faceCount"
+            required
+            (ngModelChange)="setDieFaceCount(dieIndex, $event)"
+          />
           <input type="hidden" formControlName="selectedFace" />
         </mat-form-field>
         <br />

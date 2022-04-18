@@ -1,5 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
 import { ConfigurationService } from '../configuration.service';
 import { Configuration, THEME_CONFIGS, ThemeEnum } from '../general_types';
 import { filter, Subscription, take } from 'rxjs';
@@ -146,6 +151,28 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
       .subscribe(() => this.onFormChanged());
 
     this.configuration = configuration;
+  }
+
+  trackDieByIndex(index: any) {
+    return index;
+  }
+
+  private isSettingDieFaceCount = false;
+
+  setDieFaceCount(dieIndex: number, event: Event) {
+    // Avoid recursive calls as the element updates.
+    if (this.isSettingDieFaceCount) {
+      return;
+    }
+    this.isSettingDieFaceCount = true;
+    const control = this.formGroup.get([
+      'dice',
+      dieIndex,
+      'faceCount',
+    ]) as FormControl;
+    control.setValue(event);
+    this.onFormChanged();
+    this.isSettingDieFaceCount = false;
   }
 
   getFullExampleEquation(operation: Operation): string {
