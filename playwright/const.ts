@@ -1,4 +1,4 @@
-import {resolve} from "path";
+import { resolve } from 'path';
 
 export const PATH_CALCULATOR = '/calculator';
 export const PATH_CONFIGURATION = '/configuration';

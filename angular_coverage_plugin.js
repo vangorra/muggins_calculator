@@ -9,5 +9,5 @@ exports["default"] = {
     console.log("Enabling code coverage in Angular app.");
     options.codeCoverage = true;
     options.budgets = [];
-  }
+  },
 };
