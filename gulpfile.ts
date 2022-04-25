@@ -4,6 +4,7 @@ import {resolve} from "path";
 import * as fs from "fs";
 import {generateMergedCoverageReports} from "./lib/istabul-utils";
 import {Socket} from "net";
+import * as net from "net";
 
 const DIR_BIN = resolve("./node_modules/.bin/");
 const DIR_BUILD = resolve("build");
@@ -81,33 +82,53 @@ export function build() {
 }
 build.description = "Compile the code.";
 
-async function assertServePortUnused() {
-  return new Promise<void>((res, rej) => {
-    const socket = new Socket();
+export function deploy() {
+  return spawn(
+    bin("ng"),
+    [
+      "deploy",
+      "--configuration", "production",
+      "--base-href", "/muggins_calculator/",
+    ],
+    { stdio: 'inherit' }
+  );
+}
+deploy.description = "Build and deploy the application to github pages.";
 
-    const onPortUsed = () => {
-      socket.destroy();
-      rej(new Error(`Server port ${SERVE_PORT} is in use by another process.`));
-    };
-
-    const onPortAvailable = () => {
-      socket.destroy();
-      res();
-    };
-
-    socket.on("timeout", onPortAvailable);
-    socket.on("connect", onPortAvailable);
-    socket.on("error", (err: any) => {
-      if (err.code !== "ECONNREFUSED") {
-        onPortUsed();
-      } else {
-        onPortAvailable();
-      }
-    });
-
-    socket.connect(SERVE_PORT, "127.0.0.1");
-    setTimeout(onPortAvailable, 500);
+const isPortAvailable = (port: number) => new Promise<void>((res, rej) => {
+  const server = net.createServer();
+  server.once("error", () => {
+    server.close(() => rej(new Error(`Port '${port}' is not available.`)));
   });
+  server.once("listening", () => {
+    server.close(() => res());
+  });
+
+  server.listen(port);
+});
+
+const isFileExists = async (filePath: string) => {
+  try {
+    await fs.promises.stat(filePath);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function assertServePortUnused() {
+  try {
+    await isPortAvailable(SERVE_PORT);
+  } catch (e) {
+    let messageExtra = "";
+    if (await isFileExists("/.dockerenv")) {
+      messageExtra = "One probably has serve running from another terminal in the devenv."
+    } else {
+      messageExtra = "The devenv is probably running (run ./devenv.sh status to check) or another process has this port open.";
+    }
+
+    throw new Error(`Serve port ${SERVE_PORT} is not available. ${messageExtra}`)
+  }
 }
 
 function startServe() {

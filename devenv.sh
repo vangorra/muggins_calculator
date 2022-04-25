@@ -9,7 +9,10 @@ DOCKERFILE_PATH="$SELF_DIR/Dockerfile"
 DOCKERFILE_MD5_PATH="$SELF_DIR/.Dockerfile.md5"
 IMAGE_LABEL="muggins_build_environment"
 CONTAINER_NAME="$IMAGE_LABEL"
-DOCKER_ARGS=$(test -z "${CI:-}" && echo "--tty" || echo "--env 'CI=${CI:-}'")
+DOCKER_ARGS="--env 'CI=${CI:-}' --env GITHUB_TOKEN='${GITHUB_TOKEN:-}'"
+if [[ -z "${CI:-}" ]]; then
+  DOCKER_ARGS="--tty $DOCKER_ARGS"
+fi
 
 COMMAND="$1"
 shift
@@ -43,10 +46,14 @@ function build() {
   updateDockerfileMd5;
 }
 
+function isImageExists() {
+  docker images "$IMAGE_LABEL" --format "{{.Repository}}" | wc --lines || echo "0"
+}
+
 function maybeBuild() {
   NEW_MD5=$(cat "$DOCKERFILE_PATH" | md5sum - | grep --only-matching --extended-regexp "[a-z0-9]+");
   CURRENT_MD5=$(test -e "$DOCKERFILE_MD5_PATH" && cat "$DOCKERFILE_MD5_PATH" || echo "");
-  IMAGE_EXISTS=$(docker images "$IMAGE_LABEL" --format "{{.Repository}}" | wc --lines || echo "0");
+  IMAGE_EXISTS=$(isImageExists);
   if [[ "$IMAGE_EXISTS" = "0" ]] || [[ "$NEW_MD5" != "$CURRENT_MD5" ]]; then
     build;
     updateDockerfileMd5;
@@ -67,8 +74,12 @@ function start() {
     docker start "$CONTAINER_NAME" &> /dev/null
 }
 
+function isRunning() {
+  docker ps --filter name="$CONTAINER_NAME" --format "{{.Names}}" | wc --lines || echo "0"
+}
+
 function maybeStart() {
-  IS_RUNNING=$(docker ps --filter name="$CONTAINER_NAME" --format "{{.Names}}" | wc --lines || echo "0")
+  IS_RUNNING=$(isRunning)
   if [[ "$IS_RUNNING" = "0" ]]; then
     start;
   fi
@@ -80,6 +91,17 @@ function exec() {
   docker exec --interactive $DOCKER_ARGS "$CONTAINER_NAME" $@;
 }
 
+function status() {
+  CONTAINER_STATUS=$(test $(isRunning) = "1" && echo "Running" || echo "Not running");
+  IMAGE_STATUS=$(test $(isImageExists) = "1" && echo "Exists" || echo "Does not exist");
+  echo "Container"
+  echo "  Status: $CONTAINER_STATUS"
+  echo "    Name: $CONTAINER_NAME"
+  echo "Image"
+  echo "  Status: $IMAGE_STATUS"
+  echo "    Name: $IMAGE_LABEL"
+}
+
 function showHelp() {
   echo "Usage ./devenv.sh <command>";
   echo "  clean          - Remove existing container and images.";
@@ -88,12 +110,10 @@ function showHelp() {
   echo "    Example: ./devenv.sh exec gulp serve"
   echo "  help|-h|--help - Show this help text."
   echo "  start          - Start the container. *";
+  echo "  status         - Show the status of the container."
   echo "  stop           - Stop the currently running container.";
   echo ""
   echo "  * Will build and start a container if needed."
-  echo "Info:"
-  echo "  Image Name: $IMAGE_LABEL"
-  echo "  Container Name: $CONTAINER_NAME"
 }
 
 if [[ "$COMMAND" = "clean" ]]; then
@@ -112,6 +132,9 @@ elif [[ "$COMMAND" =~ ^(-h|--help|help)$ ]]; then
 elif [[ "$COMMAND" = "start" ]]; then
   maybeBuild;
   start;
+  exit;
+elif [[ "$COMMAND" = "status" ]]; then
+  status;
   exit;
 elif [[ "$COMMAND" = "stop" ]]; then
   stop;
