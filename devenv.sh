@@ -9,6 +9,8 @@ DOCKERFILE_PATH="$SELF_DIR/Dockerfile"
 DOCKERFILE_MD5_PATH="$SELF_DIR/.Dockerfile.md5"
 IMAGE_LABEL="muggins_build_environment"
 CONTAINER_NAME="$IMAGE_LABEL"
+DOCKER_ARGS=$(test -z "${CI:-}" && echo "--tty" || echo "--env 'CI=${CI:-}'")
+
 COMMAND="$1"
 shift
 
@@ -55,7 +57,13 @@ function start() {
     echo "";
     echo "Starting container '$CONTAINER_NAME'.";
     stopRaw &> /dev/null;
-    docker create --interactive --tty --name "$CONTAINER_NAME" --volume "$SELF_DIR:/workspace" --publish "4200:4200" "$IMAGE_LABEL"; &> /dev/null
+    docker create \
+      --interactive \
+      $DOCKER_ARGS \
+      --name "$CONTAINER_NAME" \
+      --volume "$SELF_DIR:/workspace" \
+      --publish "4200:4200" \
+      "$IMAGE_LABEL"; &> /dev/null
     docker start "$CONTAINER_NAME" &> /dev/null
 }
 
@@ -69,7 +77,7 @@ function maybeStart() {
 function exec() {
   echo ""
   echo "Running command '$@'."
-  docker exec --interactive --tty "$CONTAINER_NAME" $@;
+  docker exec --interactive $DOCKER_ARGS "$CONTAINER_NAME" $@;
 }
 
 function showHelp() {
