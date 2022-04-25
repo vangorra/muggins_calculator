@@ -83,8 +83,12 @@ export const mapLocator = async (itemsLocator: Locator, handler: (itemLocator: L
 };
 
 export const cleanCodeCoverageFiles = async () => {
-  await fs.promises.rmdir(PATH_COVERAGE, { recursive: true });
-  await fs.promises.mkdir(PATH_COVERAGE, { recursive: true })
+  try {
+    await fs.promises.stat(PATH_COVERAGE);
+    await fs.promises.rmdir(PATH_COVERAGE, { recursive: true });
+  } catch (e) {
+    await fs.promises.mkdir(PATH_COVERAGE, { recursive: true });
+  }
 };
 
 export const generateUUID = () => crypto.randomBytes(16).toString('hex');
@@ -93,7 +97,6 @@ export const collectCoverage = () => {
   test.afterEach(async ({ page }) => {
     const coverageMap = await page.evaluate('window.__coverage__');
     expect(coverageMap).toBeTruthy();
-    await fs.promises.mkdir(PATH_COVERAGE, { recursive: true });
     await fs.promises.writeFile(resolve(PATH_COVERAGE, `coverage_${generateUUID()}.json`), JSON.stringify(coverageMap, null, 2));
   });
 };
