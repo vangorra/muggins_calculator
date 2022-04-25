@@ -93,6 +93,7 @@ export const collectCoverage = () => {
   test.afterEach(async ({ page }) => {
     const coverageMap = await page.evaluate('window.__coverage__');
     expect(coverageMap).toBeTruthy();
+    await fs.promises.mkdir(PATH_COVERAGE, { recursive: true });
     await fs.promises.writeFile(resolve(PATH_COVERAGE, `coverage_${generateUUID()}.json`), JSON.stringify(coverageMap, null, 2));
   });
 };
