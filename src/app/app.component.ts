@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ThemeService } from './theme.service';
 import { MathJaxService } from './math-jax/math-jax.service';
-import {Router} from "@angular/router";
-import {isString} from "lodash";
-import {STORAGE_KEY_404_REDIRECT_PATH} from "./const";
+import { Router } from '@angular/router';
+import { isString } from 'lodash';
+import { STORAGE_KEY_404_REDIRECT_PATH } from './const';
 
 @Component({
   selector: 'app-root',

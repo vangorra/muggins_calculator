@@ -23,4 +23,4 @@ export const DEFAULT_CONFIGURATION: Configuration = {
   })),
 };
 
-export const STORAGE_KEY_404_REDIRECT_PATH = "404_redirect_path";
+export const STORAGE_KEY_404_REDIRECT_PATH = '404_redirect_path';
