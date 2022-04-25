@@ -39,6 +39,7 @@ export class MathJaxDirective implements AfterViewInit {
     const renderedElement =
       this.mathJaxService.getRenderFunction()(equationText);
 
+    containerElement.setAttribute('data-equation', equationText);
     containerElement.replaceChildren(renderedElement);
   }
 }

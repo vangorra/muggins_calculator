@@ -9,6 +9,10 @@
       [attr.mat-flat-button]="button.type === 'flat' ? '' : null"
       [mat-dialog-close]="button === data.acceptButton ? true : null"
       [ngClass]="button === data.acceptButton ? 'acceptButton' : 'rejectButton'"
+      [attr.data-test-id]="
+        'app-confirm-dialog_' +
+        (data.acceptButton ? 'acceptButton' : 'rejectButton')
+      "
     >
       {{ button.title }}
     </button>

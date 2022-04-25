@@ -3,7 +3,6 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MathJaxService, MathJaxState } from './math-jax.service';
 import { mockMathJaxProvider, newMockMathJaxService } from '../test-utils';
-import { expect } from '@angular/flex-layout/_private-utils/testing';
 
 @Component({
   selector: 'app-test-component',

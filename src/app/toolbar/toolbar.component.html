@@ -9,6 +9,7 @@
         [attr.aria-label]="button.title"
         [disabled]="button.disabledObserver() | async"
         (click)="button.onClick()"
+        [attr.data-test-id]="button.testId"
       >
         <mat-icon *ngIf="!!button.icon">{{ button.icon }}</mat-icon>
         <span class="title" *ngIf="!button.icon">{{ button.title }}</span>

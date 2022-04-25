@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import DieComponent from './die.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { expect } from '@angular/flex-layout/_private-utils/testing';
 
 describe(DieComponent.name, () => {
   let component: DieComponent;

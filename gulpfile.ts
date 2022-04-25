@@ -1,243 +1,247 @@
 import * as gulp from "gulp";
 import {spawn} from "child_process";
-import {FSWatcher, readFile, rmdir, writeFile} from "fs";
 import {resolve} from "path";
-import {promisify} from "util";
-import * as BrowserSync from "browser-sync";
-import {js2xml, xml2js} from "xml-js";
-import {glob} from "glob";
-import { uniq} from "lodash";
+import * as fs from "fs";
+import {generateMergedCoverageReports} from "./lib/istabul-utils";
+import {Socket} from "net";
 
-const rmdirAsync = promisify(rmdir);
-const readFileAsync = promisify(readFile);
-const writeFileAsync = promisify(writeFile);
-const globAsync = promisify(glob);
+const DIR_BIN = resolve("./node_modules/.bin/");
+const DIR_BUILD = resolve("build");
+const DIR_DIST = resolve("dist");
+const TARGET_DIRS = [DIR_BUILD, DIR_DIST];
+const SERVE_PORT = 4200;
 
-const binDir = resolve("./node_modules/.bin/");
-const buildDir = resolve("build");
-const distDir = resolve("dist");
-const targetDirs = [buildDir, distDir];
-
-const targetDirsStr = targetDirs.join(",");
-
-const browserSync = BrowserSync.create()
-
-async function spawnCommand(command: string, ...args: string[]): Promise<number> {
-  return new Promise<number>((res, rej) => {
-    const process = spawn(command, args, { stdio: 'inherit' });
-    process.on("close", (status) => {
-      if (status === 0) {
-        res(status);
-      } else {
-        rej(status);
-      }
-    });
-  });
+function bin(command: string): string {
+  return resolve(DIR_BIN, command);
 }
 
-export async function clean() {
-  await Promise.all(targetDirs
+export function clean() {
+  return Promise.all(TARGET_DIRS
     .map(async (dir) => {
       console.log(`Removing ${dir}`);
-      await rmdirAsync(dir, {
+      await fs.promises.rmdir(dir, {
         recursive: true
       });
     })
   );
 }
-clean.description = `Remove directories: ${targetDirsStr}`;
+clean.description = `Remove directories: ` + TARGET_DIRS.join(",");
 
-export async function formatCodeApply() {
-  await spawnCommand(
-    resolve(binDir, "prettier"),
-    "--write", "src/"
+export function formatCodeApply() {
+  return spawn(
+    bin("prettier"),
+    ["--write", "src/"],
+    {stdio: "inherit"}
   );
 }
 formatCodeApply.description = "Format source code.";
 
-export async function formatCodeCheck() {
-  await spawnCommand(
-    resolve(binDir, "prettier"),
-    "--list-different", "src/"
+export function formatCodeCheck() {
+  return spawn(
+    bin("prettier"),
+    ["--list-different", "src/"],
+    {stdio: "inherit"}
   );
 }
-formatCodeCheck.description = "Check if code is formatted.";
+formatCodeCheck.description = "Check if source code is formatted.";
 
-export async function generateIcons() {
-  await spawnCommand(
-    resolve(binDir, "ngx-pwa-icons"),
-    "--output", resolve("./dist/generated_assets/icons")
+export function generateIcons() {
+  return spawn(
+    bin("ngx-pwa-icons"),
+    ["--output", resolve("./build/generated_assets/icons")],
+    { stdio: 'inherit' }
   );
 }
 generateIcons.description = "Generate icons.";
 
-export async function lintApply() {
-  await spawnCommand(
-    resolve(binDir, "ng"),
-    "lint", "--fix"
+export function lintApply() {
+  return spawn(
+    bin("ng"),
+    ["lint", "--fix"],
+    { stdio: 'inherit' }
   );
 }
 lintApply.description = "Lint code and apply changes (if possible).";
 
-export async function lintCheck() {
-  await spawnCommand(
-    resolve(binDir, "ng"),
-    "lint"
+export function lintCheck() {
+  return spawn(
+    bin("ng"),
+    ["lint"],
+    { stdio: 'inherit' }
   );
 }
 lintCheck.description = "Check if code passes lint checks.";
 
-export async function ngBuild() {
-  await spawnCommand(
-    resolve(binDir, "ng"),
-    "build",
-    "--configuration", "production"
+export function build() {
+  return spawn(
+    bin("ng"),
+    ["build", "--configuration", "production"],
+    { stdio: 'inherit' }
   );
 }
-ngBuild.description = "Compile the code.";
+build.description = "Compile the code.";
 
-export async function test() {
-  await spawnCommand(
-    resolve(binDir, "ng"),
-    "test",
-    "--watch", "false",
-  );
-}
-test.description = `Test code`;
+async function assertServePortUnused() {
+  return new Promise<void>((res, rej) => {
+    const socket = new Socket();
 
-export async function testCi() {
-  await spawnCommand(
-    resolve(binDir, "ng"),
-    "test",
-    "--watch", "false",
-  );
-}
-test.description = `Test code in continuous integration`;
+    const onPortUsed = () => {
+      socket.destroy();
+      rej(new Error(`Server port ${SERVE_PORT} is in use by another process.`));
+    };
 
-export async function testWatch() {
-  await spawnCommand(
-    resolve(binDir, "ng"),
-    "test",
-    "--watch", "true",
-    "--browsers", "Chromium"
-  );
-}
-testWatch.description = "Test and watch for changes.";
+    const onPortAvailable = () => {
+      socket.destroy();
+      res();
+    };
 
-async function startNg() {
-  await spawnCommand(
-    resolve(binDir, "ng"),
-    "serve"
-  )
-}
-startNg.description = "Start locally using 'ng serve'.";
+    socket.on("timeout", onPortAvailable);
+    socket.on("connect", onPortAvailable);
+    socket.on("error", (err: any) => {
+      if (err.code !== "ECONNREFUSED") {
+        onPortUsed();
+      } else {
+        onPortAvailable();
+      }
+    });
 
-export async function copyIconsToAssets() {
-  // Determine which icons are used in html files.
-  const regex = new RegExp('svgIcon="([^"]+)"', 'g');
-  const files = await globAsync(resolve("./src/**/*.html"));
-  const filesContents = await Promise.all(files.map(async filePath => await readFileAsync(filePath)));
-  const iconIds = uniq(filesContents
-    .map(fileContents => [
-      ...fileContents.toString().matchAll(regex)
-    ])
-    .filter(matches => !!matches.length)
-    .map(matches => matches.map(match => match[1]))
-    .flatMap(arr => arr)
-  );
-
-  // Create a smaller icons files containing only the icons from above.
-  const keepIds = new Set(iconIds);
-  const sourcePath = resolve("./node_modules/@mdi/angular-material/mdi.svg");
-  const contents = await readFileAsync(sourcePath);
-  const svg = xml2js(contents.toString());
-
-  svg["elements"][0]["elements"][0]["elements"] = svg["elements"][0]["elements"][0]["elements"].filter((element: any) => {
-    const tagName = element["name"];
-    return tagName !== "svg" || keepIds.has(element["attributes"]["id"]);
+    socket.connect(SERVE_PORT, "127.0.0.1");
+    setTimeout(onPortAvailable, 500);
   });
-  await writeFileAsync(
-    resolve("./dist/generated_assets/mdi.svg"),
-    js2xml(svg)
-  );
 }
 
-const buildMinimal = gulp.series(
-  generateIcons,
-  copyIconsToAssets,
-  ngBuild
-);
+function startServe() {
+  // Build icons and listen for changes.
+  generateIcons();
+  const iconWatcher = gulp.watch('./icon.png', () => generateIcons());
 
-export const buildCi = gulp.series(
-  formatCodeCheck,
-  lintCheck,
-  buildMinimal
-);
-
-export const buildAndTestCi = gulp.series(
-  buildCi,
-  testCi
-);
-
-export const build = gulp.series(
-  formatCodeApply,
-  lintApply,
-  buildMinimal
-);
-build.description = "Format, generate, lint, compile and test.";
-
-export const buildAndTest = gulp.series(
-  build,
-  test
-);
-build.description = "Format, generate, lint, compile and test.";
-
-async function startServe() {
-  console.log("startServe");
-  browserSync.init({
-    port: 8080,
-    server: {
-      baseDir: "./dist/app",
-    }
-  });
-  console.log("/startServe");
-}
-
-let serveFileWatcher: FSWatcher;
-async function startServeWatch() {
-  console.log("startServeWatch");
-  serveFileWatcher = gulp.watch(
+  // Start build and watch for changes.
+  const buildWatchProcess = spawn(
+    bin('ng'),
     [
-      "./icon.png",
-      "./src/**",
-      "!./src/**/*.spec.*"
-    ],
-    buildAndReload
+      'build',
+      '--watch',
+      '--plugin', '~angular_coverage_plugin.js',
+      '--configuration', 'production'
+    ]
   );
-  console.log("/startServeWatch");
-}
 
-async function stopServeWatch() {
-  console.log("stopServeWatch");
-  serveFileWatcher && serveFileWatcher.close();
-  console.log("/stopServeWatch");
-}
+  // Triggered from the initial build (below). Starts the server.
+  const startServeProcess = () => {
+    const localWebServerProcess = spawn(
+      bin('browser-sync'),
+      [
+        'start',
+        '--single',
+        '--watch',
+        '--serveStatic', './dist/app',
+        '--no-open',
+        '--port', SERVE_PORT + "",
+        '--index', 'index.html',
+        '--ui-port', '3000',
+        '--logLevel', 'silent'
+      ],
+      { stdio: "inherit" }
+    );
 
-const buildAndReload = gulp.series(
-  clean,
-  // Stop watching as lint and code style changes will change the watches files and lead to a shallow loop.
-  stopServeWatch,
-  build,
-  startServeWatch,
-  browserSync.reload
-);
+    console.log("");
+    console.log("");
+    console.log("======================");
+    console.log("Initial build finished. Muggins app is ready to use.");
+    console.log(`http://localhost:${SERVE_PORT}`);
+    console.log("======================");
+    console.log("");
+
+    // Ensure both build and serve processes are killed when the other exits.
+    buildWatchProcess.on("exit", () => localWebServerProcess.kill("SIGINT"));
+    localWebServerProcess.on('exit', () => buildWatchProcess.kill('SIGINT'));
+  };
+
+  // Listen for initial build output, once build it complete, start the http server.
+  const buildAtRegex = /^Build at: .+ - Hash: .+ - Time: .+ms$/g;
+  const initialBuildListener = (buffer: any) => {
+    const isBuilt = buffer.toString().split("\n")
+      .findIndex((line: string) => buildAtRegex.test(line)) > -1;
+
+    if (!isBuilt) {
+      return;
+    }
+
+    // Initial build complete, stop listening and start the serve process.
+    buildWatchProcess.stdout.off("data", initialBuildListener);
+    startServeProcess();
+  };
+  // Get build output to the console.
+  buildWatchProcess.stdin.pipe(process.stdin);
+  buildWatchProcess.stdout.pipe(process.stdout);
+  buildWatchProcess.stderr.pipe(process.stderr);
+  // Listen for initial build completion.
+  buildWatchProcess.stdout.on("data", initialBuildListener);
+
+  // Ensure the icon watch process is stopped when the build process exits.
+  buildWatchProcess.on("exit", () => {
+    iconWatcher.close();
+  });
+
+  return buildWatchProcess;
+}
 
 export const serve = gulp.series(
-  clean,
-  build,
-  startServe,
-  startServeWatch
+  assertServePortUnused,
+  startServe
 );
-serve.description = "Build and serve using local HTTP server. Better than 'ng serve' as the former does not work with progressive web apps.";
+serve.description = "Serve the application on a local port.";
 
-export default build;
+export function unitTest() {
+  return spawn(
+    bin("ng"),
+    ["test", "--watch", "false"],
+    { stdio: 'inherit' }
+  );
+}
+unitTest.description = `Run unit tests`;
+
+export function endToEndTest() {
+  return spawn(
+    bin("playwright"),
+    ["test"],
+    { stdio: 'inherit' },
+  );
+}
+endToEndTest.description = `Run end-to-end tests.`;
+
+export function unifyCoverage() {
+  return generateMergedCoverageReports(
+    [
+      './build/coverage/jest/coverage-final.json',
+      './build/coverage/playwright/coverage-final.json',
+    ],
+    './build/coverage/unified/',
+    ['html', 'json', 'lcovonly']
+  );
+}
+unifyCoverage.description = "Combine the unit and end-to-end code coverage reports.";
+
+export const buildFullCi = gulp.series(
+  generateIcons,
+  formatCodeCheck,
+  lintCheck,
+  unitTest,
+  endToEndTest,
+  unifyCoverage,
+  build
+);
+buildFullCi.description = "Generate icons, check code format, check lint, test, and compile.";
+
+export const buildFull = gulp.series(
+  generateIcons,
+  formatCodeApply,
+  lintApply,
+  unitTest,
+  endToEndTest,
+  unifyCoverage,
+  build
+);
+buildFull.description = "Generate icons, format code, apply lint, compile, test, and compile.";
+
+export default buildFull;

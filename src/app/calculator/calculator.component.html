@@ -26,7 +26,7 @@
   </mat-card-content>
 
   <mat-card-content
-    class="none"
+    class="none processedState"
     *ngIf="
       calculateState === calculateStates.PROCESSED &&
       workerResponseDataArray.length === 0
@@ -35,7 +35,7 @@
   >
 
   <div
-    class="data"
+    class="data processedState"
     *ngIf="
       calculateState === calculateStates.PROCESSED &&
       workerResponseDataArray.length > 0
@@ -48,7 +48,12 @@
           class="jumpButtonWrapper"
           *ngFor="let data of workerResponseDataArray"
         >
-          <button mat-stroked-button (click)="scrollToId(groupId(data.total))">
+          <button
+            mat-stroked-button
+            (click)="scrollToId(groupId(data.total))"
+            [attr.data-test-id]="'jumpTo_' + data.total"
+            class="jumpToSolutionButton"
+          >
             {{ data.total }}
           </button>
         </span>
@@ -62,6 +67,7 @@
           <mat-list-option
             *ngFor="let calculateResultWithEquation of data.results"
             [value]="calculateResultWithEquation.fullEquation"
+            [ngClass]="'equation'"
           >
             <span appMathJax>{{
               calculateResultWithEquation.fullEquation

@@ -6,7 +6,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
-import { expect } from '@angular/flex-layout/_private-utils/testing';
 
 describe(ToolbarComponent.name, () => {
   let component: ToolbarComponent;

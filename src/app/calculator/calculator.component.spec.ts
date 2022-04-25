@@ -11,7 +11,6 @@ import { ConfigurationService } from '../configuration.service';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatDialogModule } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { expect } from '@angular/flex-layout/_private-utils/testing';
 import { DiceComponent } from '../dice/dice.component';
 import { SolverWorkerService } from '../solver-worker.service';
 import { OperationEnum } from '../solver/solver';

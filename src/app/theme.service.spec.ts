@@ -3,7 +3,6 @@ import { TestBed } from '@angular/core/testing';
 import { ThemeService } from './theme.service';
 import { ConfigurationService } from './configuration.service';
 import { ThemeEnum } from './general_types';
-import { expect } from '@angular/flex-layout/_private-utils/testing';
 
 describe(ThemeService.name, () => {
   let configurationService: ConfigurationService;

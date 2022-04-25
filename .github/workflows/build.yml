@@ -12,9 +12,10 @@ jobs:
         with:
           node-version: '12'
       - run: npm install
-      - run: gulp buildAndTestCi
+      - run: ./devenv.sh exec npm install
+      - run: ./devenv.sh exec gulp buildFullCi
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./build/coverage/app/lcov.info
+          path-to-lcov: ./build/coverage/jest/lcov.info

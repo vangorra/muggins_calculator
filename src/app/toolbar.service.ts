@@ -46,6 +46,7 @@ export class ToolbarService {
 
 export interface ToolbarButton {
   readonly icon?: string;
+  readonly testId?: string;
   readonly title: string;
   readonly onClick: () => void;
   readonly disabledObserver: () => Observable<boolean>;

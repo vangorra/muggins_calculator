@@ -51,11 +51,13 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
         ToolbarService.newButton({
           title: 'About',
           icon: 'help',
+          testId: 'app-calculator_toolbar_aboutButton',
           onClick: () => this.matDialog.open(AboutDialogComponent, {}),
         }),
         ToolbarService.newButton({
           title: 'Configuration',
           icon: 'settings',
+          testId: 'app-calculator_toolbar_configurationButton',
           onClick: () => this.router.navigate(['/configuration']),
         }),
       ],

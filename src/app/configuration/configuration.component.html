@@ -7,6 +7,7 @@
         <mat-list-option
           *ngFor="let themeConfig of availableThemeConfigs"
           [value]="themeConfig.theme"
+          [attr.data-value]="themeConfig.theme"
           checkboxPosition="before"
         >
           <mat-radio-button [checked]="isThemeChecked(themeConfig.theme)">{{
@@ -30,6 +31,7 @@
           checkboxPosition="before"
           *ngFor="let operation of availableOperations"
           [value]="operation.id"
+          [attr.data-value]="operation.id"
         >
           <div mat-line class="operationName">{{ operation.name }}</div>
           <div mat-line appMathJax>{{ getFullExampleEquation(operation) }}</div>
@@ -54,13 +56,20 @@
           type="number"
           formControlName="minSize"
           required
+          (focus)="inputSelectAll($event.target)"
         />
         <mat-hint>Minimum number on the board (default: 1)</mat-hint>
       </mat-form-field>
 
       <mat-form-field>
         <mat-label>Max Board Number (inclusive)</mat-label>
-        <input matInput type="number" formControlName="maxSize" required />
+        <input
+          matInput
+          type="number"
+          formControlName="maxSize"
+          required
+          (focus)="inputSelectAll($event.target)"
+        />
         <mat-hint>The maximum number on the board (default: 36)</mat-hint>
       </mat-form-field>
     </mat-card-content>
@@ -90,6 +99,7 @@
             type="number"
             formControlName="faceCount"
             required
+            (focus)="inputSelectAll($event.target)"
             (ngModelChange)="setDieFaceCount(dieIndex, $event)"
           />
           <input type="hidden" formControlName="selectedFace" />
@@ -126,6 +136,7 @@
       color="warn"
       [ngStyle.lt-md]="{ width: '100%' }"
       (click)="resetToDefaults()"
+      [attr.data-test-id]="'app-configuration_resetToDefaults'"
     >
       Reset all configuration to defaults
     </button>

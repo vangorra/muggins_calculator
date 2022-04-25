@@ -48,6 +48,7 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
         ToolbarService.newButton({
           title: 'Close',
           icon: 'close',
+          testId: 'app-configuration_toolbar_closeButton',
           onClick: () => this.router.navigate(['/calculator']),
         }),
       ],
@@ -185,5 +186,12 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
 
   isThemeChecked(theme: ThemeEnum): boolean {
     return this.configuration.theme === theme;
+  }
+
+  inputSelectAll(target?: EventTarget | null): void {
+    if (!!target && target instanceof HTMLInputElement) {
+      const inputElement = target as HTMLInputElement;
+      inputElement.select();
+    }
   }
 }

@@ -48,3 +48,6 @@ Thumbs.db
 
 src/assets/icons
 .angular
+
+test-results
+.Dockerfile.md5

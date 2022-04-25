@@ -1,5 +1,6 @@
 <p *ngFor="let die of dice; index as dieIndex">
   <app-die
+    [attr.data-test-id]="'app-dice_app-die_' + dieIndex"
     [className]="'die' + dieIndex"
     [label]="'Die ' + (dieIndex + 1)"
     [die]="die"
