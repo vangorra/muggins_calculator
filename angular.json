@@ -122,7 +122,8 @@
           "builder": "angular-cli-ghpages:deploy",
           "options": {
             "baseHref": "/muggins_calculator/",
-            "browserTarget": "app:build:production"
+            "browserTarget": "app:build:production",
+            "noSilent": true
           }
         }
       }
