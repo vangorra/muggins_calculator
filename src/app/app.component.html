@@ -1,4 +1,6 @@
-<ng-container *ngIf="(mathJaxService.state | async) === 'initialized'">
+<ng-container
+  *ngIf="(mathJaxService.state | async) === 'initialized' && isFontsLoaded"
+>
   <app-toolbar id="appToolbar"></app-toolbar>
 
   <div

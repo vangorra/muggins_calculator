@@ -95,10 +95,15 @@ describe(AppComponent.name, () => {
     element = fixture.nativeElement;
     router = TestBed.inject(Router);
 
+    Object.defineProperty(document, 'fonts', {
+      value: {
+        ready: Promise.resolve() as any,
+      } as any,
+    });
     fixture.detectChanges();
   });
 
-  test('routes work', async () => {
+  test.only('routes work', async () => {
     await router.navigate(['/']);
     fixture.detectChanges();
 
