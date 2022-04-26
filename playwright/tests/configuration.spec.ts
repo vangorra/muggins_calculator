@@ -240,3 +240,31 @@ test('Set configuration and reset to defaults.', async ({ page }) => {
     standardizeConfiguration(DEFAULT_CONFIGURATION)
   );
 });
+
+test('Snackbar warning appears when more than default dice added.', async ({
+  page,
+}) => {
+  await page.waitForSelector('snack-bar-container', {
+    state: 'detached',
+  });
+  await setDice(
+    page,
+    DEFAULT_CONFIGURATION.dice.concat([
+      {
+        faceCount: 6,
+        selectedFace: 1,
+      },
+    ])
+  );
+  await page.waitForSelector('snack-bar-container');
+  await waitForAnimationToSettle();
+  expect(await page.screenshot()).toMatchSnapshot({
+    name: 'die_count_warning.png',
+  });
+
+  await setDice(page, DEFAULT_CONFIGURATION.dice);
+  await waitForAnimationToSettle();
+  await page.waitForSelector('snack-bar-container', {
+    state: 'detached',
+  });
+});

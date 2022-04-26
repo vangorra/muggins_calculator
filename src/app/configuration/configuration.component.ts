@@ -16,7 +16,12 @@ import {
   ConfirmDialogComponent,
 } from '../confirm-dialog/confirm-dialog.component';
 import { EQUATION_FORMATTER, Operation, OPERATIONS } from '../solver/solver';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import {
+  MatSnackBar,
+  MatSnackBarRef,
+  TextOnlySnackBar,
+} from '@angular/material/snack-bar';
+import { DEFAULT_DIE_COUNT } from '../const';
 
 @Component({
   selector: 'app-configuration',
@@ -33,6 +38,8 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
   configuration!: Configuration;
 
   configurationSubscription?: Subscription;
+
+  private addDieSnackbarWarning?: MatSnackBarRef<TextOnlySnackBar>;
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -98,11 +105,31 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
   addDie(): void {
     this.configurationService.addDie();
     this.configurationService.save();
+
+    const dieCount = this.configurationService.value.getValue().dice.length;
+    if (dieCount > DEFAULT_DIE_COUNT && !this.addDieSnackbarWarning) {
+      this.addDieSnackbarWarning = this.matSnackBar.open(
+        `Warning: More than ${DEFAULT_DIE_COUNT} dice will result is VERY slow runs.`,
+        'Dismiss',
+        {
+          duration: 5000,
+        }
+      );
+      this.addDieSnackbarWarning
+        .afterDismissed()
+        .pipe(take(1))
+        .subscribe(() => (this.addDieSnackbarWarning = undefined));
+    }
   }
 
   removeDie(): void {
     this.configurationService.removeDie();
     this.configurationService.save();
+
+    const dieCount = this.configurationService.value.getValue().dice.length;
+    if (dieCount <= DEFAULT_DIE_COUNT && !!this.addDieSnackbarWarning) {
+      this.addDieSnackbarWarning?.dismissWithAction();
+    }
   }
 
   onFormChanged(): void {

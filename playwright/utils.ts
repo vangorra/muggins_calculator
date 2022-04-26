@@ -2,8 +2,8 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { PATH_COVERAGE } from './const';
-import { resolve } from 'path';
 import { generateMergedCoverageReports } from '../lib/istabul-utils';
+import * as path from 'path';
 
 export const localStorageClear = async (page: Page) => {
   await page.evaluate(() => {
@@ -12,24 +12,24 @@ export const localStorageClear = async (page: Page) => {
 };
 
 export const initializePath = (
-  path: string,
+  urlPath: string,
   waitFor: (page: Page) => Promise<void>
 ) => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(path);
+    await page.goto(urlPath);
     await localStorageClear(page);
     await page.reload();
     await waitFor(page);
   });
 };
 
-export const waitForAnimationToSettle = async () => sleep(1000);
-
 export const sleep = (millis: number) =>
   new Promise((res) => setTimeout(res, millis));
 
+export const waitForAnimationToSettle = async () => sleep(1000);
+
 export const getScrollY = async (page: Page) => {
-  const scrollY: any = await page.evaluate(`window.scrollY`);
+  const scrollY: any = await page.evaluate(() => window.scrollY);
   return +scrollY;
 };
 
@@ -103,19 +103,19 @@ export const cleanCodeCoverageFiles = async () => {
   try {
     await fs.promises.stat(PATH_COVERAGE);
     await fs.promises.rmdir(PATH_COVERAGE, { recursive: true });
-  } catch (e) {
-    await fs.promises.mkdir(PATH_COVERAGE, { recursive: true });
-  }
+  } catch (e) {}
+  await fs.promises.mkdir(PATH_COVERAGE, { recursive: true });
 };
 
 export const generateUUID = () => crypto.randomBytes(16).toString('hex');
 
 export const collectCoverage = () => {
   test.afterEach(async ({ page }) => {
-    const coverageMap = await page.evaluate('window.__coverage__');
+    const coverageMap = await page.evaluate(() => (window as any).__coverage__);
     expect(coverageMap).toBeTruthy();
+
     await fs.promises.writeFile(
-      resolve(PATH_COVERAGE, `coverage_${generateUUID()}.json`),
+      path.resolve(PATH_COVERAGE, `coverage_${generateUUID()}.json`),
       JSON.stringify(coverageMap, null, 2)
     );
   });
@@ -123,7 +123,7 @@ export const collectCoverage = () => {
 
 export const generateCoverageReports = async () => {
   await generateMergedCoverageReports(
-    [resolve(PATH_COVERAGE, 'coverage_*.json')],
+    [path.resolve(PATH_COVERAGE, 'coverage_*.json')],
     PATH_COVERAGE,
     ['html', 'json', 'lcovonly']
   );

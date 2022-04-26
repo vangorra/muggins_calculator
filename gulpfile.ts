@@ -1,18 +1,18 @@
 import * as gulp from 'gulp';
 import { spawn } from 'child_process';
-import { resolve } from 'path';
 import * as fs from 'fs';
 import { generateMergedCoverageReports } from './lib/istabul-utils';
 import * as net from 'net';
+import * as path from 'path';
 
-const DIR_BIN = resolve('./node_modules/.bin/');
-const DIR_BUILD = resolve('build');
-const DIR_DIST = resolve('dist');
+const DIR_BIN = path.resolve('./node_modules/.bin/');
+const DIR_BUILD = path.resolve('build');
+const DIR_DIST = path.resolve('dist');
 const TARGET_DIRS = [DIR_BUILD, DIR_DIST];
 const SERVE_PORT = 4200;
 
 function bin(command: string): string {
-  return resolve(DIR_BIN, command);
+  return path.resolve(DIR_BIN, command);
 }
 
 export function clean() {
@@ -46,7 +46,7 @@ formatCodeCheck.description = 'Check if source code is formatted.';
 export function generateIcons() {
   return spawn(
     bin('ngx-pwa-icons'),
-    ['--output', resolve('./build/generated_assets/icons')],
+    ['--output', path.resolve('./build/generated_assets/icons')],
     { stdio: 'inherit' }
   );
 }
@@ -119,80 +119,87 @@ export async function assertServePortUnused() {
   }
 }
 
+/**
+ * gulp.watch can only watch files in directories that exist. So we wrote our own.
+ * @param filePath
+ * @param pollDuration
+ */
+function pollForFileExists(
+  filePath: string,
+  pollDuration = 500
+): Promise<void> {
+  return new Promise<void>((res) => {
+    const interval = setInterval(async () => {
+      try {
+        await fs.promises.stat(filePath);
+        clearInterval(interval);
+        res();
+      } catch (e) {}
+    }, pollDuration);
+  });
+}
+
 function startServe() {
   // Build icons and listen for changes.
   generateIcons();
   const iconWatcher = gulp.watch('./icon.png', () => generateIcons());
 
   // Start build and watch for changes.
-  const buildWatchProcess = spawn(bin('ng'), [
-    'build',
-    '--watch',
-    '--plugin',
-    '~angular_coverage_plugin.js',
-    '--configuration',
-    'production',
-  ]);
+  const buildWatchProcess = spawn(
+    bin('ng'),
+    [
+      'build',
+      '--progress',
+      '--watch',
+      '--plugin',
+      '~angular_coverage_plugin.js',
+      '--configuration',
+      'production',
+    ],
+    { stdio: 'inherit' }
+  );
 
-  // Triggered from the initial build (below). Starts the server.
-  const startServeProcess = () => {
-    const localWebServerProcess = spawn(
-      bin('browser-sync'),
-      [
-        'start',
-        '--single',
-        '--watch',
-        '--serveStatic',
-        './dist/app',
-        '--no-open',
-        '--port',
-        SERVE_PORT + '',
-        '--index',
-        'index.html',
-        '--ui-port',
-        '3000',
-        '--logLevel',
-        'silent',
-      ],
-      { stdio: 'inherit' }
-    );
+  // Wait for initial build to finish.
+  pollForFileExists('./dist/app/index.html')
+    // Wait a moment for things to settle.
+    .then(() => new Promise((res) => setTimeout(res, 3000)))
+    // Start the server.
+    .then(() => {
+      const localWebServerProcess = spawn(
+        bin('browser-sync'),
+        [
+          'start',
+          '--single',
+          '--watch',
+          '--serveStatic',
+          './dist/app',
+          '--no-open',
+          '--port',
+          SERVE_PORT + '',
+          '--index',
+          'index.html',
+          '--ui-port',
+          '3000',
+          '--logLevel',
+          'silent',
+        ],
+        { stdio: 'inherit' }
+      );
 
-    console.log('');
-    console.log('');
-    console.log('======================');
-    console.log('Initial build finished. Muggins app is ready to use.');
-    console.log(`http://localhost:${SERVE_PORT}`);
-    console.log('======================');
-    console.log('');
+      // Ensure both build and serve processes are killed when the other exits.
+      buildWatchProcess.on('exit', () => localWebServerProcess.kill('SIGINT'));
+      localWebServerProcess.on('exit', () => buildWatchProcess.kill('SIGINT'));
 
-    // Ensure both build and serve processes are killed when the other exits.
-    buildWatchProcess.on('exit', () => localWebServerProcess.kill('SIGINT'));
-    localWebServerProcess.on('exit', () => buildWatchProcess.kill('SIGINT'));
-  };
-
-  // Listen for initial build output, once build it complete, start the http server.
-  const buildAtRegex = /^Build at: .+ - Hash: .+ - Time: .+ms$/g;
-  const initialBuildListener = (buffer: any) => {
-    const isBuilt =
-      buffer
-        .toString()
-        .split('\n')
-        .findIndex((line: string) => buildAtRegex.test(line)) > -1;
-
-    if (!isBuilt) {
-      return;
-    }
-
-    // Initial build complete, stop listening and start the serve process.
-    buildWatchProcess.stdout.off('data', initialBuildListener);
-    startServeProcess();
-  };
-  // Get build output to the console.
-  buildWatchProcess.stdin.pipe(process.stdin);
-  buildWatchProcess.stdout.pipe(process.stdout);
-  buildWatchProcess.stderr.pipe(process.stderr);
-  // Listen for initial build completion.
-  buildWatchProcess.stdout.on('data', initialBuildListener);
+      console.log('');
+      console.log('');
+      console.log('======================');
+      console.log(
+        'Initial build finished. Muggins app is accessible at the following URL..'
+      );
+      console.log(`http://localhost:${SERVE_PORT}`);
+      console.log('======================');
+      console.log('');
+    });
 
   // Ensure the icon watch process is stopped when the build process exits.
   buildWatchProcess.on('exit', () => {
@@ -202,7 +209,7 @@ function startServe() {
   return buildWatchProcess;
 }
 
-export const serve = gulp.series(assertServePortUnused, startServe);
+export const serve = gulp.series(clean, assertServePortUnused, startServe);
 serve.description = 'Serve the application on a local port.';
 
 export function unitTest() {
