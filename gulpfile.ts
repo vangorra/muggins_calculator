@@ -1,9 +1,9 @@
 import * as gulp from 'gulp';
 import { spawn } from 'child_process';
-import * as fs from 'fs';
-import { generateMergedCoverageReports } from './lib/istabul-utils';
+import { generateMergedCoverageReports } from './lib/istabul.utils';
 import * as net from 'net';
 import * as path from 'path';
+import { filePathExists, rmIfExists } from './lib/fs.utils';
 
 const DIR_BIN = path.resolve('./node_modules/.bin/');
 const DIR_BUILD = path.resolve('build');
@@ -15,14 +15,13 @@ function bin(command: string): string {
   return path.resolve(DIR_BIN, command);
 }
 
-export function clean() {
+export async function clean() {
   return Promise.all(
-    TARGET_DIRS.map(async (dir) => {
-      console.log(`Removing ${dir}`);
-      await fs.promises.rmdir(dir, {
+    TARGET_DIRS.map((filePath) =>
+      rmIfExists(filePath, {
         recursive: true,
-      });
-    })
+      })
+    )
   );
 }
 clean.description = `Remove directories: ` + TARGET_DIRS.join(',');
@@ -91,21 +90,12 @@ const isPortAvailable = (port: number) =>
     server.listen(port);
   });
 
-const isFileExists = async (filePath: string) => {
-  try {
-    await fs.promises.stat(filePath);
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
-
 export async function assertServePortUnused() {
   try {
     await isPortAvailable(SERVE_PORT);
   } catch (e) {
     let messageExtra = '';
-    if (await isFileExists('/.dockerenv')) {
+    if (await filePathExists('/.dockerenv')) {
       messageExtra =
         'One probably has serve running from another terminal in the devenv.';
     } else {
@@ -130,11 +120,10 @@ function pollForFileExists(
 ): Promise<void> {
   return new Promise<void>((res) => {
     const interval = setInterval(async () => {
-      try {
-        await fs.promises.stat(filePath);
+      if (await filePathExists(filePath)) {
         clearInterval(interval);
         res();
-      } catch (e) {}
+      }
     }, pollDuration);
   });
 }
@@ -236,6 +225,7 @@ unifyCoverage.description =
   'Combine the unit and end-to-end code coverage reports.';
 
 export const buildFullCi = gulp.series(
+  clean,
   generateIcons,
   formatCodeCheck,
   lintCheck,
@@ -248,6 +238,7 @@ buildFullCi.description =
   'Generate icons, check code format, check lint, test, and compile.';
 
 export const buildFull = gulp.series(
+  clean,
   generateIcons,
   formatCodeApply,
   lintApply,

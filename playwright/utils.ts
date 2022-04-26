@@ -2,8 +2,9 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { PATH_COVERAGE } from './const';
-import { generateMergedCoverageReports } from '../lib/istabul-utils';
+import { generateMergedCoverageReports } from '../lib/istabul.utils';
 import * as path from 'path';
+import { filePathExists, rmIfExists } from '../lib/fs.utils';
 
 export const localStorageClear = async (page: Page) => {
   await page.evaluate(() => {
@@ -100,10 +101,7 @@ export const mapLocator = async (
 };
 
 export const cleanCodeCoverageFiles = async () => {
-  try {
-    await fs.promises.stat(PATH_COVERAGE);
-    await fs.promises.rmdir(PATH_COVERAGE, { recursive: true });
-  } catch (e) {}
+  await rmIfExists(PATH_COVERAGE, { recursive: true });
   await fs.promises.mkdir(PATH_COVERAGE, { recursive: true });
 };
 
