@@ -15,6 +15,10 @@ function bin(command: string): string {
   return path.resolve(DIR_BIN, command);
 }
 
+function cleanDist() {
+  return rmIfExists(DIR_DIST);
+}
+
 export async function clean() {
   return Promise.all(
     TARGET_DIRS.map((filePath) =>
@@ -198,7 +202,7 @@ function startServe() {
   return buildWatchProcess;
 }
 
-export const serve = gulp.series(clean, assertServePortUnused, startServe);
+export const serve = gulp.series(cleanDist, assertServePortUnused, startServe);
 serve.description = 'Serve the application on a local port.';
 
 export function unitTest() {
