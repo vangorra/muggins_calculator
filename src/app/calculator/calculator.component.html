@@ -14,7 +14,14 @@
 <mat-card class="results">
   <mat-card-title>
     Results
-    <span *ngIf="equationsCount > 0"> ({{ equationsCount }})</span>
+    <span
+      *ngIf="
+        calculateState === calculateStates.PROCESSED &&
+        calculateResultArray.length > 0
+      "
+    >
+      ({{ calculateResultArray.length }})</span
+    >
   </mat-card-title>
 
   <mat-card-content
@@ -29,7 +36,7 @@
     class="none processedState"
     *ngIf="
       calculateState === calculateStates.PROCESSED &&
-      workerResponseDataArray.length === 0
+      calculateResultArray.length === 0
     "
     >No equations could be determined.</mat-card-content
   >
@@ -38,23 +45,20 @@
     class="data processedState"
     *ngIf="
       calculateState === calculateStates.PROCESSED &&
-      workerResponseDataArray.length > 0
+      calculateResultArray.length > 0
     "
   >
     <mat-card-subtitle>
       <div>Jump to solution:</div>
       <div>
-        <span
-          class="jumpButtonWrapper"
-          *ngFor="let data of workerResponseDataArray"
-        >
+        <span class="jumpButtonWrapper" *ngFor="let solution of solutions">
           <button
             mat-stroked-button
-            (click)="scrollToId(groupId(data.total))"
-            [attr.data-test-id]="'jumpTo_' + data.total"
+            (click)="jumpToResultIndex(solution.firstResultIndex)"
+            [attr.data-test-id]="'jumpTo_' + solution.total"
             class="jumpToSolutionButton"
           >
-            {{ data.total }}
+            {{ solution.total }}
           </button>
         </span>
       </div>
@@ -62,12 +66,21 @@
 
     <mat-card-content class="equations">
       <mat-selection-list [multiple]="false">
-        <ng-container *ngFor="let data of workerResponseDataArray">
-          <mat-divider [id]="groupId(data.total)"></mat-divider>
+        <ng-container
+          *uiScroll="
+            let calculateResultWithEquation of calculateResultArrayDataSource
+          "
+        >
+          <mat-divider
+            [ngStyle]="{
+              visibility: calculateResultWithEquation.isFirstSolution
+                ? 'visible'
+                : 'hidden'
+            }"
+          ></mat-divider>
           <mat-list-option
-            *ngFor="let calculateResultWithEquation of data.results"
             [value]="calculateResultWithEquation.fullEquation"
-            [ngClass]="'equation'"
+            class="equation"
           >
             <span appMathJax>{{
               calculateResultWithEquation.fullEquation
@@ -83,4 +96,5 @@
 <app-scroll-to-top
   [visibleAfterElementQuery]="'#diceOptions'"
   [offsetElementQuery]="'#appToolbar'"
+  [beforeScroll]="reloadResultsToStart"
 ></app-scroll-to-top>

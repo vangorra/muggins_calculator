@@ -3,7 +3,8 @@ import { spawn } from 'child_process';
 import { generateMergedCoverageReports } from './lib/istabul.utils';
 import * as net from 'net';
 import * as path from 'path';
-import { filePathExists, rmIfExists } from './lib/fs.utils';
+import { filePathExists } from './lib/fs.utils';
+import fs from 'fs';
 
 const DIR_BIN = path.resolve('./node_modules/.bin/');
 const DIR_BUILD = path.resolve('build');
@@ -16,15 +17,13 @@ function bin(command: string): string {
 }
 
 function cleanDist() {
-  return rmIfExists(DIR_DIST);
+  return fs.promises.rm(DIR_DIST, { recursive: true, force: true });
 }
 
 export async function clean() {
   return Promise.all(
     TARGET_DIRS.map((filePath) =>
-      rmIfExists(filePath, {
-        recursive: true,
-      })
+      fs.promises.rm(filePath, { recursive: true, force: true })
     )
   );
 }

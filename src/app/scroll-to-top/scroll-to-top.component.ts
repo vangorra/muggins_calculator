@@ -30,6 +30,8 @@ export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input() offsetElementQuery?: string;
 
+  @Input() beforeScroll: () => Promise<void> = () => Promise.resolve();
+
   isVisible = false;
 
   visibleAfterElement?: HTMLElement;
@@ -83,7 +85,9 @@ export class ScrollToTopComponent implements OnInit, OnChanges, OnDestroy {
     this.isVisible = window.scrollY > afterScrollY - offset;
   }
 
-  scrollToTop() {
+  async click() {
+    await this.beforeScroll();
+
     window.scrollTo({
       top: 0,
       left: 0,

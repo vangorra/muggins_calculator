@@ -45,7 +45,7 @@ export interface CalculateResult {
   readonly sortableEquation: string;
 }
 
-export const EQUATION_FORMATTER = (total: number, equation: string) =>
+export const EQUATION_FORMATTER = (total: string | number, equation: string) =>
   `${total} = ${equation}`;
 const GROUPING_PARENTHESIS = (text: string) => `(${text})`;
 const GROUPING_NONE = (text: string) => text;
@@ -377,11 +377,15 @@ export class MugginsSolver {
         const total = equation.total();
         const equationStr = equation.toString(false);
         const fullEquation = EQUATION_FORMATTER(total, equationStr);
+        const sortableEquation = EQUATION_FORMATTER(
+          String(total).padStart(4, '0'),
+          equationStr
+        );
         return {
           total,
           fullEquation,
           equation: equationStr,
-          sortableEquation: getSortableEquation(fullEquation),
+          sortableEquation: getSortableEquation(sortableEquation),
         };
       });
 

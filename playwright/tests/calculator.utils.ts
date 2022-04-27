@@ -2,6 +2,7 @@ import { expect, Page } from '@playwright/test';
 import { getScrollY, waitForAnimationToSettle, waitForScrollY } from '../utils';
 
 export const waitForCalculatorPage = async (page: Page) => {
+  await page.screenshot({ path: 'AAAA.png' });
   await page.waitForSelector('app-calculator');
   await waitForAnimationToSettle();
 };

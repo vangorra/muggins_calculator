@@ -32,6 +32,7 @@ import { ScrollToTopComponent } from './scroll-to-top/scroll-to-top.component';
 import { DiceComponent } from './dice/dice.component';
 import { MathJaxModule } from './math-jax/math-jax.module';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { UiScrollModule } from 'ngx-ui-scroll';
 
 @NgModule({
   declarations: [
@@ -67,6 +68,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
     MatToolbarModule,
     MatDialogModule,
     MatSnackBarModule,
+    UiScrollModule,
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: environment.production,
       // Register the ServiceWorker as soon as the app is stable

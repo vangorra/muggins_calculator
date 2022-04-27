@@ -10,6 +10,7 @@ import { expect, test } from '@playwright/test';
 import { PATH_CONFIGURATION } from '../const';
 import {
   clickResetToDefaultsButton,
+  clickToolbarCloseButton,
   FACE_COUNT_QUERY,
   getConfiguration,
   MAX_SIZE_QUERY,
@@ -23,9 +24,13 @@ import {
   standardizeConfiguration,
   waitForConfigurationPage,
 } from './configuration.utils';
-import { DEFAULT_CONFIGURATION } from '../../src/app/const';
+import {
+  DEFAULT_CONFIGURATION,
+  MINIMUM_PERFORMANT_DIE_COUNT,
+} from '../../src/app/const';
 import { ThemeEnum } from '../../src/app/general_types';
 import { OperationEnum, OPERATIONS } from '../../src/app/solver/solver';
+import { range } from 'lodash';
 
 const SCREENSHOT_DEFAULT_STARTUP = 'default_startup.png';
 
@@ -249,12 +254,10 @@ test('Snackbar warning appears when more than default dice added.', async ({
   });
   await setDice(
     page,
-    DEFAULT_CONFIGURATION.dice.concat([
-      {
-        faceCount: 6,
-        selectedFace: 1,
-      },
-    ])
+    range(MINIMUM_PERFORMANT_DIE_COUNT + 1).map(() => ({
+      faceCount: 6,
+      selectedFace: 1,
+    }))
   );
   await page.waitForSelector('snack-bar-container');
   await waitForAnimationToSettle();
@@ -264,6 +267,24 @@ test('Snackbar warning appears when more than default dice added.', async ({
 
   await setDice(page, DEFAULT_CONFIGURATION.dice);
   await waitForAnimationToSettle();
+  await page.waitForSelector('snack-bar-container', {
+    state: 'detached',
+  });
+});
+
+test('Snackbar warning disappears when navigating await.', async ({ page }) => {
+  await page.waitForSelector('snack-bar-container', {
+    state: 'detached',
+  });
+  await setDice(
+    page,
+    range(MINIMUM_PERFORMANT_DIE_COUNT + 1).map(() => ({
+      faceCount: 6,
+      selectedFace: 1,
+    }))
+  );
+  await page.waitForSelector('snack-bar-container');
+  await clickToolbarCloseButton(page);
   await page.waitForSelector('snack-bar-container', {
     state: 'detached',
   });

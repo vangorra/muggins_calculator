@@ -21,7 +21,7 @@ import {
   MatSnackBarRef,
   TextOnlySnackBar,
 } from '@angular/material/snack-bar';
-import { DEFAULT_DIE_COUNT } from '../const';
+import { MINIMUM_PERFORMANT_DIE_COUNT } from '../const';
 
 @Component({
   selector: 'app-configuration',
@@ -69,6 +69,8 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.addDieSnackbarWarning?.dismissWithAction();
+
     this.configurationSubscription?.unsubscribe();
     this.configurationSubscription = undefined;
   }
@@ -107,9 +109,12 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
     this.configurationService.save();
 
     const dieCount = this.configurationService.value.getValue().dice.length;
-    if (dieCount > DEFAULT_DIE_COUNT && !this.addDieSnackbarWarning) {
+    if (
+      dieCount > MINIMUM_PERFORMANT_DIE_COUNT &&
+      !this.addDieSnackbarWarning
+    ) {
       this.addDieSnackbarWarning = this.matSnackBar.open(
-        `Warning: More than ${DEFAULT_DIE_COUNT} dice will result is VERY slow runs.`,
+        `Warning: More than ${MINIMUM_PERFORMANT_DIE_COUNT} dice will result is VERY slow runs.`,
         'Dismiss',
         {
           duration: 5000,
@@ -127,7 +132,10 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
     this.configurationService.save();
 
     const dieCount = this.configurationService.value.getValue().dice.length;
-    if (dieCount <= DEFAULT_DIE_COUNT && !!this.addDieSnackbarWarning) {
+    if (
+      dieCount <= MINIMUM_PERFORMANT_DIE_COUNT &&
+      !!this.addDieSnackbarWarning
+    ) {
       this.addDieSnackbarWarning?.dismissWithAction();
     }
   }

@@ -6,6 +6,11 @@ export const DEFAULT_DIE_FACE_COUNT = 6;
 export const DEFAULT_DIE_SELECTED_FACE = 1;
 export const DEFAULT_DIE_COUNT = 3;
 
+/**
+ * The minimum number of dice that will result in a reasonable experience.
+ */
+export const MINIMUM_PERFORMANT_DIE_COUNT = 4;
+
 export const DEFAULT_CONFIGURATION: Configuration = {
   theme: ThemeEnum.AUTOMATIC,
   operations: [

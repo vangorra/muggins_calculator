@@ -15,15 +15,10 @@ describe('Solver utils', () => {
       {
         "data": [
           {
-            "total": "3",
-            "results": [
-              {
-                "total": 3,
-                "fullEquation": "3 = 1 + (1 + 1)",
-                "equation": "1 + (1 + 1)",
-                "sortableEquation": "3 Z 1 + X1 + 1Y"
-              }
-            ]
+            "total": 3,
+            "fullEquation": "3 = 1 + (1 + 1)",
+            "equation": "1 + (1 + 1)",
+            "sortableEquation": "0003 Z 1 + X1 + 1Y"
           }
         ]
       }

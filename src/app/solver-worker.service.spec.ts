@@ -31,15 +31,10 @@ describe(SolverWorkerService.name, () => {
           expect(response).toEqual({
             data: [
               {
-                total: '6',
-                results: [
-                  {
-                    total: 6,
-                    fullEquation: '6 = 2 + (2 + 2)',
-                    equation: '2 + (2 + 2)',
-                    sortableEquation: '6 Z 2 + X2 + 2Y',
-                  },
-                ],
+                total: 6,
+                fullEquation: '6 = 2 + (2 + 2)',
+                equation: '2 + (2 + 2)',
+                sortableEquation: '0006 Z 2 + X2 + 2Y',
               },
             ],
           });

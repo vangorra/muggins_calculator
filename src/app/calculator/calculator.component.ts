@@ -1,10 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Configuration, Die } from '../general_types';
-import {
-  SolverWorkerMessage,
-  SolverWorkerResponse,
-  SolverWorkerResponseDataArray,
-} from '../solver/utils';
+import { SolverWorkerMessage, SolverWorkerResponse } from '../solver/utils';
 import { ConfigurationService } from '../configuration.service';
 import { Subscription, take } from 'rxjs';
 import { ToolbarService } from '../toolbar.service';
@@ -12,10 +8,27 @@ import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { AboutDialogComponent } from '../about-dialog/about-dialog.component';
 import { SolverWorkerService } from '../solver-worker.service';
+import { Datasource } from 'ngx-ui-scroll';
+import { CalculateResult } from '../solver/solver';
+import { SizeStrategy } from 'vscroll';
+import { uniqBy } from 'lodash';
 
-enum CalculateState {
+export enum CalculateState {
   PROCESSING = 'processing',
   PROCESSED = 'processed',
+}
+
+interface Solution {
+  readonly total: number;
+  /**
+   * Determines if this is the first result of a new total. This is used to show a divider between groups of results.
+   */
+  readonly firstResultIndex: number;
+}
+
+interface CalculateResultWithId extends CalculateResult {
+  readonly index: number;
+  readonly isFirstSolution: boolean;
 }
 
 @Component({
@@ -30,13 +43,27 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   readonly dice: Die[] = [];
 
-  readonly workerResponseDataArray: SolverWorkerResponseDataArray = [];
+  readonly solutions: Solution[] = [];
 
-  equationsCount: number = 0;
+  readonly calculateResultArray: CalculateResultWithId[] = [];
 
   configurationSubscription?: Subscription;
 
   solverWorkerResponse?: SolverWorkerResponse;
+
+  readonly calculateResultArrayDataSource =
+    new Datasource<CalculateResultWithId>({
+      get: (index, count, success) => {
+        success(this.calculateResultArray.slice(index, index + count));
+      },
+      settings: {
+        minIndex: 0,
+        startIndex: 0,
+        bufferSize: 15,
+        sizeStrategy: SizeStrategy.Constant,
+        windowViewport: true,
+      },
+    });
 
   constructor(
     private readonly configurationService: ConfigurationService,
@@ -105,19 +132,39 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       .subscribe((response) => this.onWorkerResponse(response));
   }
 
-  emptyEquationGroups() {
-    this.workerResponseDataArray.splice(0, this.workerResponseDataArray.length);
-    this.equationsCount = 0;
-  }
+  async onWorkerResponse(response: SolverWorkerResponse): Promise<void> {
+    // Empty and add the new results.
+    let currentSolution: number | undefined = undefined;
+    const newResults = response.data.map((result, index) => {
+      const solution = result.total;
+      const isFirstSolution = solution != currentSolution;
+      currentSolution = solution;
+      return {
+        ...result,
+        index,
+        isFirstSolution,
+      };
+    });
+    this.calculateResultArray.splice(0, this.calculateResultArray.length);
+    this.calculateResultArray.push(...newResults);
 
-  onWorkerResponse(response: SolverWorkerResponse): void {
-    this.emptyEquationGroups();
+    // Empty and add the solutions.
+    const newSolutions = uniqBy(this.calculateResultArray, 'total').map(
+      ({ total, index }) =>
+        ({
+          total,
+          firstResultIndex: index,
+        } as Solution)
+    );
+    this.solutions.splice(0, this.solutions.length);
+    this.solutions.push(...newSolutions);
 
-    // Add the new groups.
-    this.workerResponseDataArray.push(...response.data);
-    this.equationsCount = this.workerResponseDataArray
-      .map((data) => data.results.length)
-      .reduce((partialSum, a) => partialSum + a, 0);
+    const { adapter } = this.calculateResultArrayDataSource;
+    await adapter.relax();
+    await adapter.replace({
+      items: this.calculateResultArray,
+      predicate: () => true,
+    });
     this.calculateState = CalculateState.PROCESSED;
   }
 
@@ -136,13 +183,26 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     this.reload();
   }
 
-  groupId(group: string): string {
-    return `group_${group}`;
+  async jumpToResultIndex(targetIndex: number): Promise<void> {
+    const { adapter } = this.calculateResultArrayDataSource;
+
+    // Tell the adapter to start from this item.
+    await adapter.relax();
+    await adapter.reload(targetIndex);
+
+    // Ensure the item is not hidden by the toolbar.
+    const scrollToIndex = targetIndex - 2 >= 0 ? targetIndex - 2 : 0;
+    await adapter.relax();
+    await adapter.fix({
+      scrollToItem: ({ data }) => data.index === scrollToIndex,
+    });
   }
 
-  scrollToId(groupId: string): void {
-    document
-      .getElementById(groupId)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
+  readonly reloadResultsToStart = async () => {
+    const { adapter } = this.calculateResultArrayDataSource;
+    await adapter.relax();
+    await adapter.fix({
+      scrollPosition: 0,
+    });
+  };
 }
