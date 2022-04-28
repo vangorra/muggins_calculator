@@ -5,11 +5,20 @@ set -euf -o pipefail
 #
 
 SELF_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+ENV_PASS_THROUGH="BASE_HREF CI GITHUB_TOKEN"
 DOCKERFILE_PATH="$SELF_DIR/Dockerfile"
 DOCKERFILE_MD5_PATH="$SELF_DIR/.Dockerfile.md5"
 IMAGE_LABEL="muggins_build_environment"
 CONTAINER_NAME="$IMAGE_LABEL"
-DOCKER_ARGS="--env 'CI=${CI:-}' --env GITHUB_TOKEN='${GITHUB_TOKEN:-}'"
+DOCKER_ARGS=""
+for ENV_VAR in $ENV_PASS_THROUGH
+do
+  ENV_VAL=$(env | grep "$ENV_VAR=" | cut -d '=' -f2 || true)
+  if [[ -n "$ENV_VAL" ]]; then
+    DOCKER_ARGS="$DOCKER_ARGS --env $ENV_VAR=$ENV_VAL"
+  fi
+done
+
 if [[ -z "${CI:-}" ]]; then
   DOCKER_ARGS="--tty $DOCKER_ARGS"
 fi

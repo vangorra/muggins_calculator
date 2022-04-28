@@ -1,9 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ThemeService } from './theme.service';
 import { MathJaxService } from './math-jax/math-jax.service';
-import { Router } from '@angular/router';
-import { isString } from 'lodash';
-import { STORAGE_KEY_404_REDIRECT_PATH } from './const';
 
 @Component({
   selector: 'app-root',
@@ -18,21 +15,11 @@ export default class AppComponent implements OnInit {
    * created in injected means it loaded and set the theme.
    * @param themeService
    * @param mathJaxService
-   * @param router
    */
   constructor(
     private readonly themeService: ThemeService,
-    readonly mathJaxService: MathJaxService,
-    private readonly router: Router
-  ) {
-    // See 404.html for where this is set. On github pages, the 404.html page is loaded which sets the destination
-    // path and redirects to root of the application. then we retrieve the desired path and route there.
-    const initialPath = localStorage.getItem(STORAGE_KEY_404_REDIRECT_PATH);
-    if (!!initialPath && isString(initialPath)) {
-      localStorage.removeItem(STORAGE_KEY_404_REDIRECT_PATH);
-      router.navigate([initialPath]);
-    }
-  }
+    readonly mathJaxService: MathJaxService
+  ) {}
 
   ngOnInit(): void {
     this.mathJaxService.start();

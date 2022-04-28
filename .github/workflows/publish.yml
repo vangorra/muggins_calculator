@@ -13,6 +13,8 @@ jobs:
       - uses: actions/checkout@v2
       - run: ./devenv.sh exec npm install
       - run: ./devenv.sh exec gulp buildFullCi
+        env:
+          BASE_HREF: "/muggins_calculator/"
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:

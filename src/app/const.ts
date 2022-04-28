@@ -28,5 +28,3 @@ export const DEFAULT_CONFIGURATION: Configuration = {
     selectedFace: DEFAULT_DIE_SELECTED_FACE,
   })),
 };
-
-export const STORAGE_KEY_404_REDIRECT_PATH = '404_redirect_path';

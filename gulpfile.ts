@@ -11,6 +11,7 @@ const DIR_BUILD = path.resolve('build');
 const DIR_DIST = path.resolve('dist');
 const TARGET_DIRS = [DIR_BUILD, DIR_DIST];
 const SERVE_PORT = 4200;
+const BASE_HREF = process.env.BASE_HREF || '.';
 
 function bin(command: string): string {
   return path.resolve(DIR_BIN, command);
@@ -78,6 +79,8 @@ export function build() {
       '~/build_plugins/prod_build_plugin.js',
       '--configuration',
       'production',
+      '--base-href',
+      BASE_HREF,
     ],
     {
       stdio: 'inherit',
@@ -162,6 +165,8 @@ function startServe() {
       '~/build_plugins/dev_build_plugin.js',
       '--configuration',
       'production',
+      '--base-href',
+      BASE_HREF,
     ],
     { stdio: 'inherit' }
   );

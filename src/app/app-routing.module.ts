@@ -13,9 +13,8 @@ export const routes: Routes = [
     component: ConfigurationComponent,
   },
   {
-    path: '',
+    path: '**',
     redirectTo: '/calculator',
-    pathMatch: 'full',
   },
 ];
 
