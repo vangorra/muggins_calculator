@@ -5,7 +5,7 @@ set -euf -o pipefail
 #
 
 SELF_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-ENV_PASS_THROUGH="BASE_HREF CI GITHUB_TOKEN"
+ENV_PASS_THROUGH="BUILD_BASE_HREF SERVE_BASE_HREF CI GITHUB_TOKEN"
 DOCKERFILE_PATH="$SELF_DIR/Dockerfile"
 DOCKERFILE_MD5_PATH="$SELF_DIR/.Dockerfile.md5"
 IMAGE_LABEL="muggins_build_environment"
