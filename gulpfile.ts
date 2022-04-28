@@ -29,7 +29,12 @@ export async function clean() {
 }
 clean.description = `Remove directories: ` + TARGET_DIRS.join(',');
 
-const checkGlobs = ['src/', 'playwright/', '*.ts', '*.js'];
+const checkGlobs = [
+  '*.ts',
+  'src/**/*.ts',
+  'playwright/**/*.ts',
+  'build_plugins/**.js',
+];
 
 export function formatCodeApply() {
   return spawn(bin('prettier'), ['--write', ...checkGlobs], {
@@ -65,9 +70,19 @@ export function lintCheck() {
 lintCheck.description = 'Check if code passes lint checks.';
 
 export function build() {
-  return spawn(bin('ng'), ['build', '--configuration', 'production'], {
-    stdio: 'inherit',
-  });
+  return spawn(
+    bin('ng'),
+    [
+      'build',
+      '--plugin',
+      '~/build_plugins/prod_build_plugin.js',
+      '--configuration',
+      'production',
+    ],
+    {
+      stdio: 'inherit',
+    }
+  );
 }
 build.description = 'Compile the code.';
 
@@ -144,7 +159,7 @@ function startServe() {
       '--progress',
       '--watch',
       '--plugin',
-      '~angular_coverage_plugin.js',
+      '~/build_plugins/dev_build_plugin.js',
       '--configuration',
       'production',
     ],
