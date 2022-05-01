@@ -2,7 +2,7 @@
 /**
  * Tools for providing solutions to muggins dice.
  */
-import { isNumber, sortBy, sortedUniqBy, uniqWith } from 'lodash';
+import { isNumber, range, sortBy, sortedUniqBy, uniqWith } from 'lodash';
 
 type PairingPermutation = Array<
   number | PairingPermutation | PairingPermutation[]
@@ -43,12 +43,14 @@ export interface CalculateResult {
   readonly equation: string;
   readonly fullEquation: string;
   readonly sortableEquation: string;
+  readonly isLeaf?: boolean;
 }
 
 export const EQUATION_FORMATTER = (total: string | number, equation: string) =>
   `${total} = ${equation}`;
 const GROUPING_PARENTHESIS = (text: string) => `(${text})`;
 const GROUPING_NONE = (text: string) => text;
+const EMPTY_STRING = '';
 
 export const OPERATIONS: Operation[] = [
   {
@@ -142,9 +144,6 @@ export const OPERATIONS_MAP: OperationMapType = Object.fromEntries(
   OPERATIONS.map((operation) => [operation.id, operation])
 ) as OperationMapType;
 
-const cartesianProduct = (...a: any[]): any[][] =>
-  a.reduce((t: any[], b) => t.flatMap((d) => b.map((e: any) => [d, e].flat())));
-
 /**
  * In ASCII, operators like + - /, etc come before numbers. This means when sorting equations at the end,
  * the operators take precedence. So equations like '(8 + 1) + 2' come before '2 + (8 + 1)'. To fix this,
@@ -159,124 +158,134 @@ export function getSortableEquation(equation: string): string {
     .replace(/[=]/g, 'Z');
 }
 
-abstract class BaseEquation {
-  private totalCache: number | undefined = undefined;
+export class Equation {
+  private static calculateResultSorter(
+    a: CalculateResult,
+    b: CalculateResult
+  ): number {
+    if (a.isLeaf && a.total < b.total) {
+      return -1;
+    }
+    if (b.isLeaf && b.total < a.total) {
+      return 1;
+    }
+    if (a.isLeaf) {
+      return -1;
+    }
+    if (b.isLeaf) {
+      return 1;
+    }
+    if (a.total < b.total) {
+      return -1;
+    }
+    if (b.total < a.total) {
+      return 1;
+    }
+    return 0;
+  }
 
-  private stringCache: string | undefined = undefined;
-
-  public total(): number {
-    if (this.totalCache === undefined) {
-      this.totalCache = this.calculateTotal();
+  private static calculateResultReducer(
+    left: CalculateResult | undefined,
+    right: CalculateResult | undefined,
+    operation: Operation,
+    isRoot: boolean
+  ): CalculateResult | undefined {
+    if (!left || !right) {
+      return undefined;
     }
 
-    return this.totalCache;
-  }
+    // Solve the equation.
+    const total = operation.solve(left.total, right.total);
 
-  abstract calculateTotal(): number;
-
-  toString(withGrouping = true): string {
-    if (this.stringCache === undefined) {
-      this.stringCache = this.calculateToString(withGrouping);
+    // Cannot be solved.
+    if (isNaN(total)) {
+      return undefined;
     }
 
-    return this.stringCache;
-  }
-
-  abstract calculateToString(withGrouping: boolean): string;
-}
-
-class EquationNumber extends BaseEquation {
-  constructor(private readonly num: number) {
-    super();
-  }
-
-  calculateTotal(): number {
-    return this.num;
-  }
-
-  calculateToString(): string {
-    return `${this.num}`;
-  }
-}
-
-class Equation extends BaseEquation {
-  constructor(
-    private readonly left: BaseEquation,
-    private readonly right: BaseEquation,
-    private readonly operation: Operation
-  ) {
-    super();
-  }
-
-  calculateTotal(): number {
-    const num1 = +this.left.total();
-    const num2 = +this.right.total();
-
-    return this.operation.solve(num1, num2);
-  }
-
-  calculateToString(withGrouping = true): string {
-    const left = this.left.toString();
-    const right = this.right.toString();
-
-    const display = this.operation.display(left, right);
-    if (!withGrouping) {
-      return display;
-    }
-    return this.operation.displayGroup(display);
-  }
-
-  static createFromPairingsAndOperations(
-    pairings: PairingPermutation,
-    operations: Operation[]
-  ): Equation {
-    return Equation.createFromPairingsAndOperationsInternal(
-      pairings.slice(),
-      operations.slice()
-    );
-  }
-
-  private static createFromPairingsAndOperationsInternal(
-    pairings: PairingPermutation,
-    operations: Operation[]
-  ): Equation {
-    const operation = operations.pop() as Operation;
-    let pairing0 = pairings[0];
-    let pairing1 = pairings[1];
-
-    // For operation where order does not matter, configure the equation member order
-    // to make it easy to find and filter out duplicate equations. So duplicate equations like
-    // "4 + (3 - 2) = 5" and "(3 - 2) + 4 = 5" would instead become "4 + (3 - 2)" and equations like
-    // "4 + 3 = 7" and "3 + 4 = 7" become "3 + 4 = 7".
     if (operation.isCommutative) {
-      const shouldSwap =
-        (isNumber(pairing0) && isNumber(pairing1) && pairing1 < pairing0) ||
-        (!isNumber(pairing0) && isNumber(pairing1));
-
-      if (shouldSwap) {
-        const tmp = pairing0;
-        pairing0 = pairing1;
-        pairing1 = tmp;
-      }
+      [left, right] = [left, right].sort(Equation.calculateResultSorter);
     }
 
-    return new Equation(
-      Equation.newNum(pairing0, operations),
-      Equation.newNum(pairing1, operations),
-      operation
+    const groupFn = isRoot ? GROUPING_NONE : operation.displayGroup;
+    const equation = groupFn(operation.display(left.equation, right.equation));
+    const fullEquation = isRoot
+      ? EQUATION_FORMATTER(total, equation)
+      : EMPTY_STRING;
+    return {
+      total,
+      fullEquation,
+      equation,
+      sortableEquation: isRoot
+        ? getSortableEquation(
+            EQUATION_FORMATTER(`${total}`.padStart(4, '0'), equation)
+          )
+        : EMPTY_STRING,
+      isLeaf: false,
+    };
+  }
+
+  public static calculate(
+    pairing: PairingPermutation | number,
+    operations: Operation[],
+    isRoot = true
+  ): CalculateResult | undefined {
+    if (isNumber(pairing)) {
+      return {
+        total: pairing,
+        equation: `${pairing}`,
+        fullEquation: EMPTY_STRING,
+        sortableEquation: EMPTY_STRING,
+        isLeaf: true,
+      };
+    }
+
+    const operation = operations[operations.length - 1];
+    const nextOperations = operations.slice(0, operations.length - 1);
+    const [left, right] = pairing.map((pairMember) =>
+      Equation.calculate(pairMember, nextOperations, false)
     );
+    return Equation.calculateResultReducer(left, right, operation, isRoot);
   }
+}
 
-  private static newNum(
-    num: PairingPermutation | number,
-    operations: Operation[]
-  ): BaseEquation {
-    if (Array.isArray(num)) {
-      return Equation.createFromPairingsAndOperationsInternal(num, operations);
-    }
+/**
+ * Iterative cross-product of variable sized arrays.
+ * Original source: https://stackoverflow.com/a/4331713
+ * @param sourceArrays
+ */
+export function crossProduct(sourceArrays: any[][]): any[][] {
+  const sourceArraysIndexes = range(sourceArrays.length);
 
-    return new EquationNumber(num);
-  }
+  // Pre-calculate divisors
+  const divisors: number[] = [];
+  sourceArraysIndexes
+    .slice()
+    .reverse()
+    .forEach((sourceArraysIndex) => {
+      const nextSourceArrayIndex = sourceArraysIndex + 1;
+      const nextDivisor = divisors[nextSourceArrayIndex];
+      if (nextDivisor) {
+        divisors[sourceArraysIndex] =
+          nextDivisor * sourceArrays[nextSourceArrayIndex].length;
+      } else {
+        divisors[sourceArraysIndex] = 1;
+      }
+    });
+
+  // Calculate the total number of results that will be returned.
+  const totalResults = sourceArrays
+    .map((arr) => arr.length)
+    .reduce((x, y) => x * y);
+  return range(totalResults).map((permutationIndex) => {
+    // Calculate the current result based on the permutation index.
+    return sourceArraysIndexes.map((sourceArraysIndex) => {
+      const currentArray = sourceArrays[sourceArraysIndex];
+      return currentArray[
+        Math.floor(permutationIndex / divisors[sourceArraysIndex]) %
+          currentArray.length
+      ];
+    });
+  });
 }
 
 export class MugginsSolver {
@@ -326,8 +335,6 @@ export class MugginsSolver {
 
   /**
    * Get equations for the selected configurations.
-   * @param selectedFaces
-   * @param selectedOperations
    */
   public calculateSolutions(): CalculateResult[] {
     if (this.config.faces.length < 2 || this.config.operations.length === 0) {
@@ -339,59 +346,33 @@ export class MugginsSolver {
       (a, b) => a.join('_') === b.join('_')
     ) as number[][];
 
-    const operationPermutations = cartesianProduct(
-      ...this.config.faces.slice(1).map(() => this.config.operations)
+    const operationPermutations = crossProduct(
+      this.config.faces.slice(1).map(() => this.config.operations)
     );
 
     const facePairingPermutations = facePermutations.flatMap((f) =>
       this.pairingPermutations(f)
     );
 
-    const equations = cartesianProduct(
+    const finalProduct = crossProduct([
       facePairingPermutations,
-      operationPermutations
-    )
-      .map((item) => {
-        const pairing1 = item.slice(0, 1);
-        const pairing2 = item.slice(1, 2);
+      operationPermutations,
+    ]);
 
-        return [
-          pairing1.length > 1 ? pairing1 : pairing1[0],
-          pairing2.length > 1 ? pairing2 : pairing2[0],
-          item.slice(2, item.length),
-        ];
-      })
-      .map(([pairing1, pairing2, operations]) =>
-        Equation.createFromPairingsAndOperations(
-          [pairing1, pairing2],
-          operations
-        )
-      )
+    const equations = finalProduct
+      .map(([pairings, operations]) => Equation.calculate(pairings, operations))
       .filter(
-        (equation) =>
-          Number.isInteger(equation.total()) &&
-          equation.total() >= this.config.minTotal &&
-          equation.total() <= this.config.maxTotal
+        (result) =>
+          !!result &&
+          Number.isInteger(result.total) &&
+          result.total >= this.config.minTotal &&
+          result.total <= this.config.maxTotal
       )
-      .map((equation) => {
-        const total = equation.total();
-        const equationStr = equation.toString(false);
-        const fullEquation = EQUATION_FORMATTER(total, equationStr);
-        const sortableEquation = EQUATION_FORMATTER(
-          String(total).padStart(4, '0'),
-          equationStr
-        );
-        return {
-          total,
-          fullEquation,
-          equation: equationStr,
-          sortableEquation: getSortableEquation(sortableEquation),
-        };
-      });
+      .map((result) => ({ ...result, isLeaf: undefined })) as CalculateResult[];
 
     return sortedUniqBy(
       sortBy(equations, (equation) => equation.sortableEquation),
-      (equation) => equation.sortableEquation
+      'sortableEquation'
     );
   }
 }
