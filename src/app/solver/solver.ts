@@ -2,7 +2,6 @@
 /**
  * Tools for providing solutions to muggins dice.
  */
-import { isNumber, range, sortBy, sortedUniqBy, uniqWith } from 'lodash';
 
 type PairingPermutation = Array<
   number | PairingPermutation | PairingPermutation[]
@@ -185,21 +184,17 @@ export class Equation {
   }
 
   private static calculateResultReducer(
-    left: CalculateResult | undefined,
-    right: CalculateResult | undefined,
+    left: CalculateResult,
+    right: CalculateResult,
     operation: Operation,
     isRoot: boolean
-  ): CalculateResult | undefined {
-    if (!left || !right) {
-      return undefined;
-    }
-
+  ): CalculateResult {
     // Solve the equation.
     const total = operation.solve(left.total, right.total);
 
     // Cannot be solved.
-    if (isNaN(total)) {
-      return undefined;
+    if (!Number.isFinite(total)) {
+      throw new Error(`Non-finite number returned ${total}.`);
     }
 
     if (operation.isCommutative) {
@@ -228,8 +223,8 @@ export class Equation {
     pairing: PairingPermutation | number,
     operations: Operation[],
     isRoot = true
-  ): CalculateResult | undefined {
-    if (isNumber(pairing)) {
+  ): CalculateResult {
+    if (!Array.isArray(pairing)) {
       return {
         total: pairing,
         equation: `${pairing}`,
@@ -246,6 +241,10 @@ export class Equation {
     );
     return Equation.calculateResultReducer(left, right, operation, isRoot);
   }
+}
+
+function range(size: number): number[] {
+  return [...new Array(size).keys()];
 }
 
 /**
@@ -341,38 +340,75 @@ export class MugginsSolver {
       return [];
     }
 
-    const facePermutations = uniqWith(
-      MugginsSolver.permutations(this.config.faces),
-      (a, b) => a.join('_') === b.join('_')
-    ) as number[][];
+    // Get unique face permutations.
+    const facePermutations = Object.values(
+      Object.fromEntries(
+        MugginsSolver.permutations(this.config.faces).map((permutation) => [
+          permutation.join('_'),
+          permutation,
+        ])
+      )
+    );
 
+    // Get unique operation permutations.
     const operationPermutations = crossProduct(
       this.config.faces.slice(1).map(() => this.config.operations)
     );
 
+    // Pair faces together.
     const facePairingPermutations = facePermutations.flatMap((f) =>
       this.pairingPermutations(f)
     );
 
+    // Get the final combination of face pairing and operations.
     const finalProduct = crossProduct([
       facePairingPermutations,
       operationPermutations,
     ]);
 
-    const equations = finalProduct
-      .map(([pairings, operations]) => Equation.calculate(pairings, operations))
-      .filter(
-        (result) =>
-          !!result &&
-          Number.isInteger(result.total) &&
-          result.total >= this.config.minTotal &&
-          result.total <= this.config.maxTotal
-      )
-      .map((result) => ({ ...result, isLeaf: undefined })) as CalculateResult[];
+    // Calculate results.
+    const uniqueResults = new Set();
+    const results: CalculateResult[] = [];
+    for (const [pairings, operations] of finalProduct) {
+      let result: CalculateResult;
+      try {
+        result = Equation.calculate(pairings, operations);
+      } catch (e) {
+        // Math is not possible to solve (divide by zero, etc).
+        continue;
+      }
 
-    return sortedUniqBy(
-      sortBy(equations, (equation) => equation.sortableEquation),
-      'sortableEquation'
-    );
+      // Has this result already been processed (duplicate elimination).
+      if (uniqueResults.has(result.sortableEquation)) {
+        continue;
+      }
+      uniqueResults.add(result.sortableEquation);
+
+      // Check if the result fits the board.
+      const isOnBoard =
+        Number.isInteger(result.total) &&
+        result.total >= this.config.minTotal &&
+        result.total <= this.config.maxTotal;
+      if (!isOnBoard) {
+        continue;
+      }
+
+      delete (result as any).isLeaf;
+      results.push(result);
+    }
+
+    results.sort((a, b) => {
+      if (a.sortableEquation < b.sortableEquation) {
+        return -1;
+      }
+
+      if (a.sortableEquation > b.sortableEquation) {
+        return 1;
+      }
+
+      return 0;
+    });
+
+    return results;
   }
 }
