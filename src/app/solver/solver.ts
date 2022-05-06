@@ -208,7 +208,7 @@ export class Equation {
       : EMPTY_STRING;
     return {
       total,
-      fullEquation,
+      fullEquation: fullEquation,
       equation,
       sortableEquation: isRoot
         ? getSortableEquation(
@@ -314,8 +314,8 @@ export class MugginsSolver {
     depth = 0
   ): PairingPermutation {
     // Not enough items to pair.
-    if (arr.length < 3) {
-      return [arr];
+    if (arr.length == 1) {
+      return arr;
     }
 
     const permutations: PairingPermutation = [];

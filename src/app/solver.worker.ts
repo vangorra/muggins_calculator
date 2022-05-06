@@ -7,5 +7,5 @@ import { runSolverWorkerMain } from './solver/utils';
 declare let self: ServiceWorkerGlobalScope;
 
 self.addEventListener('message', ({ data }) => {
-  postMessage(runSolverWorkerMain(data));
+  runSolverWorkerMain(data, (resultData) => postMessage(resultData));
 });

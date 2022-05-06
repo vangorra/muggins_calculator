@@ -10,6 +10,8 @@
 </mat-card>
 
 <br />
+<button (click)="toggleWasm()">Wasm Enabled: {{ solverWorkerService.useWasm }}</button>
+<button (click)="reload()">Reload</button>
 
 <mat-card class="results">
   <mat-card-title>

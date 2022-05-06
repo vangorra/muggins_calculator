@@ -70,7 +70,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     private readonly toolbarService: ToolbarService,
     private readonly router: Router,
     readonly matDialog: MatDialog,
-    private readonly solverWorkerService: SolverWorkerService
+    readonly solverWorkerService: SolverWorkerService
   ) {
     this.toolbarService.set({
       title: 'Muggins Calculator',
@@ -89,6 +89,10 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
         }),
       ],
     });
+  }
+
+  toggleWasm() {
+    this.solverWorkerService.useWasm = !this.solverWorkerService.useWasm;
   }
 
   ngOnInit(): void {

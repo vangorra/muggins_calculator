@@ -16,6 +16,8 @@ type RunSolverWorkerDoneType = (
   providedIn: 'root',
 })
 export class SolverWorkerService {
+  public useWasm = false;
+
   /**
    * Run a message through a worker. This method will begin work once the returned
    * observable is subscribed.
@@ -26,6 +28,8 @@ export class SolverWorkerService {
     message: SolverWorkerMessage,
     preferWorker = true
   ): Observable<SolverWorkerResponse> {
+    (message as any).useWasm = this.useWasm;
+
     let runnerFn: (done: RunSolverWorkerDoneType) => void;
 
     if (Worker && preferWorker) {
@@ -41,7 +45,7 @@ export class SolverWorkerService {
       // Run process in current thread.
       runnerFn = (done: RunSolverWorkerDoneType) => {
         try {
-          done(undefined, runSolverWorkerMain(message));
+          runSolverWorkerMain(message, (data) => done(undefined, data))
         } catch (e) {
           done(e, undefined as any);
         }

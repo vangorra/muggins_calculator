@@ -14,6 +14,12 @@ describe(SolverWorkerService.name, () => {
     service = TestBed.inject(SolverWorkerService);
   });
 
+  test.only("AAAAAA", () => {
+    const alertSoy = spyOn(window, "alert");
+    service.postMessage2();
+    expect(alertSoy).toHaveBeenCalledWith("FF");
+  });
+
   const testPostMessage = (preferWorker: boolean) => {
     test(`Post message ${preferWorker ? 'with' : 'without'} worker`, (done) => {
       service
