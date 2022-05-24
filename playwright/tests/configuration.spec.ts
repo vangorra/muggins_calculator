@@ -29,7 +29,7 @@ import {
   MINIMUM_PERFORMANT_DIE_COUNT,
 } from '../../src/app/const';
 import { ThemeEnum } from '../../src/app/general_types';
-import { OperationEnum, OPERATIONS } from '../../src/app/solver/solver';
+import { OperationEnum, OPERATIONS } from '../../src/app/solver/solver-common';
 import { range } from 'lodash';
 
 const SCREENSHOT_DEFAULT_STARTUP = 'default_startup.png';

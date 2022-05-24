@@ -20,7 +20,7 @@
         calculateResultArray.length > 0
       "
     >
-      ({{ calculateResultArray.length }})</span
+      ({{ calculateResultArray.length.toLocaleString() }})</span
     >
   </mat-card-title>
 
@@ -28,8 +28,22 @@
     class="loading"
     *ngIf="calculateState === calculateStates.PROCESSING"
   >
-    <p><mat-spinner></mat-spinner></p>
-    Loading
+    <p><mat-progress-bar
+      mode="determinate"
+      [value]="calculateProgress"
+    ></mat-progress-bar></p>
+    <p>Calculating all possible results.</p>
+    <button mat-raised-button (click)="cancel()">Cancel</button>
+  </mat-card-content>
+
+  <mat-card-content
+    class="cancelled"
+    *ngIf="
+      calculateState === calculateStates.CANCELLED
+    "
+  >
+    <p>Calculation cancelled.</p>
+    <button mat-raised-button (click)="reload()">Reload</button>
   </mat-card-content>
 
   <mat-card-content
@@ -38,7 +52,7 @@
       calculateState === calculateStates.PROCESSED &&
       calculateResultArray.length === 0
     "
-    >No equations could be determined.</mat-card-content
+  >No equations could be determined.</mat-card-content
   >
 
   <div

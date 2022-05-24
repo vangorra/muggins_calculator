@@ -15,7 +15,11 @@ import {
   ButtonTypeEnum,
   ConfirmDialogComponent,
 } from '../confirm-dialog/confirm-dialog.component';
-import { EQUATION_FORMATTER, Operation, OPERATIONS } from '../solver/solver';
+import {
+  EQUATION_FORMATTER,
+  Operation,
+  OPERATIONS,
+} from '../solver/solver-common';
 import {
   MatSnackBar,
   MatSnackBarRef,

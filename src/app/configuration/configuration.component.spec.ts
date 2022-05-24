@@ -12,7 +12,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ConfigurationService } from '../configuration.service';
 import { MatRadioModule } from '@angular/material/radio';
 import { DieConfiguration, ThemeEnum } from '../general_types';
-import { OperationEnum } from '../solver/solver';
+import { OperationEnum } from '../solver/solver-common';
 import { DEFAULT_CONFIGURATION, DEFAULT_DIE_SELECTED_FACE } from '../const';
 import { getByText, getByTitle } from '@testing-library/dom';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';

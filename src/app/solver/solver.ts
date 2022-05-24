@@ -1,414 +1,207 @@
-/* eslint-disable max-classes-per-file */
-/**
- * Tools for providing solutions to muggins dice.
- */
+import {
+  CalculateEquationResult,
+  commonWorkerFunctions,
+  MugginsSolverCalculateConfig,
+  MugginsSolverConfig,
+  splitArray,
+} from './solver-common';
+import {
+  emitProgressStatusRoot,
+  GenericListener,
+  PooledExecutor,
+  pooledFunctions,
+  PooledWorkerClientFunctionsType,
+  ProgressStatus,
+} from './worker-utils';
+import { solverCalculateWorkerFactory } from './solver-calculate-worker-factory';
+import { solverCommonWorkerFactory } from './solver-common-worker-factory';
 
-type PairingPermutation = Array<
-  number | PairingPermutation | PairingPermutation[]
->;
+const localProcessorGenerator = () => new PooledExecutor.LocalProcessor();
 
-export const enum OperationEnum {
-  PLUS = 'plus',
-  MINUS = 'minus',
-  MULTIPLY = 'multiply',
-  DIVIDE = 'divide',
-  POWER = 'power',
-  ROOT = 'root',
-  MODULO = 'modulo',
-}
+const calculateProcessorGenerator = () =>
+  new PooledExecutor.WebWorkerProcessor(solverCalculateWorkerFactory);
 
-export interface Operation {
-  readonly name: string;
-  readonly id: OperationEnum;
-  readonly solve: (left: number, right: number) => number;
-  readonly display: (left: any, right: any) => string;
-  readonly displayGroup: (text: string) => string;
-  readonly isCommutative: boolean;
-  readonly exampleNumbers: {
-    readonly left: number;
-    readonly right: number;
-  };
-}
+const commonsProcessorGenerator = () =>
+  new PooledExecutor.WebWorkerProcessor(solverCommonWorkerFactory);
 
-export interface MugginsSolverConfig {
-  readonly minTotal: number;
-  readonly maxTotal: number;
-  readonly faces: number[];
-  readonly operations: Operation[];
-}
-
-export interface CalculateResult {
-  readonly total: number;
-  readonly equation: string;
-  readonly fullEquation: string;
-  readonly sortableEquation: string;
-  readonly isLeaf?: boolean;
-}
-
-export const EQUATION_FORMATTER = (total: string | number, equation: string) =>
-  `${total} = ${equation}`;
-const GROUPING_PARENTHESIS = (text: string) => `(${text})`;
-const GROUPING_NONE = (text: string) => text;
-const EMPTY_STRING = '';
-
-export const OPERATIONS: Operation[] = [
-  {
-    name: 'Plus',
-    id: OperationEnum.PLUS,
-    solve: (left: number, right: number) => left + right,
-    display: (left: any, right: any) => `${left} + ${right}`,
-    displayGroup: GROUPING_PARENTHESIS,
-    isCommutative: true,
-    exampleNumbers: {
-      left: 6,
-      right: 2,
-    },
-  },
-  {
-    name: 'Minus',
-    id: OperationEnum.MINUS,
-    solve: (left: number, right: number) => left - right,
-    display: (left: any, right: any) => `${left} - ${right}`,
-    displayGroup: GROUPING_PARENTHESIS,
-    isCommutative: false,
-    exampleNumbers: {
-      left: 6,
-      right: 2,
-    },
-  },
-  {
-    name: 'Multiply',
-    id: OperationEnum.MULTIPLY,
-    solve: (left: number, right: number) => left * right,
-    display: (left: any, right: any) => `${left} * ${right}`,
-    displayGroup: GROUPING_PARENTHESIS,
-    isCommutative: true,
-    exampleNumbers: {
-      left: 6,
-      right: 2,
-    },
-  },
-  {
-    name: 'Divide',
-    id: OperationEnum.DIVIDE,
-    solve: (left: number, right: number) => left / right,
-    display: (left: any, right: any) => `${left} / ${right}`,
-    displayGroup: GROUPING_PARENTHESIS,
-    isCommutative: false,
-    exampleNumbers: {
-      left: 6,
-      right: 2,
-    },
-  },
-  {
-    name: 'Power',
-    id: OperationEnum.POWER,
-    solve: (left: number, right: number) => left ** right,
-    display: (left: any, right: any) => `${left} ^ ${right}`,
-    displayGroup: GROUPING_NONE,
-    isCommutative: false,
-    exampleNumbers: {
-      left: 5,
-      right: 2,
-    },
-  },
-  {
-    name: 'Root',
-    id: OperationEnum.ROOT,
-    solve: (left: number, right: number) => Math.pow(left, 1 / right),
-    display: (left: any, right: any) => `root(${left})(${right})`,
-    displayGroup: GROUPING_NONE,
-    isCommutative: false,
-    exampleNumbers: {
-      left: 27,
-      right: 3,
-    },
-  },
-  {
-    name: 'Modulo',
-    id: OperationEnum.MODULO,
-    solve: (left: number, right: number) => left % right,
-    display: (left: any, right: any) => `${left} % ${right}`,
-    displayGroup: GROUPING_PARENTHESIS,
-    isCommutative: false,
-    exampleNumbers: {
-      left: 5,
-      right: 3,
-    },
-  },
-];
-
-type OperationMapType = { [id in OperationEnum]: Operation };
-export const OPERATIONS_MAP: OperationMapType = Object.fromEntries(
-  OPERATIONS.map((operation) => [operation.id, operation])
-) as OperationMapType;
-
-/**
- * In ASCII, operators like + - /, etc come before numbers. This means when sorting equations at the end,
- * the operators take precedence. So equations like '(8 + 1) + 2' come before '2 + (8 + 1)'. To fix this,
- * we replace non-alphanum with Z. This ensures the numbers are prioritized and parenthesis
- * are sort to the bottom.
- * @param equation
- */
-export function getSortableEquation(equation: string): string {
-  return equation
-    .replace(/[(]/g, 'X')
-    .replace(/[)]/g, 'Y')
-    .replace(/[=]/g, 'Z');
-}
-
-export class Equation {
-  private static calculateResultSorter(
-    a: CalculateResult,
-    b: CalculateResult
-  ): number {
-    if (a.isLeaf && a.total < b.total) {
-      return -1;
-    }
-    if (b.isLeaf && b.total < a.total) {
-      return 1;
-    }
-    if (a.isLeaf) {
-      return -1;
-    }
-    if (b.isLeaf) {
-      return 1;
-    }
-    if (a.total < b.total) {
-      return -1;
-    }
-    if (b.total < a.total) {
-      return 1;
-    }
-    return 0;
+function getProcessorGenerator(
+  solverConfig: MugginsSolverConfig,
+  useCommons: boolean
+): () => PooledExecutor.Processor {
+  if (!solverConfig.useWorker) {
+    return localProcessorGenerator;
   }
 
-  private static calculateResultReducer(
-    left: CalculateResult,
-    right: CalculateResult,
-    operation: Operation,
-    isRoot: boolean
-  ): CalculateResult {
-    // Solve the equation.
-    const total = operation.solve(left.total, right.total);
-
-    // Cannot be solved.
-    if (!Number.isFinite(total)) {
-      throw new Error(`Non-finite number returned ${total}.`);
-    }
-
-    if (operation.isCommutative) {
-      [left, right] = [left, right].sort(Equation.calculateResultSorter);
-    }
-
-    const groupFn = isRoot ? GROUPING_NONE : operation.displayGroup;
-    const equation = groupFn(operation.display(left.equation, right.equation));
-    const fullEquation = isRoot
-      ? EQUATION_FORMATTER(total, equation)
-      : EMPTY_STRING;
-    return {
-      total,
-      fullEquation,
-      equation,
-      sortableEquation: isRoot
-        ? getSortableEquation(
-            EQUATION_FORMATTER(`${total}`.padStart(4, '0'), equation)
-          )
-        : EMPTY_STRING,
-      isLeaf: false,
-    };
+  if (useCommons) {
+    return commonsProcessorGenerator;
   }
 
-  public static calculate(
-    pairing: PairingPermutation | number,
-    operations: Operation[],
-    isRoot = true
-  ): CalculateResult {
-    if (!Array.isArray(pairing)) {
-      return {
-        total: pairing,
-        equation: `${pairing}`,
-        fullEquation: EMPTY_STRING,
-        sortableEquation: EMPTY_STRING,
-        isLeaf: true,
-      };
-    }
-
-    const operation = operations[operations.length - 1];
-    const nextOperations = operations.slice(0, operations.length - 1);
-    const [left, right] = pairing.map((pairMember) =>
-      Equation.calculate(pairMember, nextOperations, false)
-    );
-    return Equation.calculateResultReducer(left, right, operation, isRoot);
-  }
-}
-
-function range(size: number): number[] {
-  return [...new Array(size).keys()];
+  return calculateProcessorGenerator;
 }
 
 /**
- * Iterative cross-product of variable sized arrays.
- * Original source: https://stackoverflow.com/a/4331713
- * @param sourceArrays
+ * Main solver that can use web workers to distribute the load of calculating solutions.
  */
-export function crossProduct(sourceArrays: any[][]): any[][] {
-  const sourceArraysIndexes = range(sourceArrays.length);
-
-  // Pre-calculate divisors
-  const divisors: number[] = [];
-  sourceArraysIndexes
-    .slice()
-    .reverse()
-    .forEach((sourceArraysIndex) => {
-      const nextSourceArrayIndex = sourceArraysIndex + 1;
-      const nextDivisor = divisors[nextSourceArrayIndex];
-      if (nextDivisor) {
-        divisors[sourceArraysIndex] =
-          nextDivisor * sourceArrays[nextSourceArrayIndex].length;
-      } else {
-        divisors[sourceArraysIndex] = 1;
-      }
-    });
-
-  // Calculate the total number of results that will be returned.
-  const totalResults = sourceArrays
-    .map((arr) => arr.length)
-    .reduce((x, y) => x * y);
-  return range(totalResults).map((permutationIndex) => {
-    // Calculate the current result based on the permutation index.
-    return sourceArraysIndexes.map((sourceArraysIndex) => {
-      const currentArray = sourceArrays[sourceArraysIndex];
-      return currentArray[
-        Math.floor(permutationIndex / divisors[sourceArraysIndex]) %
-          currentArray.length
-      ];
-    });
-  });
-}
-
 export class MugginsSolver {
-  constructor(private readonly config: MugginsSolverConfig) {}
+  private readonly pooledExecutor;
 
-  private static permutations<T>(items: T[]): T[][] {
-    const ret: T[][] = [];
+  private readonly pooledCommonWorkerFunctions;
 
-    for (let i = 0; i < items.length; i += 1) {
-      const rest = MugginsSolver.permutations(
-        items.slice(0, i).concat(items.slice(i + 1))
-      );
+  private readonly arraySplitGroupSize: number;
 
-      if (!rest.length) {
-        ret.push([items[i]]);
-      } else {
-        for (let j = 0; j < rest.length; j += 1) {
-          ret.push([items[i]].concat(rest[j]));
-        }
-      }
-    }
-    return ret;
+  private readonly totalSteps: number;
+
+  private readonly currentStatus: ProgressStatus = {
+    current: 0,
+    total: 0,
+  };
+
+  public readonly status = new GenericListener<ProgressStatus>();
+
+  constructor(private readonly solverConfig: MugginsSolverConfig) {
+    this.pooledExecutor = new PooledExecutor(
+      getProcessorGenerator(solverConfig, true),
+      solverConfig.useWorker ? solverConfig.workerCount : 1
+    );
+
+    this.pooledCommonWorkerFunctions = pooledFunctions(
+      this.pooledExecutor,
+      commonWorkerFunctions
+    ) as PooledWorkerClientFunctionsType<typeof commonWorkerFunctions>;
+
+    this.arraySplitGroupSize = this.solverConfig.workerCount * 2;
+    this.totalSteps = [
+      1, // Face and operation permutations.
+      this.arraySplitGroupSize, // Calculate face and operation permutations.
+      this.arraySplitGroupSize, // Sort/unique raw data.
+      1, // Merge/sort data.
+    ].reduce((a, b) => a + b);
+
+    this.currentStatus.total = this.totalSteps;
   }
 
-  private pairingPermutations(
-    arr: PairingPermutation,
-    depth = 0
-  ): PairingPermutation {
-    // Not enough items to pair.
-    if (arr.length < 3) {
-      return [arr];
-    }
-
-    const permutations: PairingPermutation = [];
-    for (let i = 0; i < arr.length - 1; i += 1) {
-      const permutation = arr.slice();
-      const pair = permutation.slice(i, i + 2);
-      permutation.splice(i, 2, pair);
-
-      this.pairingPermutations(permutation, depth + 1).forEach((p) =>
-        permutations.push(p)
-      );
-    }
-
-    return permutations;
-  }
-
-  /**
-   * Get equations for the selected configurations.
-   */
-  public calculateSolutions(): CalculateResult[] {
-    if (this.config.faces.length < 2 || this.config.operations.length === 0) {
+  public async calculate(
+    calculateConfig: MugginsSolverCalculateConfig
+  ): Promise<CalculateEquationResult[]> {
+    if (
+      calculateConfig.faces.length < 2 ||
+      calculateConfig.operations.length === 0 ||
+      calculateConfig.maxTotal < calculateConfig.minTotal
+    ) {
       return [];
     }
 
-    // Get unique face permutations.
-    const facePermutations = Object.values(
-      Object.fromEntries(
-        MugginsSolver.permutations(this.config.faces).map((permutation) => [
-          permutation.join('_'),
-          permutation,
-        ])
+    // let start = new Date().getTime();
+
+    const [facePairingPermutations, operationPermutations] =
+      await this.incrementProgress(
+        this.pooledCommonWorkerFunctions.getFaceAndOperationPermutations(
+          calculateConfig
+        ).data
+      );
+    // console.debug("permutations", (new Date().getTime() - start), "ms", facePairingPermutations.length);
+
+    const results = await Promise.all(
+      splitArray(facePairingPermutations, this.arraySplitGroupSize).map((arr) =>
+        this.incrementProgress(
+          this.pooledCommonWorkerFunctions.calculateFromFaceAndOperationPermutations(
+            calculateConfig,
+            arr,
+            operationPermutations
+          ).data
+        )
       )
     );
+    // console.debug("initial results", (new Date().getTime() - start), "ms", results.length);
 
-    // Get unique operation permutations.
-    const operationPermutations = crossProduct(
-      this.config.faces.slice(1).map(() => this.config.operations)
+    const sortedResults = await Promise.all(
+      splitArray(
+        results.flatMap((arr) => arr),
+        this.arraySplitGroupSize
+      ).map((resultsArr) =>
+        this.incrementProgress(
+          this.pooledCommonWorkerFunctions.sortCalculateResults(resultsArr).data
+        )
+      )
     );
+    // console.debug("calculated results", (new Date().getTime() - start), "ms", sortedResults.length);
 
-    // Pair faces together.
-    const facePairingPermutations = facePermutations.flatMap((f) =>
-      this.pairingPermutations(f)
+    const finalResults = await this.incrementProgress(
+      this.pooledCommonWorkerFunctions.mergeCalculateResultsArrays(
+        sortedResults
+      ).data
     );
+    // console.debug("merged results", (new Date().getTime() - start), "ms", finalResults.length);
 
-    // Get the final combination of face pairing and operations.
-    const finalProduct = crossProduct([
-      facePairingPermutations,
-      operationPermutations,
-    ]);
+    return finalResults;
+  }
 
-    // Calculate results.
-    const uniqueResults = new Set();
-    const results: CalculateResult[] = [];
-    for (const [pairings, operations] of finalProduct) {
-      let result: CalculateResult;
-      try {
-        result = Equation.calculate(pairings, operations);
-      } catch (e) {
-        // Math is not possible to solve (divide by zero, etc).
-        continue;
-      }
+  private incrementProgress<T extends Promise<any>>(promise: T): T {
+    promise.then((v) => {
+      this.currentStatus.current += 1;
+      this.status.dispatch(this.currentStatus);
+      return v;
+    });
+    return promise;
+  }
 
-      // Has this result already been processed (duplicate elimination).
-      if (uniqueResults.has(result.sortableEquation)) {
-        continue;
-      }
-      uniqueResults.add(result.sortableEquation);
+  public stop() {
+    this.pooledExecutor.stopAll();
+  }
 
-      // Check if the result fits the board.
-      const isOnBoard =
-        Number.isInteger(result.total) &&
-        result.total >= this.config.minTotal &&
-        result.total <= this.config.maxTotal;
-      if (!isOnBoard) {
-        continue;
-      }
+  private static solver?: MugginsSolver;
 
-      delete (result as any).isLeaf;
-      results.push(result);
+  public static stop() {
+    MugginsSolver.solver?.stop();
+  }
+
+  public static async calculate(
+    solverConfig: MugginsSolverConfig,
+    calculateConfig: MugginsSolverCalculateConfig
+  ): Promise<CalculateEquationResult[]> {
+    if (!!MugginsSolver.solver) {
+      throw new Error(
+        'Processor is already running. Stop it before trying again.'
+      );
     }
 
-    results.sort((a, b) => {
-      if (a.sortableEquation < b.sortableEquation) {
-        return -1;
-      }
-
-      if (a.sortableEquation > b.sortableEquation) {
-        return 1;
-      }
-
-      return 0;
+    const solver = new MugginsSolver(solverConfig);
+    solver.status.addListener((status) => {
+      emitProgressStatusRoot(status);
     });
+    MugginsSolver.solver = new MugginsSolver(solverConfig);
 
-    return results;
+    const result = await solver.calculate(calculateConfig);
+    MugginsSolver.solver = undefined;
+    return result;
+  }
+}
+
+export const calculateWorkerFunctions = {
+  calculate: MugginsSolver.calculate,
+};
+
+/**
+ * Wraps MugginsSolver in a webworker. This ensures all the data serialize/deserialize and merging is done on a
+ * separate worker. Thus keeping our UI responsive.
+ */
+export class MugginsSolverOrchestrator {
+  private readonly pooledCalculateFunctions;
+
+  public constructor(public readonly solverConfig: MugginsSolverConfig) {
+    this.pooledCalculateFunctions = pooledFunctions(
+      new PooledExecutor(getProcessorGenerator(solverConfig, false), 1),
+      calculateWorkerFunctions
+    );
+  }
+
+  public calculate(calculateConfig: MugginsSolverCalculateConfig) {
+    return this.pooledCalculateFunctions.calculate(
+      this.solverConfig,
+      calculateConfig
+    ) as any as PooledExecutor.WorkHandler<
+      CalculateEquationResult[],
+      ProgressStatus
+    >;
   }
 }

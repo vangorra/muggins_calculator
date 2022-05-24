@@ -12,7 +12,6 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -33,6 +32,8 @@ import { DiceComponent } from './dice/dice.component';
 import { MathJaxModule } from './math-jax/math-jax.module';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { UiScrollModule } from 'ngx-ui-scroll';
+import { MugginsSolverOrchestrator } from './solver/solver';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @NgModule({
   declarations: [
@@ -61,7 +62,7 @@ import { UiScrollModule } from 'ngx-ui-scroll';
     MatButtonModule,
     MatDividerModule,
     MatListModule,
-    MatProgressSpinnerModule,
+    MatProgressBarModule,
     MatInputModule,
     MatButtonToggleModule,
     MatIconModule,
@@ -76,7 +77,17 @@ import { UiScrollModule } from 'ngx-ui-scroll';
       registrationStrategy: 'registerWhenStable:30000',
     }),
   ],
-  providers: [],
+  providers: [
+    {
+      provide: MugginsSolverOrchestrator,
+      useFactory: () =>
+        new MugginsSolverOrchestrator({
+          useWorker: !!window.Worker,
+          // Save two threads for the UI and solver.
+          workerCount: Math.max(navigator.hardwareConcurrency - 2, 1),
+        }),
+    },
+  ],
   bootstrap: [AppComponent],
 })
 export default class AppModule {}

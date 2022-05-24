@@ -1,8 +1,6 @@
 import AppComponent from './app.component';
 import CalculatorComponent from './calculator/calculator.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { SolverWorkerService } from './solver-worker.service';
-import { BehaviorSubject } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -17,7 +15,6 @@ import { ConfigurationComponent } from './configuration/configuration.component'
 import { ToolbarComponent } from './toolbar/toolbar.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
-import { SolverWorkerResponse } from './solver/utils';
 import { MatIconModule } from '@angular/material/icon';
 import { MathJaxService, MathJaxState } from './math-jax/math-jax.service';
 import { routes } from './app-routing.module';
@@ -26,13 +23,14 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { newMockMathJaxService } from './test-utils';
 import { ScrollToTopComponent } from './scroll-to-top/scroll-to-top.component';
 import { DiceComponent } from './dice/dice.component';
 import DieComponent from './die/die.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MugginsSolverOrchestrator } from './solver/solver';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 describe(AppComponent.name, () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -55,7 +53,7 @@ describe(AppComponent.name, () => {
         MatButtonModule,
         MatDividerModule,
         MatListModule,
-        MatProgressSpinnerModule,
+        MatProgressBarModule,
         MatInputModule,
         MatButtonToggleModule,
         MatIconModule,
@@ -74,13 +72,13 @@ describe(AppComponent.name, () => {
       ],
       providers: [
         {
-          provide: SolverWorkerService,
-          useValue: {
-            postMessage: () =>
-              new BehaviorSubject<SolverWorkerResponse>({
-                data: [],
-              }),
-          },
+          provide: MugginsSolverOrchestrator,
+          useFactory: () =>
+            new MugginsSolverOrchestrator({
+              useWorker: !!window.Worker,
+              // Save two threads for the UI and solver.
+              workerCount: Math.max(navigator.hardwareConcurrency - 2, 1),
+            }),
         },
         {
           provide: MathJaxService,

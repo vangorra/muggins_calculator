@@ -7,7 +7,10 @@ import {
   THEME_CONFIGS,
   ThemeEnum,
 } from '../../src/app/general_types';
-import { OperationEnum, OPERATIONS_MAP } from '../../src/app/solver/solver';
+import {
+  OperationEnum,
+  OPERATIONS_MAP,
+} from '../../src/app/solver/solver-common';
 
 export const MIN_SIZE_QUERY =
   'app-configuration [formgroupname="board"] [formcontrolname="minSize"]';

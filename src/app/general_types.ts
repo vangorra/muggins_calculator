@@ -1,4 +1,4 @@
-import { OperationEnum } from './solver/solver';
+import { OperationEnum } from './solver/solver-common';
 
 export const enum ThemeEnum {
   AUTOMATIC = 'automatic',

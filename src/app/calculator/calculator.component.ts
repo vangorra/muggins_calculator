@@ -1,21 +1,22 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Configuration, Die } from '../general_types';
-import { SolverWorkerMessage, SolverWorkerResponse } from '../solver/utils';
 import { ConfigurationService } from '../configuration.service';
-import { Subscription, take } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { ToolbarService } from '../toolbar.service';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { AboutDialogComponent } from '../about-dialog/about-dialog.component';
-import { SolverWorkerService } from '../solver-worker.service';
 import { Datasource } from 'ngx-ui-scroll';
-import { CalculateResult } from '../solver/solver';
 import { SizeStrategy } from 'vscroll';
 import { uniqBy } from 'lodash';
+import { MugginsSolverOrchestrator } from '../solver/solver';
+import { CalculateEquationResult } from '../solver/solver-common';
+import { ProgressStatus, PooledExecutor } from '../solver/worker-utils';
 
 export enum CalculateState {
   PROCESSING = 'processing',
   PROCESSED = 'processed',
+  CANCELLED = 'cancelled',
 }
 
 interface Solution {
@@ -26,7 +27,7 @@ interface Solution {
   readonly firstResultIndex: number;
 }
 
-interface CalculateResultWithId extends CalculateResult {
+interface CalculateEquationResultWithId extends CalculateEquationResult {
   readonly index: number;
   readonly isFirstSolution: boolean;
 }
@@ -45,14 +46,19 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   readonly solutions: Solution[] = [];
 
-  readonly calculateResultArray: CalculateResultWithId[] = [];
+  readonly calculateResultArray: CalculateEquationResultWithId[] = [];
 
   configurationSubscription?: Subscription;
 
-  solverWorkerResponse?: SolverWorkerResponse;
+  calculateHandler?: PooledExecutor.WorkHandler<
+    CalculateEquationResult[],
+    ProgressStatus
+  >;
+
+  calculateProgress = 0;
 
   readonly calculateResultArrayDataSource =
-    new Datasource<CalculateResultWithId>({
+    new Datasource<CalculateEquationResultWithId>({
       get: (index, count, success) => {
         success(this.calculateResultArray.slice(index, index + count));
       },
@@ -70,7 +76,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     private readonly toolbarService: ToolbarService,
     private readonly router: Router,
     readonly matDialog: MatDialog,
-    private readonly solverWorkerService: SolverWorkerService
+    private readonly mugginsSolverOrchestrator: MugginsSolverOrchestrator
   ) {
     this.toolbarService.set({
       title: 'Muggins Calculator',
@@ -98,6 +104,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.cancel();
     this.configurationSubscription?.unsubscribe();
     this.configurationSubscription = undefined;
   }
@@ -114,28 +121,37 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     this.reload();
   }
 
-  reload() {
+  async reload() {
+    await this.cancel();
     this.calculateState = CalculateState.PROCESSING;
 
     const configuration = this.configurationService.value.getValue();
     const { operations } = configuration;
-    const message: SolverWorkerMessage = {
-      operations,
+
+    // Start the calculations.
+    this.calculateHandler = this.mugginsSolverOrchestrator.calculate({
       minTotal: configuration.board.minSize,
       maxTotal: configuration.board.maxSize,
       faces: this.dice.map(({ selectedFace }) => selectedFace),
-    };
+      operations: operations as any,
+    });
 
-    this.solverWorkerService
-      .postMessage(message)
-      .pipe(take(1))
-      .subscribe((response) => this.onWorkerResponse(response));
-  }
+    this.calculateProgress = 0;
+    this.calculateHandler?.status.addListener(({ total, current }) => {
+      this.calculateProgress = Math.floor((current / total) * 100);
+    });
 
-  async onWorkerResponse(response: SolverWorkerResponse): Promise<void> {
+    let data: CalculateEquationResult[];
+    try {
+      data = await this.calculateHandler.data;
+    } catch (e) {
+      this.calculateState = CalculateState.CANCELLED;
+      return;
+    }
+
     // Empty and add the new results.
     let currentSolution: number | undefined = undefined;
-    const newResults = response.data.map((result, index) => {
+    const newResults = data.map((result, index) => {
       const solution = result.total;
       const isFirstSolution = solution != currentSolution;
       currentSolution = solution;
@@ -146,9 +162,11 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       };
     });
     this.calculateResultArray.splice(0, this.calculateResultArray.length);
-    this.calculateResultArray.push(...newResults);
+    newResults.forEach((newResult) =>
+      this.calculateResultArray.push(newResult)
+    );
 
-    // Empty and add the solutions.
+    // Empty and add the solution totals.
     const newSolutions = uniqBy(this.calculateResultArray, 'total').map(
       ({ total, index }) =>
         ({
@@ -157,8 +175,9 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
         } as Solution)
     );
     this.solutions.splice(0, this.solutions.length);
-    this.solutions.push(...newSolutions);
+    newSolutions.forEach((newSolution) => this.solutions.push(newSolution));
 
+    // Update the list adapter.
     const { adapter } = this.calculateResultArrayDataSource;
     await adapter.relax();
     await adapter.replace({
@@ -166,6 +185,11 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       predicate: () => true,
     });
     this.calculateState = CalculateState.PROCESSED;
+  }
+
+  async cancel() {
+    this.calculateHandler?.stop();
+    this.calculateState = CalculateState.CANCELLED;
   }
 
   onDiceFaceChanged(dice: Die[]): void {
@@ -179,8 +203,6 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       })),
     });
     this.configurationService.save();
-
-    this.reload();
   }
 
   async jumpToResultIndex(targetIndex: number): Promise<void> {
