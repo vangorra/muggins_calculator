@@ -57,6 +57,8 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   calculateProgress = 0;
 
+  calculateProgressBuffer = 0;
+
   readonly calculateResultArrayDataSource =
     new Datasource<CalculateEquationResultWithId>({
       get: (index, count, success) => {
@@ -137,8 +139,10 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     });
 
     this.calculateProgress = 0;
-    this.calculateHandler?.status.addListener(({ total, current }) => {
+    this.calculateProgressBuffer = 0;
+    this.calculateHandler?.status.subscribe(({ total, current, buffer }) => {
       this.calculateProgress = Math.floor((current / total) * 100);
+      this.calculateProgressBuffer = Math.floor((buffer / total) * 100);
     });
 
     let data: CalculateEquationResult[];
@@ -185,10 +189,12 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       predicate: () => true,
     });
     this.calculateState = CalculateState.PROCESSED;
+    this.calculateHandler?.status.unsubscribe();
   }
 
   async cancel() {
     this.calculateHandler?.stop();
+    this.calculateHandler?.status.unsubscribe();
     this.calculateState = CalculateState.CANCELLED;
   }
 

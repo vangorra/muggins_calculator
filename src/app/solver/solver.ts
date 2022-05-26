@@ -7,7 +7,6 @@ import {
 } from './solver-common';
 import {
   emitProgressStatusRoot,
-  GenericListener,
   PooledExecutor,
   pooledFunctions,
   PooledWorkerClientFunctionsType,
@@ -15,6 +14,8 @@ import {
 } from './worker-utils';
 import { solverCalculateWorkerFactory } from './solver-calculate-worker-factory';
 import { solverCommonWorkerFactory } from './solver-common-worker-factory';
+import { chunk } from 'lodash';
+import { Subject } from 'rxjs';
 
 const localProcessorGenerator = () => new PooledExecutor.LocalProcessor();
 
@@ -49,16 +50,18 @@ export class MugginsSolver {
 
   private readonly arraySplitGroupSize: number;
 
-  private readonly totalSteps: number;
-
   private readonly currentStatus: ProgressStatus = {
     current: 0,
-    total: 0,
+    buffer: 0,
+    total: 100,
   };
 
-  public readonly status = new GenericListener<ProgressStatus>();
+  public readonly status = new Subject<ProgressStatus>();
 
-  constructor(private readonly solverConfig: MugginsSolverConfig) {
+  constructor(
+    private readonly solverConfig: MugginsSolverConfig,
+    private readonly shouldDebug = false
+  ) {
     this.pooledExecutor = new PooledExecutor(
       getProcessorGenerator(solverConfig, true),
       solverConfig.useWorker ? solverConfig.workerCount : 1
@@ -70,19 +73,61 @@ export class MugginsSolver {
     ) as PooledWorkerClientFunctionsType<typeof commonWorkerFunctions>;
 
     this.arraySplitGroupSize = this.solverConfig.workerCount * 2;
-    this.totalSteps = [
-      1, // Face and operation permutations.
-      this.arraySplitGroupSize, // Calculate face and operation permutations.
-      this.arraySplitGroupSize, // Sort/unique raw data.
-      1, // Merge/sort data.
-    ].reduce((a, b) => a + b);
+  }
 
-    this.currentStatus.total = this.totalSteps;
+  private debug(...args: any[]) {
+    if (this.shouldDebug) {
+      console.debug(...args);
+    }
+  }
+
+  private incrementBuffer(count: number) {
+    this.currentStatus.buffer += count;
+    this.status.next({
+      ...this.currentStatus,
+    });
+  }
+
+  private incrementProgress(count: number) {
+    this.currentStatus.current += count;
+    this.status.next({
+      ...this.currentStatus,
+    });
+  }
+
+  private monitorProgress<T>(
+    target: Promise<T>,
+    ratioOfTotal: number
+  ): Promise<T>;
+  private monitorProgress<T>(
+    target: Promise<T>[],
+    ratioOfTotal: number
+  ): Promise<T>[];
+  private monitorProgress<T>(target: T, ratioOfTotal: number): T {
+    if (Array.isArray(target)) {
+      this.incrementBuffer(ratioOfTotal * 100);
+      target.forEach((p) =>
+        p.finally(() => {
+          this.incrementProgress((1 / target.length) * ratioOfTotal * 100);
+        })
+      );
+    } else if (target instanceof Promise) {
+      this.incrementBuffer(ratioOfTotal * 100);
+      target.finally(() => {
+        this.incrementProgress(ratioOfTotal * 100);
+      });
+    } else {
+      this.incrementBuffer(ratioOfTotal * 100);
+      this.incrementProgress(ratioOfTotal * 100);
+    }
+    return target;
   }
 
   public async calculate(
     calculateConfig: MugginsSolverCalculateConfig
   ): Promise<CalculateEquationResult[]> {
+    this.currentStatus.current = 0;
+
     if (
       calculateConfig.faces.length < 2 ||
       calculateConfig.operations.length === 0 ||
@@ -91,58 +136,83 @@ export class MugginsSolver {
       return [];
     }
 
-    // let start = new Date().getTime();
+    this.incrementProgress(0);
+
+    let start = new Date().getTime();
 
     const [facePairingPermutations, operationPermutations] =
-      await this.incrementProgress(
+      await this.monitorProgress(
         this.pooledCommonWorkerFunctions.getFaceAndOperationPermutations(
           calculateConfig
-        ).data
+        ).data,
+        0.05
       );
-    // console.debug("permutations", (new Date().getTime() - start), "ms", facePairingPermutations.length);
+    this.debug(
+      'permutations',
+      new Date().getTime() - start,
+      'ms',
+      facePairingPermutations.length
+    );
 
     const results = await Promise.all(
-      splitArray(facePairingPermutations, this.arraySplitGroupSize).map((arr) =>
-        this.incrementProgress(
-          this.pooledCommonWorkerFunctions.calculateFromFaceAndOperationPermutations(
-            calculateConfig,
-            arr,
-            operationPermutations
-          ).data
-        )
+      this.monitorProgress(
+        chunk(facePairingPermutations, 100).map(
+          (arr) =>
+            this.pooledCommonWorkerFunctions.calculateFromFaceAndOperationPermutations(
+              calculateConfig,
+              arr,
+              operationPermutations
+            ).data
+        ),
+        0.25
       )
     );
-    // console.debug("initial results", (new Date().getTime() - start), "ms", results.length);
+    this.debug(
+      'initial results',
+      new Date().getTime() - start,
+      'ms',
+      results.length
+    );
 
     const sortedResults = await Promise.all(
-      splitArray(
-        results.flatMap((arr) => arr),
-        this.arraySplitGroupSize
-      ).map((resultsArr) =>
-        this.incrementProgress(
-          this.pooledCommonWorkerFunctions.sortCalculateResults(resultsArr).data
-        )
+      this.monitorProgress(
+        splitArray(
+          results.flatMap((arr) => arr),
+          this.arraySplitGroupSize
+        ).map(
+          (resultsArr) =>
+            this.pooledCommonWorkerFunctions.sortCalculateResults(resultsArr)
+              .data
+        ),
+        0.35
       )
     );
-    // console.debug("calculated results", (new Date().getTime() - start), "ms", sortedResults.length);
+    this.debug(
+      'calculated results',
+      new Date().getTime() - start,
+      'ms',
+      sortedResults.length
+    );
 
-    const finalResults = await this.incrementProgress(
+    const finalResults = await this.monitorProgress(
       this.pooledCommonWorkerFunctions.mergeCalculateResultsArrays(
         sortedResults
-      ).data
+      ).data,
+      0.35
     );
-    // console.debug("merged results", (new Date().getTime() - start), "ms", finalResults.length);
+    this.debug(
+      'merged results',
+      new Date().getTime() - start,
+      'ms',
+      finalResults.length
+    );
+
+    // Bring the progress up to 100.
+    this.incrementProgress(
+      this.currentStatus.total - this.currentStatus.current
+    );
 
     return finalResults;
-  }
-
-  private incrementProgress<T extends Promise<any>>(promise: T): T {
-    promise.then((v) => {
-      this.currentStatus.current += 1;
-      this.status.dispatch(this.currentStatus);
-      return v;
-    });
-    return promise;
   }
 
   public stop() {
@@ -153,6 +223,7 @@ export class MugginsSolver {
 
   public static stop() {
     MugginsSolver.solver?.stop();
+    MugginsSolver.solver?.status.unsubscribe();
   }
 
   public static async calculate(
@@ -166,9 +237,7 @@ export class MugginsSolver {
     }
 
     const solver = new MugginsSolver(solverConfig);
-    solver.status.addListener((status) => {
-      emitProgressStatusRoot(status);
-    });
+    solver.status.subscribe(emitProgressStatusRoot);
     MugginsSolver.solver = new MugginsSolver(solverConfig);
 
     const result = await solver.calculate(calculateConfig);

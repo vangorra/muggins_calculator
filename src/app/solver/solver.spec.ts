@@ -6,7 +6,7 @@ import {
   OperationEnum,
   OPERATIONS,
 } from './solver-common';
-import { PooledExecutor } from './worker-utils';
+import { PooledExecutor, ProgressStatus } from './worker-utils';
 import { MockWorker } from '../../global-mocks/worker.mock';
 
 describe(MugginsSolverOrchestrator.name, () => {
@@ -14,7 +14,12 @@ describe(MugginsSolverOrchestrator.name, () => {
     name: string,
     solverConfig: MugginsSolverConfig,
     calculateConfig: MugginsSolverCalculateConfig,
-    expectResults: CalculateEquationResult[]
+    expectHandler: (
+      results: PooledExecutor.WorkHandler<
+        CalculateEquationResult[],
+        ProgressStatus
+      >
+    ) => Promise<void>
   ) => {
     let handler: PooledExecutor.WorkHandler<any, any>;
 
@@ -25,8 +30,7 @@ describe(MugginsSolverOrchestrator.name, () => {
 
     it(`${name} test`, async () => {
       const solver = new MugginsSolverOrchestrator(solverConfig);
-      handler = solver.calculate(calculateConfig);
-      expect(await handler.data).toEqual(expectResults as any);
+      await expectHandler(solver.calculate(calculateConfig));
     });
   };
 
@@ -34,6 +38,19 @@ describe(MugginsSolverOrchestrator.name, () => {
     const baseConfig = {
       useWorker: false,
       workerCount: 1,
+    };
+
+    const expectHandler = async (
+      handler: PooledExecutor.WorkHandler<
+        CalculateEquationResult[],
+        ProgressStatus
+      >
+    ) => {
+      const statusListener = jest.fn();
+      handler.status.subscribe(statusListener);
+
+      expect(await handler.data).toEqual([]);
+      expect(statusListener).not.toHaveBeenCalled();
     };
 
     expectCalculate(
@@ -45,7 +62,7 @@ describe(MugginsSolverOrchestrator.name, () => {
         faces: [1],
         operations: OPERATIONS.map((op) => op.id),
       },
-      []
+      expectHandler
     );
 
     expectCalculate(
@@ -57,7 +74,7 @@ describe(MugginsSolverOrchestrator.name, () => {
         faces: [1, 1, 1],
         operations: [],
       },
-      []
+      expectHandler
     );
 
     expectCalculate(
@@ -69,7 +86,7 @@ describe(MugginsSolverOrchestrator.name, () => {
         faces: [1, 1, 1],
         operations: [OperationEnum.PLUS],
       },
-      []
+      expectHandler
     );
   });
 
@@ -753,7 +770,98 @@ describe(MugginsSolverOrchestrator.name, () => {
         workerCount: 1,
       },
       solverConfig,
-      expectedCalculateResults
+      async (
+        handler: PooledExecutor.WorkHandler<
+          CalculateEquationResult[],
+          ProgressStatus
+        >
+      ) => {
+        const statusListener = jest.fn();
+        handler.status.subscribe(statusListener);
+
+        expect(await handler.data).toEqual(expectedCalculateResults);
+        expect(statusListener.mock.calls).toMatchInlineSnapshot(`
+          Array [
+            Array [
+              Object {
+                "buffer": 0,
+                "current": 0,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 5,
+                "current": 0,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 5,
+                "current": 5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 30,
+                "current": 5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 30,
+                "current": 30,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 30,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 47.5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+          ]
+        `);
+      }
     );
 
     expectCalculate(
@@ -763,7 +871,855 @@ describe(MugginsSolverOrchestrator.name, () => {
         workerCount: 4,
       },
       solverConfig,
-      expectedCalculateResults
+      async (
+        handler: PooledExecutor.WorkHandler<
+          CalculateEquationResult[],
+          ProgressStatus
+        >
+      ) => {
+        const statusListener = jest.fn();
+        handler.status.subscribe(statusListener);
+
+        expect(await handler.data).toEqual(expectedCalculateResults);
+
+        expect(statusListener.mock.calls).toMatchInlineSnapshot(`
+          Array [
+            Array [
+              Object {
+                "buffer": 0,
+                "current": 0,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 5,
+                "current": 0,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 5,
+                "current": 5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 5,
+                "current": 5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 30,
+                "current": 5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 30,
+                "current": 5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 30,
+                "current": 30,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 30,
+                "current": 30,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 30,
+                "current": 30,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 30,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 30,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 30,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 34.375,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 34.375,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 34.375,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 34.375,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 34.375,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 34.375,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 34.375,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 38.75,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 38.75,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 38.75,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 38.75,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 38.75,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 38.75,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 38.75,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 43.125,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 43.125,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 43.125,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 43.125,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 43.125,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 43.125,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 43.125,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 47.5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 47.5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 47.5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 47.5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 47.5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 47.5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 47.5,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 51.875,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 51.875,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 51.875,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 51.875,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 51.875,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 51.875,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 51.875,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 51.875,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 51.875,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 51.875,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 51.875,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 56.25,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 56.25,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 56.25,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 56.25,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 56.25,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 56.25,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 56.25,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 56.25,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 56.25,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 56.25,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 56.25,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 60.625,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 60.625,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 60.625,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 60.625,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 60.625,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 60.625,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 60.625,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 60.625,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 60.625,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 60.625,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 60.625,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 65,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 65,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+            Array [
+              Object {
+                "buffer": 100,
+                "current": 100,
+                "total": 100,
+              },
+            ],
+          ]
+        `);
+      }
     );
   });
 });

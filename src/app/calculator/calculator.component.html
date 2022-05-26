@@ -29,8 +29,9 @@
     *ngIf="calculateState === calculateStates.PROCESSING"
   >
     <p><mat-progress-bar
-      mode="determinate"
+      mode="buffer"
       [value]="calculateProgress"
+      [bufferValue]="calculateProgressBuffer"
     ></mat-progress-bar></p>
     <p>Calculating all possible results.</p>
     <button mat-raised-button (click)="cancel()">Cancel</button>

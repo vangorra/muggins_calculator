@@ -3,6 +3,7 @@ A suite of utilities to make working with web workers easier.
  */
 
 import { range } from 'lodash';
+import { Subject } from 'rxjs';
 
 type JustMethodKeys<T> = {
   [P in keyof T]: T[P] extends Function ? P : never;
@@ -152,30 +153,8 @@ export function expose(exposeObject: GenericObject): void {
 
 export interface ProgressStatus {
   current: number;
+  buffer: number;
   total: number;
-}
-
-export class GenericListener<DataType> {
-  private readonly listeners: ((data: DataType) => void)[] = [];
-
-  public dispatch(data: DataType) {
-    this.listeners.forEach((listener) => listener(data));
-  }
-
-  public addListener(listener: (data: DataType) => void): void {
-    this.listeners.push(listener);
-  }
-
-  public removeListener(listener: (data: DataType) => void): void {
-    const index = this.listeners.indexOf(listener);
-    if (index > -1) {
-      this.listeners.splice(index, 1);
-    }
-  }
-
-  public clearListeners(): void {
-    this.listeners.splice(0, this.listeners.length);
-  }
 }
 
 /**
@@ -317,7 +296,7 @@ export class PooledExecutor {
   public enqueue<Return, Status>(
     work: PooledExecutor.Work<Return>
   ): PooledExecutor.WorkHandler<Return, Status> {
-    const status = new GenericListener<Status>();
+    const status = new Subject<Status>();
     const id = `${
       this.pendingWorkQueue.length
     }_${new Date().getTime()}_${Math.floor(Math.random() * 10000)}`;
@@ -335,7 +314,7 @@ export class PooledExecutor {
         stop,
         onData,
         onError,
-        onStatus: (message) => status.dispatch(message),
+        onStatus: (message) => status.next(message),
       });
       this.debug(
         'pendingWork push',
@@ -422,7 +401,7 @@ export namespace PooledExecutor {
   export interface WorkHandler<Return, Status> {
     id: string;
     data: Promise<Return>;
-    status: GenericListener<Status>;
+    status: Subject<Status>;
     stop: () => void;
   }
 
@@ -485,20 +464,23 @@ export namespace PooledExecutor {
       work: Work<Return>,
       onStatus: (status: Status) => void
     ): Promise<Return> {
-      const dispatchStatus = (status: any) => onStatus(status);
-      addEventListener(PROGRESS_ROOT_EVENT, dispatchStatus);
+      const dispatchStatus = (status: any) => {
+        onStatus(status.detail.data);
+      };
+      self.addEventListener(PROGRESS_STATUS_EVENT, dispatchStatus);
 
       const result = await work.function(...work.args);
 
-      removeEventListener(PROGRESS_ROOT_EVENT, dispatchStatus);
+      self.removeEventListener(PROGRESS_STATUS_EVENT, dispatchStatus);
 
       return result;
     }
 
     public stop(): void {
-      console.warn(
-        `${LocalProcessor.name}.${this.stop.name}() is not supported.`
-      );
+      // Empty because this cannot be supported on single threads.
+      // console.warn(
+      //   `${LocalProcessor.name}.${this.stop.name}() is not supported.`
+      // );
     }
   }
 }

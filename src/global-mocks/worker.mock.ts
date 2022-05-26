@@ -60,7 +60,7 @@ export class MockWorker implements Worker {
   }
 
   terminate(): void {
-    console.warn('Terminate is not supported for MockWorker.');
+    // console.warn('Terminate is not supported for MockWorker.');
     MockWorker.delete(this.id);
   }
 
