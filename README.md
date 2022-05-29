@@ -2,6 +2,8 @@
 
 Aa app for discovering and checking answers to the popular math board game Muggins.
 
+[![Calculator screenshot. Click to load.](./assets/calculate_page.png)](https://vangorra.github.io/muggins_calculator/) [![Configuration Screenshot. Click to load.](./assets/config_page.png)](https://vangorra.github.io/muggins_calculator/)
+
 <a href="https://www.mugginsmath.com/" target="_blank">Muggins</a>
 is an amusing and challenging board game for any group of people.
 Calculating answers and learning how other obtained answers is revealing and educational.
