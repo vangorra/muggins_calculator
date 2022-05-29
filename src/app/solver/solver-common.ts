@@ -484,17 +484,36 @@ function pairingPermutations(arr: PairingEntry[]): PairingEntry[] {
   });
 }
 
-/**
- * Split an array into groupCount groups.
- * @param items
- * @param groupCount
- */
-export function splitArray<T>(items: T[], groupCount: number): T[][] {
-  const workDataMaxSize = Math.ceil(items.length / groupCount);
+function compareCalculateEquationResult(
+  a: CalculateEquationResult,
+  b: CalculateEquationResult
+): number {
+  if (a.sortableEquation < b.sortableEquation) {
+    return -1;
+  }
 
-  return range(groupCount).map((workIndex) => {
-    const startIndex = workIndex * workDataMaxSize;
-    return items.slice(startIndex, startIndex + workDataMaxSize);
+  if (a.sortableEquation > b.sortableEquation) {
+    return 1;
+  }
+
+  return 0;
+}
+
+function sortCalculateResults(
+  results: CalculateEquationResult[]
+): CalculateEquationResult[] {
+  return MergeSort.sort(results, {
+    compare: compareCalculateEquationResult,
+    unique: true,
+  });
+}
+
+function mergeCalculateResultsArrays(
+  results: CalculateEquationResult[][]
+): CalculateEquationResult[] {
+  return MergeSort.merge(results, {
+    compare: compareCalculateEquationResult,
+    unique: true,
   });
 }
 
@@ -580,40 +599,7 @@ function calculateFromFaceAndOperationPermutations(
     facePairingPermutations,
     operationPermutations
   );
-  return calculate(config, faceOperationPermutations);
-}
-
-function compareCalculateEquationResult(
-  a: CalculateEquationResult,
-  b: CalculateEquationResult
-): number {
-  if (a.sortableEquation < b.sortableEquation) {
-    return -1;
-  }
-
-  if (a.sortableEquation > b.sortableEquation) {
-    return 1;
-  }
-
-  return 0;
-}
-
-function sortCalculateResults(
-  results: CalculateEquationResult[]
-): CalculateEquationResult[] {
-  return MergeSort.sort(results, {
-    compare: compareCalculateEquationResult,
-    unique: true,
-  });
-}
-
-function mergeCalculateResultsArrays(
-  results: CalculateEquationResult[][]
-): CalculateEquationResult[] {
-  return MergeSort.merge(results, {
-    compare: compareCalculateEquationResult,
-    unique: true,
-  });
+  return sortCalculateResults(calculate(config, faceOperationPermutations));
 }
 
 /**

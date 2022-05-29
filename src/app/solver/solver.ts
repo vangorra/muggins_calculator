@@ -3,7 +3,6 @@ import {
   commonWorkerFunctions,
   MugginsSolverCalculateConfig,
   MugginsSolverConfig,
-  splitArray,
 } from './solver-common';
 import {
   emitProgressStatusRoot,
@@ -95,6 +94,26 @@ export class MugginsSolver {
     });
   }
 
+  private monitorProgressIncrementor<T>(target: T, increment: number): T {
+    if (Array.isArray(target)) {
+      if (target[0] instanceof Promise) {
+        return target.map((item) =>
+          this.monitorProgressIncrementor(item, increment)
+        ) as any as T;
+      } else {
+        this.incrementProgress(increment * target.length);
+        return target;
+      }
+    } else if (target instanceof Promise) {
+      return target.finally(() =>
+        this.incrementProgress(increment)
+      ) as any as T;
+    } else {
+      this.incrementProgress(increment);
+      return target;
+    }
+  }
+
   private monitorProgress<T>(
     target: Promise<T>,
     ratioOfTotal: number
@@ -103,24 +122,17 @@ export class MugginsSolver {
     target: Promise<T>[],
     ratioOfTotal: number
   ): Promise<T>[];
+  private monitorProgress<T>(target: T, ratioOfTotal: number): T;
   private monitorProgress<T>(target: T, ratioOfTotal: number): T {
+    this.incrementBuffer(ratioOfTotal * 100);
     if (Array.isArray(target)) {
-      this.incrementBuffer(ratioOfTotal * 100);
-      target.forEach((p) =>
-        p.finally(() => {
-          this.incrementProgress((1 / target.length) * ratioOfTotal * 100);
-        })
+      return this.monitorProgressIncrementor(
+        target,
+        (1 / target.length) * ratioOfTotal * 100
       );
-    } else if (target instanceof Promise) {
-      this.incrementBuffer(ratioOfTotal * 100);
-      target.finally(() => {
-        this.incrementProgress(ratioOfTotal * 100);
-      });
     } else {
-      this.incrementBuffer(ratioOfTotal * 100);
-      this.incrementProgress(ratioOfTotal * 100);
+      return this.monitorProgressIncrementor(target, ratioOfTotal * 100);
     }
-    return target;
   }
 
   public async calculate(
@@ -138,13 +150,13 @@ export class MugginsSolver {
 
     this.incrementProgress(0);
 
+    const fullStart = new Date().getTime();
     let start = new Date().getTime();
 
+    // Run on the orchestration worker because everything is blocked anyway and doing so increases performance.
     const [facePairingPermutations, operationPermutations] =
-      await this.monitorProgress(
-        this.pooledCommonWorkerFunctions.getFaceAndOperationPermutations(
-          calculateConfig
-        ).data,
+      this.monitorProgress(
+        commonWorkerFunctions.getFaceAndOperationPermutations(calculateConfig),
         0.05
       );
     this.debug(
@@ -154,7 +166,8 @@ export class MugginsSolver {
       facePairingPermutations.length
     );
 
-    const results = await Promise.all(
+    start = new Date().getTime();
+    const sortedResults = await Promise.all(
       this.monitorProgress(
         chunk(facePairingPermutations, 100).map(
           (arr) =>
@@ -164,41 +177,21 @@ export class MugginsSolver {
               operationPermutations
             ).data
         ),
-        0.25
+        0.8
       )
     );
     this.debug(
       'initial results',
       new Date().getTime() - start,
       'ms',
-      results.length
-    );
-
-    const sortedResults = await Promise.all(
-      this.monitorProgress(
-        splitArray(
-          results.flatMap((arr) => arr),
-          this.arraySplitGroupSize
-        ).map(
-          (resultsArr) =>
-            this.pooledCommonWorkerFunctions.sortCalculateResults(resultsArr)
-              .data
-        ),
-        0.35
-      )
-    );
-    this.debug(
-      'calculated results',
-      new Date().getTime() - start,
-      'ms',
       sortedResults.length
     );
 
-    const finalResults = await this.monitorProgress(
-      this.pooledCommonWorkerFunctions.mergeCalculateResultsArrays(
-        sortedResults
-      ).data,
-      0.35
+    // Run on the orchestration worker because everything is blocked anyway and doing so increases performance.
+    start = new Date().getTime();
+    const finalResults = this.monitorProgress(
+      commonWorkerFunctions.mergeCalculateResultsArrays(sortedResults),
+      0.15
     );
     this.debug(
       'merged results',
@@ -206,6 +199,7 @@ export class MugginsSolver {
       'ms',
       finalResults.length
     );
+    this.debug('full run', new Date().getTime() - fullStart, 'ms');
 
     // Bring the progress up to 100.
     this.incrementProgress(

@@ -2,7 +2,7 @@
 A suite of utilities to make working with web workers easier.
  */
 
-import { range } from 'lodash';
+import { isEqual, range } from 'lodash';
 import { Subject } from 'rxjs';
 
 type JustMethodKeys<T> = {
@@ -113,11 +113,27 @@ export function emitProgressStatusRoot(progressStatus: ProgressStatus) {
   return emitProgressStatus(PROGRESS_ROOT_EVENT, progressStatus);
 }
 
+class DeDuplicateCaller<T> {
+  private previousData: T | undefined = undefined;
+
+  constructor(private readonly callback: (data: T) => void) {}
+
+  public maybeCallWith(data: T) {
+    if (!isEqual(data, this.previousData)) {
+      this.previousData = data;
+      this.callback(data);
+    }
+  }
+}
+
 export function expose(exposeObject: GenericObject): void {
+  const dedupeStatus = new DeDuplicateCaller(
+    (eventData: ProgressStatusEventData) => postStatusMessage(eventData.detail)
+  );
   self.addEventListener(PROGRESS_STATUS_EVENT, (event: Event) => {
     const eventData = event as any as ProgressStatusEventData;
     if (eventData.detail.id === PROGRESS_ROOT_EVENT) {
-      postStatusMessage(eventData.detail);
+      dedupeStatus.maybeCallWith(eventData);
     }
   });
 
@@ -297,6 +313,9 @@ export class PooledExecutor {
     work: PooledExecutor.Work<Return>
   ): PooledExecutor.WorkHandler<Return, Status> {
     const status = new Subject<Status>();
+    const dedupeStatus = new DeDuplicateCaller((message: any) =>
+      status.next(message)
+    );
     const id = `${
       this.pendingWorkQueue.length
     }_${new Date().getTime()}_${Math.floor(Math.random() * 10000)}`;
@@ -314,7 +333,7 @@ export class PooledExecutor {
         stop,
         onData,
         onError,
-        onStatus: (message) => status.next(message),
+        onStatus: (message) => dedupeStatus.maybeCallWith(message),
       });
       this.debug(
         'pendingWork push',
