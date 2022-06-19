@@ -1,0 +1,107 @@
+{
+  "configVersion": 1,
+  "timestamp": 1655664722177,
+  "index": "/muggins_calculator/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/muggins_calculator/232.0c000d62613e8b0f.js",
+        "/muggins_calculator/265.7d57d658350d0767.js",
+        "/muggins_calculator/47.a77b4e54f0d57a94.js",
+        "/muggins_calculator/favicon.ico",
+        "/muggins_calculator/index.html",
+        "/muggins_calculator/main.9db68cadaddecfa0.js",
+        "/muggins_calculator/manifest.webmanifest",
+        "/muggins_calculator/polyfills.85989a3de95b0578.js",
+        "/muggins_calculator/runtime.7fc8839bc61d9c96.js",
+        "/muggins_calculator/styles.089d80852131a6c5.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/muggins_calculator/assets/icons/icon-128x128.png",
+        "/muggins_calculator/assets/icons/icon-144x144.png",
+        "/muggins_calculator/assets/icons/icon-152x152.png",
+        "/muggins_calculator/assets/icons/icon-192x192.png",
+        "/muggins_calculator/assets/icons/icon-384x384.png",
+        "/muggins_calculator/assets/icons/icon-512x512.png",
+        "/muggins_calculator/assets/icons/icon-72x72.png",
+        "/muggins_calculator/assets/icons/icon-96x96.png",
+        "/muggins_calculator/material-icons-base-400-normal.6a5d2b3f2786b8b0.woff",
+        "/muggins_calculator/material-icons-base-400-normal.a987d1598549506d.woff2",
+        "/muggins_calculator/roboto-all-400-normal.22c8c36aad9b0ba9.woff",
+        "/muggins_calculator/roboto-cyrillic-400-normal.ba1944acf299d946.woff2",
+        "/muggins_calculator/roboto-cyrillic-ext-400-normal.7ea3b60dca10686a.woff2",
+        "/muggins_calculator/roboto-greek-400-normal.7026b7dcbb095d18.woff2",
+        "/muggins_calculator/roboto-greek-ext-400-normal.771ed7af162f39a6.woff2",
+        "/muggins_calculator/roboto-latin-400-normal.7b8d7718ba08bc7d.woff2",
+        "/muggins_calculator/roboto-latin-ext-400-normal.cf3d77895f73a242.woff2",
+        "/muggins_calculator/roboto-vietnamese-400-normal.0f9be45784c0da1a.woff2"
+      ],
+      "patterns": []
+    }
+  ],
+  "dataGroups": [],
+  "hashTable": {
+    "/muggins_calculator/232.0c000d62613e8b0f.js": "81e25de679f3d0ac3524f5657240e48ee0e7ba6c",
+    "/muggins_calculator/265.7d57d658350d0767.js": "a496162e25106d31222d431a41e07921b0586240",
+    "/muggins_calculator/47.a77b4e54f0d57a94.js": "e62765ca92686c0faaa984fe92e007a93bf57b74",
+    "/muggins_calculator/assets/icons/icon-128x128.png": "9c8d7d7b4e8a574c64aeb5063c58f6fa70dee6a4",
+    "/muggins_calculator/assets/icons/icon-144x144.png": "e3bb34160edd5f92daa79d09955e8d5747e46b88",
+    "/muggins_calculator/assets/icons/icon-152x152.png": "f708c1e45f8b1529a76512c328175cb1c2af781a",
+    "/muggins_calculator/assets/icons/icon-192x192.png": "9d65ccad3f69ce8d4d2f57d46cca576c3abf8349",
+    "/muggins_calculator/assets/icons/icon-384x384.png": "ae97692a7f2ce9684bd962489f2dbc9f04272187",
+    "/muggins_calculator/assets/icons/icon-512x512.png": "565fc063270aaa0c0e80e828209f3ea49ca6b6b0",
+    "/muggins_calculator/assets/icons/icon-72x72.png": "ad6ab42e57db1de7af5c6aa23803043e19638b32",
+    "/muggins_calculator/assets/icons/icon-96x96.png": "6be6f2cbdf1a2448b1ea1c80d9e0cd13ef99e6f5",
+    "/muggins_calculator/favicon.ico": "d028b9c89b8a29e55e867fd562b51e1a93b95952",
+    "/muggins_calculator/index.html": "9681a65da27fee17b7feb0c27a864f476e51998f",
+    "/muggins_calculator/main.9db68cadaddecfa0.js": "0b5f7af2a9336b6a2e39d59b1415483881e67ae5",
+    "/muggins_calculator/manifest.webmanifest": "100a09f677ee93f26ab8a6c3fd65842d9d99fd06",
+    "/muggins_calculator/material-icons-base-400-normal.6a5d2b3f2786b8b0.woff": "6e4299698a545c9cf5798fdbb3dd2e0350b41ae4",
+    "/muggins_calculator/material-icons-base-400-normal.a987d1598549506d.woff2": "c8de67e55036ce9ed7844c9a010a0c4cd5dfc54b",
+    "/muggins_calculator/polyfills.85989a3de95b0578.js": "c94e50a51b72f245a270d053ea8ce0879c81f703",
+    "/muggins_calculator/roboto-all-400-normal.22c8c36aad9b0ba9.woff": "c6c8a2b7e67c182d77916cd2118b1b0d8a6ca549",
+    "/muggins_calculator/roboto-cyrillic-400-normal.ba1944acf299d946.woff2": "6047396fdc25a0a49feb905f9d0bd01b8dc3ec77",
+    "/muggins_calculator/roboto-cyrillic-ext-400-normal.7ea3b60dca10686a.woff2": "cdbb48c38232d91f1188e705d0fac22f9819a874",
+    "/muggins_calculator/roboto-greek-400-normal.7026b7dcbb095d18.woff2": "3a1e2980c382f4c071cb7d0fb8739b59c8113f73",
+    "/muggins_calculator/roboto-greek-ext-400-normal.771ed7af162f39a6.woff2": "13433fe24f42e4924db9c37dee985c821fe6d9d6",
+    "/muggins_calculator/roboto-latin-400-normal.7b8d7718ba08bc7d.woff2": "106ac454ba4e503e0a1cd15e1275130918049182",
+    "/muggins_calculator/roboto-latin-ext-400-normal.cf3d77895f73a242.woff2": "4b4af153e8473e16663ae7f2e01635bf58979e2e",
+    "/muggins_calculator/roboto-vietnamese-400-normal.0f9be45784c0da1a.woff2": "081d22a7a51d4c026f526d8fb0d876de25eff5b4",
+    "/muggins_calculator/runtime.7fc8839bc61d9c96.js": "857882b213a9311c5f7179d2bd65dd191375872a",
+    "/muggins_calculator/styles.089d80852131a6c5.css": "6e4f3f19c8230998542a271af6c2f663991981ab"
+  },
+  "navigationUrls": [
+    {
+      "positive": true,
+      "regex": "^\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*\\.[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*\\/.*$"
+    }
+  ],
+  "navigationRequestStrategy": "performance"
+}
