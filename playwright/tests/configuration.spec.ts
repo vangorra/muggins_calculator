@@ -272,7 +272,7 @@ test('Snackbar warning appears when more than default dice added.', async ({
   });
 });
 
-test('Snackbar warning disappears when navigating await.', async ({ page }) => {
+test('Snackbar warning disappears when navigating away.', async ({ page }) => {
   await page.waitForSelector('snack-bar-container', {
     state: 'detached',
   });

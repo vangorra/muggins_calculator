@@ -4,18 +4,24 @@ import {
   clickScrollToTopButton,
   clickToolbarAboutButton,
   clickToolbarConfigurationButton,
+  deSelectEquations,
   expectSelectedFaces,
   getEquations,
   getJumpToSolutions,
   jumpToSolution,
-  selectEquation,
+  selectEquations,
   selectFaces,
   waitForCalculatorPage,
   waitForDataProcessedState,
   waitForNoneProcessedState,
 } from './calculator.utils';
 import { PATH_CALCULATOR } from '../const';
-import { collectCoverage, initializePath, scrollToTop } from '../utils';
+import {
+  collectCoverage,
+  initializePath,
+  scrollToQuerySelector,
+  scrollToTop,
+} from '../utils';
 import {
   clickRemoveDieButton,
   clickToolbarCloseButton,
@@ -118,7 +124,7 @@ test('Jump to selection and scroll to top.', async ({ page }) => {
     name: 'equation_solution_14.png',
   });
 
-  await selectEquation(page, '18 = 3 * (2 + 4)');
+  await selectEquations(page, ['18 = 3 * (2 + 4)']);
   expect(await page.screenshot()).toMatchSnapshot({
     name: 'equation_solution_18.png',
   });
@@ -152,10 +158,14 @@ test('No results can be shown', async ({ page }) => {
 });
 
 test('Select equation highlights the list item.', async ({ page }) => {
-  await jumpToSolution(page, 2);
-  await selectEquation(page, '2 = 1 + (1 * 1)');
+  await scrollToQuerySelector(page, '.results');
+  await selectEquations(page, ['1 = 1 + (1 - 1)', '1 = 1 / (1 * 1)']);
   expect(await page.screenshot()).toMatchSnapshot({
-    name: 'selected_equation.png',
+    name: 'selected_equations.png',
+  });
+  await deSelectEquations(page, ['1 = 1 + (1 - 1)', '1 = 1 / (1 * 1)']);
+  expect(await page.screenshot()).toMatchSnapshot({
+    name: 'deselected_equation.png',
   });
 });
 

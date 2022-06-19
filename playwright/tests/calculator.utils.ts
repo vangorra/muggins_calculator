@@ -1,5 +1,10 @@
 import { expect, Page } from '@playwright/test';
-import { getScrollY, waitForAnimationToSettle, waitForScrollY } from '../utils';
+import {
+  forEachLocator,
+  getScrollY,
+  waitForAnimationToSettle,
+  waitForScrollY,
+} from '../utils';
 
 export const waitForCalculatorPage = async (page: Page) => {
   await page.waitForSelector('app-calculator');
@@ -66,34 +71,90 @@ export const getEquations = async (page: Page) => {
   return equations;
 };
 
-export const getSelectedEquation = async (page: Page) => {
+export const getSelectedEquations = async (page: Page) => {
   await waitForDataProcessedState(page);
 
-  const listOption = await page.locator(
-    `.results .data mat-list-option.equation.mat-list-single-selected-option [data-equation]`
+  const equations: string[] = [];
+  await forEachLocator(
+    page.locator(
+      `.results .data mat-list-option.equation[aria-selected="true"] [data-equation]`
+    ),
+    async (listOption) => {
+      const equation = await listOption.getAttribute('data-equation');
+      equations.push(equation!);
+    }
   );
-  if (!(await listOption.count())) {
-    return undefined;
-  }
 
-  return listOption.getAttribute('data-equation');
+  return equations;
 };
 
-export const selectEquation = async (page: Page, equation: string) => {
+export const setEquationSelectedState = async (
+  page: Page,
+  targetEquations: string[],
+  targetState: boolean
+) => {
   await waitForDataProcessedState(page);
 
+  // Confirm the target equations are present.
   const equations = await getEquations(page);
-  expect(equations).toContain(equation);
+  targetEquations.forEach((equation) => expect(equations).toContain(equation));
 
-  const listOption = await page.locator(
-    `.results .data mat-list-option.equation [data-equation="${equation}"]`
-  );
-  await listOption.click();
+  const selectedEquationsBefore = await getSelectedEquations(page);
+  for (const selectEquation of targetEquations) {
+    const listOption = await page.locator(
+      `.results .data mat-list-option.equation [data-equation="${selectEquation}"]`
+    );
+    const equation = await listOption.getAttribute('data-equation');
 
-  const selectedEquation = await getSelectedEquation(page);
-  expect(selectedEquation).toEqual(equation);
+    const currentState = selectedEquationsBefore.indexOf(equation!) > -1;
+    if (currentState != targetState) {
+      await listOption.click();
+    }
+  }
+
+  const selectedEquations = await getSelectedEquations(page);
+  targetEquations.forEach((equation) => {
+    let ex = expect(selectedEquations);
+    if (!targetState) {
+      ex = ex.not;
+    }
+
+    ex.toContain(equation);
+  });
 
   await waitForAnimationToSettle();
+};
+
+export const deSelectEquations = async (page: Page, toSelect: string[]) => {
+  return setEquationSelectedState(page, toSelect, false);
+};
+
+export const selectEquations = async (page: Page, toSelect: string[]) => {
+  return setEquationSelectedState(page, toSelect, true);
+  //
+  // await waitForDataProcessedState(page);
+  //
+  // const equations = await getEquations(page);
+  // toSelect.forEach((equation) => expect(equations).toContain(equation));
+  //
+  // const selectedEquationsBefore = await getSelectedEquations(page);
+  // for (const selectEquation of toSelect) {
+  //   const listOption = await page.locator(
+  //     `.results .data mat-list-option.equation [data-equation="${selectEquation}"]`
+  //   );
+  //   const equation = await listOption.getAttribute('data-equation');
+  //
+  //   if (equation! in selectedEquationsBefore) {
+  //     continue;
+  //   }
+  //
+  //   await listOption.click();
+  // }
+  //
+  // const selectedEquations = await getSelectedEquations(page);
+  // expect(selectedEquations).toEqual(toSelect);
+  //
+  // await waitForAnimationToSettle();
 };
 
 export const expectSelectedFaces = async (page: Page, faces: number[]) => {
