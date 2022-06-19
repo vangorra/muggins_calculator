@@ -69,7 +69,7 @@
         <span class="jumpButtonWrapper" *ngFor="let solution of solutions">
           <button
             mat-stroked-button
-            (click)="jumpToResultIndex(solution.firstResultIndex)"
+            (click)="onSolutionClicked(solution)"
             [attr.data-test-id]="'jumpTo_' + solution.total"
             class="jumpToSolutionButton"
           >
@@ -80,7 +80,7 @@
     </mat-card-subtitle>
 
     <mat-card-content class="equations">
-      <mat-selection-list [multiple]="false">
+      <mat-selection-list>
         <ng-container
           *uiScroll="
             let calculateResultWithEquation of calculateResultArrayDataSource
@@ -94,8 +94,10 @@
             }"
           ></mat-divider>
           <mat-list-option
+            [ngClass]="getEquationClassList(calculateResultWithEquation)"
             [value]="calculateResultWithEquation.fullEquation"
-            class="equation"
+            [selected]="isEquationSelected(calculateResultWithEquation)"
+            (selectedChange)="onEquationSelectionChange(calculateResultWithEquation, $event)"
           >
             <span appMathJax>{{
               calculateResultWithEquation.fullEquation

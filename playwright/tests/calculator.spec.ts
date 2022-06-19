@@ -113,10 +113,16 @@ test('Jump to selection and scroll to top.', async ({ page }) => {
   const solutions = await getJumpToSolutions(page);
   expect(solutions).toEqual([1, 2, 3, 4, 5, 6, 9, 10, 11, 14, 18, 20, 24]);
 
-  await jumpToSolution(page, 20);
+  await jumpToSolution(page, 14);
   expect(await page.screenshot()).toMatchSnapshot({
-    name: 'equation_solution_20.png',
+    name: 'equation_solution_14.png',
   });
+
+  await selectEquation(page, "18 = 3 * (2 + 4)");
+  expect(await page.screenshot()).toMatchSnapshot({
+    name: 'equation_solution_18.png',
+  });
+
   await clickScrollToTopButton(page);
 
   // The button should be gone.

@@ -193,6 +193,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
   }
 
   async cancel() {
+    this.clearSelectedEquations();
     this.calculateHandler?.stop();
     this.calculateHandler?.status.unsubscribe();
     this.calculateState = CalculateState.CANCELLED;
@@ -209,6 +210,11 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       })),
     });
     this.configurationService.save();
+  }
+
+  async onSolutionClicked(solution: Solution) {
+    await this.jumpToResultIndex(solution.firstResultIndex);
+    this.selectAllEquationsWithTotal(solution.total);
   }
 
   async jumpToResultIndex(targetIndex: number): Promise<void> {
@@ -233,4 +239,56 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       scrollPosition: 0,
     });
   };
+
+  readonly selectedEquations: CalculateEquationResult[] = [];
+
+  clearSelectedEquations() {
+    this.selectedEquations.splice(0, this.selectedEquations.length);
+  }
+
+  onEquationSelectionChange(
+    calculateResult: CalculateEquationResult,
+    isSelected: boolean
+  ) {
+    // Remove selected items.
+    this.selectedEquations
+      .map((eq, index) => ({ eq, index }))
+      // .filter(({ eq }) => !isSelected && eq.fullEquation === calculateResult.fullEquation)
+      .filter(
+        ({ eq }) =>
+          (isSelected && eq.total !== calculateResult.total) ||
+          (!isSelected && eq.fullEquation === calculateResult.fullEquation)
+      )
+      .map(({ index }) => index)
+      .reverse()
+      .forEach((index) => this.selectedEquations.splice(index, 1));
+
+    if (isSelected) {
+      this.selectedEquations.push(calculateResult);
+    }
+  }
+
+  isEquationSelected(calculateResult: CalculateEquationResult) {
+    return (
+      this.selectedEquations.filter(
+        (eq) => eq.fullEquation === calculateResult.fullEquation
+      ).length > 0
+    );
+  }
+
+  selectAllEquationsWithTotal(total: number) {
+    this.calculateResultArray
+      .filter((calculateResult) => calculateResult.total === total)
+      .forEach((calculateResult) =>
+        this.onEquationSelectionChange(calculateResult, true)
+      );
+  }
+
+  getEquationClassList(calculateResult: CalculateEquationResult) {
+    return ['equation'].concat(
+      this.isEquationSelected(calculateResult)
+        ? ['mat-list-single-selected-option']
+        : []
+    );
+  }
 }

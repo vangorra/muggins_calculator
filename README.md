@@ -67,7 +67,7 @@ Prior to any commit, one should run a full build to ensure code is properly lint
 
 ```shell
 # Run full build will all formatting and testing.
-./devenv.sh exec gulp buildFulll
+./devenv.sh exec gulp buildFull
 
 # Run continuous integration build. This is intended to be ran by a build server.
 # Does everything buildFull does except that this only checking code formatting 
