@@ -118,7 +118,7 @@ test('Jump to selection and scroll to top.', async ({ page }) => {
     name: 'equation_solution_14.png',
   });
 
-  await selectEquation(page, "18 = 3 * (2 + 4)");
+  await selectEquation(page, '18 = 3 * (2 + 4)');
   expect(await page.screenshot()).toMatchSnapshot({
     name: 'equation_solution_18.png',
   });
