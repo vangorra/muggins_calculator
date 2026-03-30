@@ -63,6 +63,15 @@ jobs:
           flag-name: common
           parallel: true
 
+      - name: Coveralls - CLI
+        if: success()
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: packages/cli/coverage/lcov.info
+          flag-name: cli
+          parallel: true
+
       - name: Coveralls - Finish
         if: success()
         uses: coverallsapp/github-action@v2
