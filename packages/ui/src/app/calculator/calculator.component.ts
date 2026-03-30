@@ -4,6 +4,7 @@ import {
   computed,
   effect,
   inject,
+  Injector,
   OnDestroy,
   OnInit,
   signal,
@@ -112,6 +113,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly solverOrchestrator = inject(SolverOrchestrator);
   private readonly solutionsService = inject(SolutionsService);
+  private readonly injector = inject(Injector);
 
   // Orchestrator signal for local mode estimated time.
   private readonly progressSignal = this.solverOrchestrator.progress;
@@ -374,10 +376,11 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     this._calculateProgress.set(0);
 
     // Track orchestrator progress via effect.
+    // Must pass injector explicitly since this runs in an async method, outside the constructor injection context.
     const effectRef = effect(() => {
       const p = this.solverOrchestrator.progress();
       this._calculateProgress.set(Math.floor(p.percentage * 100));
-    });
+    }, { injector: this.injector });
     this.progressEffectCleanup = () => effectRef.destroy();
 
     this.restartEstimatedTimeInterval();
