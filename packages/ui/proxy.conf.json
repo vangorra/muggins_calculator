@@ -1,0 +1,6 @@
+{
+  "/solutions-*d.mugbin": {
+    "target": "http://localhost:4250",
+    "secure": false
+  }
+}

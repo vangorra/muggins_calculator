@@ -1,0 +1,46 @@
+.dice {
+  margin-bottom: 1em;
+}
+
+.results {
+  min-height: 100vh;
+
+  .fallback-warning {
+    color: var(--mat-sys-error);
+    padding: 0.5em 1em;
+  }
+
+  mat-card-title {
+    .resultCountContainer {
+      display: inline-block;
+      vertical-align: middle;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .resultCountValue {
+      display: inline-block;
+    }
+  }
+
+  mat-card-subtitle {
+    margin-bottom: 0;
+
+    .jumpButtonWrapper {
+      display: inline-block;
+      padding: 0.1em;
+      vertical-align: middle;
+    }
+  }
+
+  .equations {
+    .equation {
+      cursor: pointer;
+
+      &.mat-list-single-selected-option {
+        background-color: var(--mat-sys-secondary-container);
+        color: var(--mat-sys-on-secondary-container);
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+@if (isVisible) {
+  <button
+    [@slideUpDown]
+    class="scrollToTopButton"
+    mat-fab
+    color="primary"
+    aria-label="Goto top of page"
+    title="Goto top of page"
+    (click)="scrollToTop()"
+    [attr.data-test-id]="'app-scroll-to-top_scrollToTopButton'"
+    >
+    <mat-icon>expand_less</mat-icon>
+  </button>
+}

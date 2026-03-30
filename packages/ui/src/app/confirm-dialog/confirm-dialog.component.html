@@ -1,0 +1,26 @@
+@if (!!data.title) {
+  <h2 mat-dialog-title>{{ data.title }}</h2>
+}
+@if (!!data.content) {
+  <div mat-dialog-content>{{ data.content }}</div>
+}
+@if (buttonsArray().length) {
+  <mat-dialog-actions>
+    @for (button of buttonsArray(); track button) {
+      <button
+        mat-button
+        [attr.mat-raised-button]="button.type === 'raised' ? '' : null"
+        [attr.mat-stroked-button]="button.type === 'stroked' ? '' : null"
+        [attr.mat-flat-button]="button.type === 'flat' ? '' : null"
+        [mat-dialog-close]="button === data.acceptButton ? true : null"
+        [ngClass]="button === data.acceptButton ? 'acceptButton' : 'rejectButton'"
+      [attr.data-test-id]="
+        'app-confirm-dialog_' +
+        (data.acceptButton ? 'acceptButton' : 'rejectButton')
+      "
+        >
+        {{ button.title }}
+      </button>
+    }
+  </mat-dialog-actions>
+}

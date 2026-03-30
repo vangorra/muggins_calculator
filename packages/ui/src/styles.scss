@@ -1,0 +1,56 @@
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$violet-palette,
+      tertiary: mat.$azure-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+body.color-scheme-dark {
+  @include mat.theme((
+    color: (
+      theme-type: dark,
+      primary: mat.$violet-palette,
+      tertiary: mat.$azure-palette,
+    ),
+  ));
+  color-scheme: dark;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html, body {
+  min-height: calc(100vh + 1px);
+  overflow-x: hidden;
+}
+
+body {
+  color-scheme: light;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+app-root {
+  height: 100%;
+  flex: auto;
+  flex-direction: column;
+}
+
+// mat-card-title/subtitle used directly in mat-card (without mat-card-header) get no
+// built-in padding in Angular Material M3, leaving text flush against the card edge.
+mat-card > mat-card-title,
+mat-card > mat-card-subtitle {
+  display: block;
+  padding: 16px 16px 0;
+}

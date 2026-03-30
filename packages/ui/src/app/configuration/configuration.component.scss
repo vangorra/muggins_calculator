@@ -1,0 +1,45 @@
+.theme,
+.calculationMode {
+  mat-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+.operations {
+  .operationExample {
+    font-size: 0.85em;
+    opacity: 0.6;
+  }
+}
+
+.boardSize {
+  mat-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.dice {
+  .addDie,
+  .removeDie {
+    min-width: 40px;
+    width: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.resetButton {
+  padding-bottom: 5em;
+
+  .resetButtonAction {
+    @media (max-width: 959px) {
+      width: 100%;
+    }
+  }
+}
