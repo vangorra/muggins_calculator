@@ -29,6 +29,7 @@ jobs:
       - run: npm ci
 
       - run: npm run build -w packages/common
+      - run: npm run build -w packages/cli
 
       - run: npm run build -w packages/ui -- --base-href /muggins_calculator/
 
@@ -49,6 +50,13 @@ jobs:
           name: playwright-screenshots
           path: packages/ui/playwright/tests/**/*-snapshots/
           if-no-files-found: ignore
+
+      - name: Upload Playwright test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: packages/ui/test-results/
 
       - name: Coveralls - UI
         if: success()
