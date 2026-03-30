@@ -1,0 +1,28 @@
+{
+  "name": "@muggins_calculator/cli",
+  "version": "1.0.0",
+  "description": "Muggins Calculator CLI for pre-generating solutions",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "dist/main.js",
+  "bin": {
+    "muggins-cli": "dist/main.js"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rimraf dist",
+    "test": "vitest run --coverage",
+    "generate-all-solutions": "node dist/main.js generate-all-solutions"
+  },
+  "dependencies": {
+    "@muggins_calculator/common": "*",
+    "commander": "^13.1.0",
+    "lodash": "^4.17.21",
+    "tslib": "^2.3.1"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
+    "vitest": "^4.0.18"
+  }
+}

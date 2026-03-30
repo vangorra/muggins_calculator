@@ -1,53 +1,47 @@
-# See http://help.github.com/ignore-files/ for more about ignoring files.
+# Dependencies
+node_modules/
 
-/build
+# Build output
+dist/
 
-# compiled output
-/dist
+# Pre-generated solutions (built in CI or locally)
+*.mugbin
+solutions/
 /tmp
 /out-tsc
-# Only exists if Bazel was run
-/bazel-out
 
-# dependencies
-/node_modules
+# Angular CLI cache
+.angular/
 
-# profiling files
-chrome-profiler-events*.json
+# Coverage reports
+coverage/
 
-# IDEs and editors
-/.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
+# Playwright test results
+test-results/
 
-# IDE - VSCode
+# IDE
+.idea/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-.history/*
+.history/
+*.sublime-workspace
+.project
+.classpath
+.c9/
+*.launch
+.settings/
 
-# misc
-/.sass-cache
-/connect.lock
-/coverage
-/libpeerconnection.log
-npm-debug.log
-yarn-error.log
-testem.log
-/typings
-
-# System Files
+# System files
 .DS_Store
 Thumbs.db
 
-src/assets/icons
-.angular
+# Logs
+npm-debug.log
+yarn-error.log
+generation.log
 
-test-results
-.Dockerfile.md5
+# Claude Code
+.claude/

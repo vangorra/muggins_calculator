@@ -1,0 +1,21 @@
+app-toolbar {
+  display: block;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 10000;
+}
+
+.app {
+  padding-top: 80px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  @media (min-width: 960px) {
+    padding: 80px 1em 0;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+}

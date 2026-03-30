@@ -7,13 +7,65 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - run: ./devenv.sh exec npm install
-      - run: ./devenv.sh exec gulp buildFullCi
-        env:
-          BUILD_BASE_HREF: "/muggins_calculator/"
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build -w packages/common
+      - run: npm run build -w packages/cli
+      - run: npm run build -w packages/ui
+
+      - run: npm test
+
+      - name: Install Playwright browsers
+        working-directory: packages/ui
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        working-directory: packages/ui
+        run: npx playwright test
+
+      - name: Upload Playwright screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: packages/ui/playwright/tests/**/*-snapshots/
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: packages/ui/test-results/
+
+      - name: Coveralls - UI
+        if: success()
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./build/coverage/jest/lcov.info
+          file: packages/ui/coverage/muggins_calculator/lcov.info
+          flag-name: ui
+          parallel: true
+
+      - name: Coveralls - Common
+        if: success()
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: packages/common/coverage/lcov.info
+          flag-name: common
+          parallel: true
+
+      - name: Coveralls - Finish
+        if: success()
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
