@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   MugbinWriter,
   MugbinReader,
@@ -24,6 +24,41 @@ describe('mugbin', () => {
       const compressed = await gzipCompress(original);
       const decompressed = await gzipDecompress(compressed);
       expect(decompressed).toEqual(original);
+    });
+
+    it('compresses via Node.js zlib fallback when CompressionStream is unavailable', async () => {
+      // Temporarily hide the stream APIs so the zlib fallback branch is taken.
+      const origCS = globalThis.CompressionStream;
+      const origDS = globalThis.DecompressionStream;
+      // Also patch `Function` to support the dynamic import trick used in the fallback.
+      const OrigFunction = globalThis.Function;
+      try {
+        vi.stubGlobal('CompressionStream', undefined);
+        vi.stubGlobal('DecompressionStream', undefined);
+
+        // The fallback does `Function('return import("node:zlib")')()`.
+        // In vitest, `Function(...)` with dynamic import may not work.
+        // Patch `Function` to intercept the zlib import call and return actual zlib.
+        const zlib = await import('node:zlib');
+        vi.stubGlobal('Function', function (...args: string[]) {
+          const body = args[args.length - 1];
+          if (typeof body === 'string' && body.includes('node:zlib')) {
+            return () => Promise.resolve(zlib);
+          }
+          return new OrigFunction(...args);
+        } as any);
+
+        const data = new Uint8Array([10, 20, 30, 40, 50]);
+        const compressed = await gzipCompress(data);
+        expect(compressed.length).toBeGreaterThan(0);
+
+        const decompressed = await gzipDecompress(compressed);
+        expect(decompressed).toEqual(data);
+      } finally {
+        vi.stubGlobal('CompressionStream', origCS);
+        vi.stubGlobal('DecompressionStream', origDS);
+        vi.stubGlobal('Function', OrigFunction);
+      }
     });
   });
 
@@ -397,6 +432,25 @@ describe('mugbin', () => {
     it('getIndex throws when index not loaded', () => {
       const reader = new MugbinReader(new BufferDataSource(new Uint8Array(0)));
       expect(() => reader.getIndex()).toThrow('Index not loaded');
+    });
+
+    it('sort comparator returns 0 for identical facesKey entries', async () => {
+      // Adding equations for the same faces twice (different totals) creates a single entry.
+      // The sort comparator's `return 0` fallback is exercised when all facesKey bytes match.
+      const writer = new MugbinWriter();
+      writer.addEquations([1, 2], 1, 3, packTokens([1, 2, 25]), 1);
+      writer.addEquations([1, 2], 1, 5, packTokens([2, 3, 25]), 1);
+
+      // Build succeeds and the single entry contains both groups.
+      const fileData = await writer.build();
+      const reader = new MugbinReader(new BufferDataSource(fileData));
+      await reader.loadIndex();
+
+      const entries = reader.findEntries([1, 2]);
+      expect(entries.length).toBe(1);
+      const jumpData = await reader.getJumpData(entries, 1);
+      expect(jumpData.get(3)).toBe(1);
+      expect(jumpData.get(5)).toBe(1);
     });
 
     it('compressed index is smaller than raw index', async () => {

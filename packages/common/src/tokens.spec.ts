@@ -5,6 +5,9 @@ import {
   packedByteLength,
   isOperationToken,
   isFaceToken,
+  operationsToMask,
+  OperationEnum,
+  OPERATION_MASKS,
   TOKEN_PLUS,
   TOKEN_MINUS,
   TOKEN_MULTIPLY,
@@ -105,5 +108,39 @@ describe('isFaceToken', () => {
 
   it('returns false for zero', () => {
     expect(isFaceToken(0)).toBe(false);
+  });
+});
+
+describe('operationsToMask', () => {
+  it('returns 0 for empty array', () => {
+    expect(operationsToMask([])).toBe(0);
+  });
+
+  it('returns correct mask for a single operation', () => {
+    expect(operationsToMask([OperationEnum.PLUS])).toBe(OPERATION_MASKS[OperationEnum.PLUS]);
+    expect(operationsToMask([OperationEnum.MODULO])).toBe(OPERATION_MASKS[OperationEnum.MODULO]);
+  });
+
+  it('returns combined mask for multiple operations', () => {
+    const mask = operationsToMask([OperationEnum.PLUS, OperationEnum.MINUS, OperationEnum.MULTIPLY]);
+    expect(mask).toBe(
+      OPERATION_MASKS[OperationEnum.PLUS] |
+      OPERATION_MASKS[OperationEnum.MINUS] |
+      OPERATION_MASKS[OperationEnum.MULTIPLY]
+    );
+  });
+
+  it('returns full mask for all operations', () => {
+    const allOps = Object.values(OperationEnum);
+    const mask = operationsToMask(allOps);
+    const expectedMask = allOps.reduce((m, op) => m | OPERATION_MASKS[op], 0);
+    expect(mask).toBe(expectedMask);
+    expect(mask).toBe(127); // 1+2+4+8+16+32+64
+  });
+
+  it('returns 0 for unknown operation (nullish coalescing fallback)', () => {
+    // Force an unknown operation value to exercise the ?? 0 fallback branch
+    const mask = operationsToMask(['unknown_op' as OperationEnum]);
+    expect(mask).toBe(0);
   });
 });

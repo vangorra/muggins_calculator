@@ -67,6 +67,11 @@ describe('postfixToInfixGrouped', () => {
     expect(postfixToInfixGrouped([1, 2, 3, TOKEN_MULTIPLY, TOKEN_PLUS])).toBe('1 + (2 * 3)');
   });
 
+  it('returns a single value for a single-token expression', () => {
+    // A single face value with no operators — lastOpIndex stays -1
+    expect(postfixToInfixGrouped([5])).toBe('5');
+  });
+
   it('handles 4-dice expression', () => {
     // ((1 + 2) * 3) - 4 in postfix: 1 2 + 3 * 4 -
     const tokens = [1, 2, TOKEN_PLUS, 3, TOKEN_MULTIPLY, 4, TOKEN_MINUS];

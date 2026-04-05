@@ -28,7 +28,8 @@ class FetchDataSource implements MugbinDataSource {
 const readers = new Map<number, MugbinReader>();
 
 async function initSolutionsReader(diceCount: number): Promise<number> {
-  const source = new FetchDataSource(`/solutions-${diceCount}d.mugbin`);
+  const baseHref = new URL('.', self.location.href).pathname;
+  const source = new FetchDataSource(`${baseHref}solutions-${diceCount}d.mugbin`);
   const reader = new MugbinReader(source);
   await reader.loadIndex();
   readers.set(diceCount, reader);

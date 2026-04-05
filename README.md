@@ -2,6 +2,8 @@
 
 An app for discovering and checking answers to the popular math board game Muggins.
 
+[![Click Here to Launch App](https://img.shields.io/badge/Click_Here_to_Launch_App-blue?style=for-the-badge)](https://vangorra.github.io/muggins_calculator/)
+
 [![Calculator screenshot. Click to load.](./packages/ui/playwright/tests/calculator.spec.ts-snapshots/mobile/selected-faces-2-3-4-linux.png)](https://vangorra.github.io/muggins_calculator/) [![Configuration Screenshot. Click to load.](./packages/ui/playwright/tests/configuration.spec.ts-snapshots/mobile/default-startup-linux.png)](https://vangorra.github.io/muggins_calculator/)
 
 [Muggins](https://www.mugginsmath.com/) is an amusing and challenging board game for any group of people.
@@ -19,8 +21,6 @@ Features:
 - Fast calculations using background processing.
 - Instant results via precomputed solutions served as a compact binary file.
 - Installable as a progressive web app (PWA) for offline use.
-
-[![Click Here to Launch App](https://img.shields.io/badge/Click_Here_to_Launch_App-blue?style=for-the-badge)](https://vangorra.github.io/muggins_calculator/)
 
 ## Architecture
 

@@ -422,6 +422,60 @@ describe('generateResults', () => {
     expect(results.length).toBe(directResults.length);
   });
 
+  it('handles single die (slotCount=0 in lazy operation permutations)', () => {
+    // With a single face, there are zero operator slots, triggering slotCount=0
+    // in the lazyOperationPermutations generator (lines 358-359).
+    const results = [...generateResults({
+      minTotal: 1, maxTotal: 10,
+      faces: [5],
+      operations: [OperationEnum.PLUS],
+    })];
+
+    // A single die with value 5 produces exactly one result: total=5
+    expect(results.length).toBe(1);
+    expect(results[0].total).toBe(5);
+    expect(results[0].postfixTokens).toEqual([5]);
+  });
+
+  it('uses BigInt dedup key for 6 dice (11 tokens)', () => {
+    // 6 faces = 11 tokens = 55 bits, which exceeds 2^53 and triggers the BigInt path
+    const results = [...generateResults({
+      minTotal: 1, maxTotal: 100,
+      faces: [1, 1, 1, 1, 1, 1],
+      operations: [OperationEnum.PLUS],
+    })];
+
+    // With 6 dice all being 1 and only PLUS, all results have total=6.
+    // Different Catalan patterns produce structurally different postfix sequences
+    // (e.g. 1 1 + 1 + 1 + 1 + 1 + vs 1 1 + 1 1 + + 1 + 1 +),
+    // so there are multiple deduplicated results — one per Catalan shape.
+    expect(results.length).toBeGreaterThan(0);
+    for (const r of results) {
+      expect(r.total).toBe(6);
+      expect(r.postfixTokens.length).toBe(11);
+    }
+  });
+
+  it('yields duplicate results when deduplicate is false', () => {
+    const config = {
+      minTotal: 0, maxTotal: 72,
+      faces: [1, 2, 3],
+      operations: [OperationEnum.PLUS, OperationEnum.MINUS],
+    };
+
+    const deduped = [...generateResults(config)];
+    const notDeduped = [...generateResults(config, undefined, undefined, { deduplicate: false })];
+
+    // Without dedup there should be at least as many results, and likely more duplicates
+    expect(notDeduped.length).toBeGreaterThanOrEqual(deduped.length);
+
+    // Verify duplicates actually exist in the non-deduped set
+    const keys = notDeduped.map(r => r.postfixTokens.join(','));
+    const uniqueKeys = new Set(keys);
+    // The deduped set should be smaller or equal
+    expect(deduped.length).toBe(uniqueKeys.size);
+  });
+
   it('is lazy — yields one at a time', () => {
     const gen = generateResults({
       minTotal: 0, maxTotal: 72,

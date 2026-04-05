@@ -4,7 +4,7 @@ import { ConfigurationComponent } from './configuration.component';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { ConfigurationService } from '../configuration.service';
-import { DieConfiguration, ThemeEnum } from '../general_types';
+import { CalculationModeEnum, DieConfiguration, ThemeEnum } from '../general_types';
 import { OperationEnum } from '@muggins_calculator/common';
 import { DEFAULT_CONFIGURATION, DEFAULT_DIE_SELECTED_FACE } from '../const';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -12,6 +12,7 @@ import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { MathJaxState } from '../math-jax/math-jax.service';
 import { mockMathJaxProvider } from '../test-utils';
 import { MatDialog } from '@angular/material/dialog';
+import { MatRadioChange } from '@angular/material/radio';
 
 describe(ConfigurationComponent.name, () => {
   let component: ConfigurationComponent;
@@ -497,5 +498,78 @@ describe(ConfigurationComponent.name, () => {
     // The component ngOnDestroy dismisses the snack bar.
     // Just verify it doesn't throw.
     fixture.destroy();
+  });
+
+  it('addDie triggers snackbar warning when die count exceeds MINIMUM_PERFORMANT_DIE_COUNT', async () => {
+    const matSnackBar = TestBed.inject(
+      (await import('@angular/material/snack-bar')).MatSnackBar
+    );
+    const snackBarSpy = vi.spyOn(matSnackBar, 'open');
+
+    // Start with 3 dice (default). Add dice until we exceed MINIMUM_PERFORMANT_DIE_COUNT (4).
+    // Adding 1 die -> 4 dice (equal, no warning)
+    component.addDie();
+    fixture.detectChanges();
+    expect(snackBarSpy).not.toHaveBeenCalled();
+
+    // Adding 1 more die -> 5 dice (exceeds 4, warning should appear)
+    component.addDie();
+    fixture.detectChanges();
+    expect(snackBarSpy).toHaveBeenCalledWith(
+      'Warning: More than 4 dice will result is VERY slow runs.',
+      'Dismiss',
+      { duration: 5000 }
+    );
+
+    // Adding another die should NOT show a second warning (snackbar ref still active)
+    snackBarSpy.mockClear();
+    component.addDie();
+    fixture.detectChanges();
+    expect(snackBarSpy).not.toHaveBeenCalled();
+
+    // Remove dice until we're at 5 (threshold + 1), then remove one more to trigger dismiss
+    // Currently at 6 dice (3 default + 3 added). Remove until at 5.
+    component.removeDie();
+    fixture.detectChanges();
+
+    // Now at 5 dice. Set up the snackbar ref mock for the dismiss path.
+    const dismissWithActionSpy = vi.fn();
+    (component as any).addDieSnackbarWarning = { dismissWithAction: dismissWithActionSpy, afterDismissed: () => new BehaviorSubject({}) };
+
+    // Remove one more -> 4 dice, which is <= MINIMUM_PERFORMANT_DIE_COUNT (4)
+    component.removeDie();
+    fixture.detectChanges();
+    expect(dismissWithActionSpy).toHaveBeenCalled();
+  });
+
+  it('onCalculationModeChange updates configuration', () => {
+    component.onCalculationModeChange({
+      value: CalculationModeEnum.LOCAL_ONLY,
+    } as MatRadioChange);
+    fixture.detectChanges();
+
+    expect(configurationService.value().calculationMode).toEqual(
+      CalculationModeEnum.LOCAL_ONLY
+    );
+    expect(configurationSaveSpy).toHaveBeenCalled();
+  });
+
+  it('inputSelectAll calls select on HTMLInputElement', () => {
+    const input = document.createElement('input');
+    const selectSpy = vi.spyOn(input, 'select');
+
+    component.inputSelectAll(input);
+    expect(selectSpy).toHaveBeenCalled();
+  });
+
+  it('inputSelectAll does nothing for non-HTMLInputElement', () => {
+    const div = document.createElement('div');
+    // Should not throw
+    component.inputSelectAll(div);
+  });
+
+  it('inputSelectAll does nothing for null/undefined', () => {
+    component.inputSelectAll(null);
+    component.inputSelectAll(undefined);
   });
 });

@@ -9,6 +9,8 @@ import {
   generateSolutionsData,
   generateAndWriteTempFile,
   generateAllSolutions,
+  mergeTempMugbinFiles,
+  buildSummaryEntries,
   formatTimeRemaining,
   shardedFileName,
 } from './generate.js';
@@ -363,5 +365,157 @@ describe('generateAllSolutions', () => {
     expect(firstTask.tempPath).toBeDefined();
 
     stdoutSpy.mockRestore();
+  });
+
+  it('logs resume message when temp files already exist', async () => {
+    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.mocked(Worker).mockImplementation(realDataWorker());
+
+    // Pre-create the temp directory with one completed temp file.
+    const shardPath = path.join(tmpDir, shardedFileName(2));
+    const tempDirPath = `${shardPath}.tmp`;
+    fs.mkdirSync(path.dirname(shardPath), { recursive: true });
+    fs.mkdirSync(tempDirPath, { recursive: true });
+
+    // Generate a real temp file for [1,1] so it's skipped on the real run.
+    const existingTempPath = path.join(tempDirPath, '1-1.mugbin');
+    await generateAndWriteTempFile([1, 1], 0, 10, existingTempPath, 64 * 1024);
+
+    await generateAllSolutions({ outputDir: tmpDir, dieSizes: [2, 2], minTotal: 0, maxTotal: 10 });
+
+    const resumeLog = consoleLogSpy.mock.calls
+      .map((call) => String(call[0]))
+      .find((s) => s.includes('Resuming:'));
+    expect(resumeLog).toBeDefined();
+    expect(resumeLog).toMatch(/1 of 3/);
+
+    stdoutSpy.mockRestore();
+    consoleLogSpy.mockRestore();
+  });
+});
+
+describe('generateAndWriteTempFile', () => {
+  it('writes empty marker file when no equations match', async () => {
+    // faces [1,1] with minTotal=100, maxTotal=100 yields nothing.
+    const tempPath = path.join(tmpDir, 'empty.mugbin');
+    await generateAndWriteTempFile([1, 1], 100, 100, tempPath, 64 * 1024);
+
+    expect(fs.existsSync(tempPath)).toBe(true);
+    expect(fs.statSync(tempPath).size).toBe(0);
+    // Scratch dir should be cleaned up.
+    expect(fs.existsSync(tempPath + '.groups')).toBe(false);
+  });
+
+  it('triggers flushAll when total buffered data exceeds flushHighWater', async () => {
+    // Using a tiny flushHighWater (1 byte) forces flushAll to be called frequently.
+    const tempPath = path.join(tmpDir, 'flush-all.mugbin');
+    await generateAndWriteTempFile([1, 2, 3], 0, 10, tempPath, 1);
+
+    expect(fs.existsSync(tempPath)).toBe(true);
+    expect(fs.statSync(tempPath).size).toBeGreaterThan(0);
+
+    // Verify the resulting file is a valid mugbin.
+    const data = new Uint8Array(fs.readFileSync(tempPath));
+    const reader = new MugbinReader(new BufferDataSource(data));
+    await reader.loadIndex();
+    const entries = reader.findEntries([1, 2, 3]);
+    expect(entries.length).toBe(1);
+  });
+
+  it('triggers per-group buffer flush when a single group overflows its buffer', async () => {
+    // Use faces that produce many equations per group. With a large flushHighWater
+    // (so flushAll is never triggered by the global threshold), the per-group buffer
+    // (64KB) will fill and trigger flushGroup for individual groups.
+    // [6, 6, 6, 6, 6, 6] with full range produces many equations per group, overflowing the 64KB buffer.
+    const tempPath = path.join(tmpDir, 'flush-group.mugbin');
+    await generateAndWriteTempFile([6, 6, 6, 6, 6, 6], 0, 500, tempPath, 1024 * 1024 * 1024);
+
+    expect(fs.existsSync(tempPath)).toBe(true);
+    expect(fs.statSync(tempPath).size).toBeGreaterThan(0);
+
+    const data = new Uint8Array(fs.readFileSync(tempPath));
+    const reader = new MugbinReader(new BufferDataSource(data));
+    await reader.loadIndex();
+    const entries = reader.findEntries([6, 6, 6, 6, 6, 6]);
+    expect(entries.length).toBe(1);
+  });
+
+});
+
+describe('buildSummaryEntries', () => {
+  it('returns one entry per group when counts are within uint16 range', () => {
+    const groups = [
+      { opsMask: 1, total: 5, count: 100 },
+      { opsMask: 3, total: 10, count: 65535 },
+    ];
+    const entries = buildSummaryEntries(groups);
+    expect(entries).toEqual([
+      { opsMask: 1, total: 5, count: 100 },
+      { opsMask: 3, total: 10, count: 65535 },
+    ]);
+  });
+
+  it('splits a group exceeding 65535 into multiple summary entries', () => {
+    const groups = [
+      { opsMask: 1, total: 5, count: 65536 + 10 },
+    ];
+    const entries = buildSummaryEntries(groups);
+    expect(entries).toEqual([
+      { opsMask: 1, total: 5, count: 65535 },
+      { opsMask: 1, total: 5, count: 11 },
+    ]);
+  });
+
+  it('splits a very large group into three or more entries', () => {
+    const groups = [
+      { opsMask: 7, total: 42, count: 65535 * 2 + 500 },
+    ];
+    const entries = buildSummaryEntries(groups);
+    expect(entries).toEqual([
+      { opsMask: 7, total: 42, count: 65535 },
+      { opsMask: 7, total: 42, count: 65535 },
+      { opsMask: 7, total: 42, count: 500 },
+    ]);
+  });
+
+  it('handles mixed groups where only some exceed the limit', () => {
+    const groups = [
+      { opsMask: 1, total: 3, count: 100 },
+      { opsMask: 2, total: 7, count: 131071 }, // 65535 * 2 + 1
+      { opsMask: 4, total: 12, count: 50 },
+    ];
+    const entries = buildSummaryEntries(groups);
+    expect(entries).toEqual([
+      { opsMask: 1, total: 3, count: 100 },
+      { opsMask: 2, total: 7, count: 65535 },
+      { opsMask: 2, total: 7, count: 65535 },
+      { opsMask: 2, total: 7, count: 1 },
+      { opsMask: 4, total: 12, count: 50 },
+    ]);
+  });
+});
+
+describe('mergeTempMugbinFiles', () => {
+  it('handles duplicate facesKey entries (sort comparator returns 0)', async () => {
+    // Generate two temp files with the same face combination [1,2].
+    const tempPath1 = path.join(tmpDir, 'dup1.mugbin');
+    const tempPath2 = path.join(tmpDir, 'dup2.mugbin');
+    await generateAndWriteTempFile([1, 2], 0, 10, tempPath1, 64 * 1024);
+    await generateAndWriteTempFile([1, 2], 0, 10, tempPath2, 64 * 1024);
+
+    const mergedPath = path.join(tmpDir, 'merged.mugbin');
+    await mergeTempMugbinFiles([tempPath1, tempPath2], mergedPath);
+
+    // The merged file should be readable and contain two index entries
+    // (both for [1,2], which exercises the return 0 branch of the sort comparator).
+    const data = new Uint8Array(fs.readFileSync(mergedPath));
+    const reader = new MugbinReader(new BufferDataSource(data));
+    await reader.loadIndex();
+    expect(reader.getIndex().length).toBe(2);
+
+    // Both entries should be for faces [1,2] and queryable.
+    const entries = reader.findEntries([1, 2]);
+    expect(entries.length).toBe(2);
   });
 });

@@ -63,6 +63,32 @@ function postfixTokensToMask(postfixTokens: number[]): number {
   return mask;
 }
 
+export interface SummaryEntry {
+  readonly opsMask: number;
+  readonly total: number;
+  readonly count: number;
+}
+
+/**
+ * Split groups into summary entries. Groups with >65535 equations are split into
+ * multiple summary entries to fit the uint16 count field.
+ */
+export function buildSummaryEntries(
+  groups: ReadonlyArray<{ opsMask: number; total: number; count: number }>,
+): SummaryEntry[] {
+  const MAX_SUMMARY_COUNT = 65535;
+  const summaryEntries: SummaryEntry[] = [];
+  for (const g of groups) {
+    let remaining = g.count;
+    while (remaining > MAX_SUMMARY_COUNT) {
+      summaryEntries.push({ opsMask: g.opsMask, total: g.total, count: MAX_SUMMARY_COUNT });
+      remaining -= MAX_SUMMARY_COUNT;
+    }
+    summaryEntries.push({ opsMask: g.opsMask, total: g.total, count: remaining });
+  }
+  return summaryEntries;
+}
+
 /** Result of generating solutions for a single face combination. */
 export interface GeneratedFaceData {
   readonly faces: number[];
@@ -351,21 +377,7 @@ export async function generateAndWriteTempFile(
 
   // Build summary entries. Groups with >65535 equations are split into multiple
   // summary entries to fit the uint16 count field.
-  const MAX_SUMMARY_COUNT = 65535;
-  interface SummaryEntry {
-    opsMask: number;
-    total: number;
-    count: number;
-  }
-  const summaryEntries: SummaryEntry[] = [];
-  for (const g of sortedGroups) {
-    let remaining = g.count;
-    while (remaining > MAX_SUMMARY_COUNT) {
-      summaryEntries.push({ opsMask: g.opsMask, total: g.total, count: MAX_SUMMARY_COUNT });
-      remaining -= MAX_SUMMARY_COUNT;
-    }
-    summaryEntries.push({ opsMask: g.opsMask, total: g.total, count: remaining });
-  }
+  const summaryEntries = buildSummaryEntries(sortedGroups);
 
   const summaryData = Buffer.allocUnsafe(summaryEntries.length * SUMMARY_ENTRY_SIZE);
   for (let i = 0; i < summaryEntries.length; i++) {
