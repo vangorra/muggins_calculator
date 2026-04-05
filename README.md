@@ -34,9 +34,9 @@ The project is an npm monorepo with three packages:
 
 ### How It Works
 
-1. **At build time**, the CLI generates all possible equations for each dice combination (e.g., all 3-dice rolls with 6-sided dice) and writes them into sharded `.mugbin` files — one per dice count (e.g., `solutions-3d.mugbin`).
+1. **Offline**, the CLI generates all possible equations for each dice combination (e.g., all 3-dice rolls with 10-sided dice) and writes them into sharded `.mugbin` files — one per dice count (e.g., `solutions-3d.mugbin`). These are uploaded to a GitHub Release and downloaded during CI deployment.
 2. **At runtime**, the UI serves these files statically. When a user selects dice faces, the `SolutionsService` uses HTTP Range requests to fetch only the relevant index entries and summary blocks from the appropriate shard — no full file download needed.
-3. **Fallback**: If precomputed data isn't available (e.g., custom die sizes beyond 6), the UI falls back to computing equations on-the-fly using 4 persistent Web Workers with `comlink` RPC and `p-queue` concurrency control.
+3. **Fallback**: If precomputed data isn't available (e.g., custom die sizes beyond what was generated), the UI falls back to computing equations on-the-fly using 4 persistent Web Workers with `comlink` RPC and `p-queue` concurrency control.
 
 ### UI Optimizations
 
@@ -268,7 +268,33 @@ node packages/cli/dist/main.js generate-all-solutions --outputDir ./my-output --
 node packages/cli/dist/main.js generate-solutions --output single.mugbin --faces "1,2,3"
 ```
 
-The `generate-all-solutions` command writes to the `solutions/` directory by default and automatically names the output file `solutions-Nd.mugbin` based on the number of dice. The full output path is printed when generation completes. The CLI spawns parallel workers (one per CPU core minus 2) to solve each face combination. In production, separate files are generated for each dice count (2d through 8d).
+The `generate-all-solutions` command writes to the `solutions/` directory by default and automatically names the output file `solutions-Nd.mugbin` based on the number of dice. The full output path is printed when generation completes. The CLI spawns parallel workers (one per CPU core minus 2) to solve each face combination. Generation supports resumability — if interrupted, re-running the same command skips already-completed face combinations.
+
+### Deploying Precomputed Solutions
+
+Solution files are stored as GitHub Release assets (not in git history) and downloaded during CI deployment. This keeps large binary files out of source control.
+
+**First-time setup:**
+
+```shell
+# Generate all solution files locally
+npm run generate-all-solutions -- "10,10"
+npm run generate-all-solutions -- "10,10,10"
+npm run generate-all-solutions -- "10,10,10,10"
+# ... etc for each dice count
+
+# Create the release with solution files
+npm run create-solutions-release
+```
+
+**Updating solutions after regenerating locally:**
+
+```shell
+# Upload new files to the existing release (overwrites existing assets)
+npm run upload-solutions
+```
+
+The publish workflow automatically downloads these files from the `solutions-latest` release and copies them into the build output before deploying to GitHub Pages. If no release exists, the site deploys without precomputed solutions (the UI falls back to local Web Worker computation).
 
 ### Dev Server & Proxy
 

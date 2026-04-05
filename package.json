@@ -11,6 +11,8 @@
         "test": "npm run test -w packages/ui && npm run test -w packages/common && npm run test -w packages/cli",
         "e2e": "npm run e2e -w packages/ui",
         "generate-all-solutions": "npm run build -w packages/common -w packages/cli && node packages/cli/dist/main.js generate-all-solutions --dieSize",
+        "upload-solutions": "gh release upload solutions-latest solutions/solutions-*d.mugbin --clobber",
+        "create-solutions-release": "gh release create solutions-latest solutions/solutions-*d.mugbin --title 'Precomputed Solutions' --notes 'Auto-generated mugbin solution files for deployment.'",
         "clean": "npm run clean --workspaces",
         "format": "prettier --write '**/*.{ts,scss,html,json}'"
     },

@@ -38,6 +38,7 @@
     "@angular/build": "^21.0.0",
     "@angular/cli": "^21.0.0",
     "@angular/compiler-cli": "^21.0.0",
+    "@muggins_calculator/cli": "*",
     "@playwright/test": "^1.21.0",
     "@types/luxon": "^3.7.1",
     "@vitest/coverage-v8": "^4.0.18",

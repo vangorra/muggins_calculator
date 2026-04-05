@@ -33,6 +33,21 @@ jobs:
 
       - run: npm run build -w packages/ui -- --base-href /muggins_calculator/
 
+      - name: Download solution files from release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download solutions-latest --pattern '*.mugbin' --dir solutions/ || echo "No solutions release found — skipping."
+
+      - name: Copy solutions into build output
+        run: |
+          if ls solutions/solutions-*d.mugbin 1>/dev/null 2>&1; then
+            cp solutions/solutions-*d.mugbin packages/ui/dist/muggins_calculator/browser/
+            echo "Copied solution files into build output."
+          else
+            echo "No solution files found — deploying without precomputed solutions."
+          fi
+
       - run: npm test
 
       - name: Install Playwright browsers

@@ -107,9 +107,17 @@ All of these must reference `.mugbin` (NOT `.db` or `.json`) and use the sharded
 - `packages/ui/proxy.conf.js` and `proxy.conf.json` — proxy route (`/solutions-*d.mugbin`)
 - `packages/ui/playwright.config.ts` — `SOLUTIONS_DIR` env var pointing to playwright directory
 - `packages/ui/playwright/global-setup.ts` — generates `solutions-3d.mugbin` in playwright directory via `--outputDir`
-- `.github/workflows/publish.yml` — per-dice-count generation (relies on CLI default `--outputDir "solutions"`), `cp solutions/solutions-*d.mugbin` into build output
-- Root `package.json` — `generate-all-solutions` script (user passes die sizes; default output dir is `solutions/`)
-- `packages/cli/src/main.ts` — CLI default `--outputDir` is `'solutions'`; **changing this default breaks publish.yml** unless the workflow is updated to match
+- `.github/workflows/publish.yml` — downloads `.mugbin` files from the `solutions-latest` GitHub Release, copies into build output before deploy
+- Root `package.json` — `generate-all-solutions` script (user passes die sizes; default output dir is `solutions/`), `upload-solutions` and `create-solutions-release` scripts for managing the GitHub Release
+- `packages/cli/src/main.ts` — CLI default `--outputDir` is `'solutions'`
+
+### Solution deployment pipeline
+Solution files are stored as GitHub Release assets (tag: `solutions-latest`), not in git:
+- Generate locally with `npm run generate-all-solutions -- "10,10,10"` etc.
+- First upload: `npm run create-solutions-release`
+- Update: `npm run upload-solutions` (clobbers existing assets)
+- `publish.yml` downloads from this release during CI deploy via `gh release download solutions-latest`
+- If the release doesn't exist, the site deploys without precomputed solutions (UI falls back to local computation)
 
 ### Shared types between packages
 - `packages/common/src/tokens.ts` exports `OPERATION_MASKS`, `OPERATION_TO_TOKEN`, `DB_VERSION`
