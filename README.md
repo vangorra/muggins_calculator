@@ -1,4 +1,4 @@
-# Muggins Calculator ![Build status](https://github.com/vangorra/muggins_calculator/workflows/Build/badge.svg?branch=main) [![Coverage Status](https://coveralls.io/repos/github/vangorra/muggins_calculator/badge.svg)](https://coveralls.io/github/vangorra/muggins_calculator)
+# Muggins Calculator ![Build status](https://github.com/vangorra/muggins_calculator/actions/workflows/build.yml/badge.svg?branch=main) [![codecov](https://codecov.io/gh/vangorra/muggins_calculator/graph/badge.svg)](https://codecov.io/gh/vangorra/muggins_calculator)
 
 An app for discovering and checking answers to the popular math board game Muggins.
 

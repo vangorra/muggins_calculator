@@ -2,9 +2,19 @@ name: Build
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: CICD
 
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +28,8 @@ jobs:
 
       - run: npm run build -w packages/common
       - run: npm run build -w packages/cli
-      - run: npm run build -w packages/ui
+      - name: Build UI
+        run: npm run build -w packages/ui -- ${{ github.ref == 'refs/heads/main' && '--base-href /muggins_calculator/' || '' }}
 
       - run: npm test
 
@@ -45,36 +56,44 @@ jobs:
           name: playwright-results
           path: packages/ui/test-results/
 
-      - name: Coveralls - UI
+      - name: Upload coverage to Codecov
         if: success()
-        uses: coverallsapp/github-action@v2
+        uses: codecov/codecov-action@v5
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          file: packages/ui/coverage/muggins_calculator/lcov.info
-          flag-name: ui
-          parallel: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Coveralls - Common
-        if: success()
-        uses: coverallsapp/github-action@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          file: packages/common/coverage/lcov.info
-          flag-name: common
-          parallel: true
+      - name: Download solution files from release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download solutions-latest --pattern '*.mugbin' --dir solutions/ || echo "No solutions release found — skipping."
 
-      - name: Coveralls - CLI
-        if: success()
-        uses: coverallsapp/github-action@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          file: packages/cli/coverage/lcov.info
-          flag-name: cli
-          parallel: true
+      - name: Copy solutions into build output
+        if: github.ref == 'refs/heads/main'
+        run: |
+          if ls solutions/solutions-*d.mugbin 1>/dev/null 2>&1; then
+            cp solutions/solutions-*d.mugbin packages/ui/dist/muggins_calculator/browser/
+            echo "Copied solution files into build output."
+          else
+            echo "No solution files found — deploying without precomputed solutions."
+          fi
 
-      - name: Coveralls - Finish
-        if: success()
-        uses: coverallsapp/github-action@v2
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true
+          path: packages/ui/dist/muggins_calculator/browser
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
