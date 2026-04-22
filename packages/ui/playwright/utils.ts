@@ -93,4 +93,3 @@ export const mapLocator = async (
 
   return items;
 };
-

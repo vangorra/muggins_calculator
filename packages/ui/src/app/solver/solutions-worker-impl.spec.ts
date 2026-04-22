@@ -16,12 +16,15 @@ const mockFetch = vi.fn();
  */
 async function buildAndServeMugbin(
   faces: number[],
-  equations: { total: number; opsMask: number; postfixTokenNums: number[] }[],
+  equations: { total: number; opsMask: number; postfixTokenNums: number[] }[]
 ): Promise<Uint8Array> {
   const writer = new MugbinWriter();
 
   // Group equations by (total, opsMask)
-  const groups = new Map<string, { total: number; opsMask: number; tokenArrays: number[][] }>();
+  const groups = new Map<
+    string,
+    { total: number; opsMask: number; tokenArrays: number[][] }
+  >();
   for (const eq of equations) {
     const key = `${eq.total}-${eq.opsMask}`;
     let group = groups.get(key);
@@ -37,7 +40,13 @@ async function buildAndServeMugbin(
     const eqByteLen = packedArrays[0].length;
     const combined = new Uint8Array(eqByteLen * packedArrays.length);
     packedArrays.forEach((p, i) => combined.set(p, i * eqByteLen));
-    writer.addEquations(faces, group.opsMask, group.total, combined, packedArrays.length);
+    writer.addEquations(
+      faces,
+      group.opsMask,
+      group.total,
+      combined,
+      packedArrays.length
+    );
   }
 
   const buffer = await writer.build();
@@ -55,7 +64,10 @@ async function buildAndServeMugbin(
           status: 206,
           arrayBuffer: () =>
             Promise.resolve(
-              slice.buffer.slice(slice.byteOffset, slice.byteOffset + slice.byteLength),
+              slice.buffer.slice(
+                slice.byteOffset,
+                slice.byteOffset + slice.byteLength
+              )
             ),
         };
       }
@@ -65,7 +77,10 @@ async function buildAndServeMugbin(
       status: 200,
       arrayBuffer: () =>
         Promise.resolve(
-          buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
+          buffer.buffer.slice(
+            buffer.byteOffset,
+            buffer.byteOffset + buffer.byteLength
+          )
         ),
     };
   });
@@ -82,7 +97,7 @@ describe('FetchDataSource HTTP error', () => {
     });
 
     await expect(
-      solutionsWorkerFunctions.initSolutionsReader(3),
+      solutionsWorkerFunctions.initSolutionsReader(3)
     ).rejects.toThrow();
   });
 });
@@ -99,7 +114,7 @@ describe('solutionsWorkerFunctions', () => {
         3,
         [1, 2, 3],
         [OperationEnum.PLUS],
-        () => {},
+        () => {}
       );
       expect(result).toBeNull();
     });
@@ -108,9 +123,22 @@ describe('solutionsWorkerFunctions', () => {
       const ops = [OperationEnum.PLUS];
       const opsMask = operationsToMask(ops);
 
-      await buildAndServeMugbin([1, 2, 3], [
-        { total: 6, opsMask, postfixTokenNums: [1, 2, OPERATION_TO_TOKEN[OperationEnum.PLUS], 3, OPERATION_TO_TOKEN[OperationEnum.PLUS]] },
-      ]);
+      await buildAndServeMugbin(
+        [1, 2, 3],
+        [
+          {
+            total: 6,
+            opsMask,
+            postfixTokenNums: [
+              1,
+              2,
+              OPERATION_TO_TOKEN[OperationEnum.PLUS],
+              3,
+              OPERATION_TO_TOKEN[OperationEnum.PLUS],
+            ],
+          },
+        ]
+      );
 
       await solutionsWorkerFunctions.initSolutionsReader(3);
 
@@ -121,7 +149,7 @@ describe('solutionsWorkerFunctions', () => {
         3,
         [1, 2, 3],
         ops,
-        () => {},
+        () => {}
       );
       expect(result).toBeNull();
     });
@@ -133,7 +161,7 @@ describe('solutionsWorkerFunctions', () => {
         3,
         [1, 2, 3],
         6,
-        [OperationEnum.PLUS],
+        [OperationEnum.PLUS]
       );
       expect(result).toBeNull();
     });
@@ -142,9 +170,22 @@ describe('solutionsWorkerFunctions', () => {
       const ops = [OperationEnum.PLUS];
       const opsMask = operationsToMask(ops);
 
-      await buildAndServeMugbin([1, 2, 3], [
-        { total: 6, opsMask, postfixTokenNums: [1, 2, OPERATION_TO_TOKEN[OperationEnum.PLUS], 3, OPERATION_TO_TOKEN[OperationEnum.PLUS]] },
-      ]);
+      await buildAndServeMugbin(
+        [1, 2, 3],
+        [
+          {
+            total: 6,
+            opsMask,
+            postfixTokenNums: [
+              1,
+              2,
+              OPERATION_TO_TOKEN[OperationEnum.PLUS],
+              3,
+              OPERATION_TO_TOKEN[OperationEnum.PLUS],
+            ],
+          },
+        ]
+      );
 
       await solutionsWorkerFunctions.initSolutionsReader(3);
 
@@ -155,7 +196,7 @@ describe('solutionsWorkerFunctions', () => {
         3,
         [1, 2, 3],
         6,
-        ops,
+        ops
       );
       expect(result).toBeNull();
     });
@@ -166,10 +207,13 @@ describe('solutionsWorkerFunctions', () => {
       const PLUS = OPERATION_TO_TOKEN[OperationEnum.PLUS];
 
       // Two equations for total=6: "2 1 + 3 +" and "1 2 + 3 +"
-      await buildAndServeMugbin([1, 2, 3], [
-        { total: 6, opsMask, postfixTokenNums: [2, 1, PLUS, 3, PLUS] },
-        { total: 6, opsMask, postfixTokenNums: [1, 2, PLUS, 3, PLUS] },
-      ]);
+      await buildAndServeMugbin(
+        [1, 2, 3],
+        [
+          { total: 6, opsMask, postfixTokenNums: [2, 1, PLUS, 3, PLUS] },
+          { total: 6, opsMask, postfixTokenNums: [1, 2, PLUS, 3, PLUS] },
+        ]
+      );
 
       await solutionsWorkerFunctions.initSolutionsReader(3);
 
@@ -177,7 +221,7 @@ describe('solutionsWorkerFunctions', () => {
         3,
         [1, 2, 3],
         6,
-        ops,
+        ops
       );
 
       expect(result).not.toBeNull();
@@ -212,7 +256,7 @@ describe('solutionsWorkerFunctions', () => {
         2,
         [1, 2],
         [OperationEnum.PLUS],
-        () => {},
+        () => {}
       );
       expect(result).toBeNull();
     });

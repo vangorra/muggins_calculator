@@ -100,40 +100,48 @@ describe(ScrollToTopComponent.name + ' through parent element', () => {
     expect(getScrollToTopButton()).toBeTruthy();
   });
 
-  it('clicking button calls scrollTo and hides button after timeout', { timeout: 10000 }, async () => {
-    makeButtonVisible();
+  it(
+    'clicking button calls scrollTo and hides button after timeout',
+    { timeout: 10000 },
+    async () => {
+      makeButtonVisible();
 
-    getScrollToTopButton()?.click();
-    // Allow microtasks (beforeScroll promise) to resolve.
-    await new Promise((resolve) => setTimeout(resolve, 50));
+      getScrollToTopButton()?.click();
+      // Allow microtasks (beforeScroll promise) to resolve.
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
-    expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+      expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
 
-    // Simulate page scrolled back to top BEFORE the 500ms timeout fires,
-    // so onWindowScrolled() inside the timeout sees the element as visible.
-    vi.spyOn(visibleAfterElement, 'getBoundingClientRect').mockReturnValue(
-      mockDomRect({ bottom: 200 })
-    );
+      // Simulate page scrolled back to top BEFORE the 500ms timeout fires,
+      // so onWindowScrolled() inside the timeout sees the element as visible.
+      vi.spyOn(visibleAfterElement, 'getBoundingClientRect').mockReturnValue(
+        mockDomRect({ bottom: 200 })
+      );
 
-    // Wait for the 500ms scrolling timeout to complete.
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    fixture.detectChanges();
+      // Wait for the 500ms scrolling timeout to complete.
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      fixture.detectChanges();
 
-    expect(getScrollToTopButton()).toBeFalsy();
-  });
+      expect(getScrollToTopButton()).toBeFalsy();
+    }
+  );
 
-  it('calls beforeScroll callback when scrolling to top', { timeout: 10000 }, async () => {
-    const beforeScrollSpy = vi.fn().mockResolvedValue(undefined);
-    fixture.componentInstance.beforeScroll = beforeScrollSpy;
-    fixture.detectChanges();
+  it(
+    'calls beforeScroll callback when scrolling to top',
+    { timeout: 10000 },
+    async () => {
+      const beforeScrollSpy = vi.fn().mockResolvedValue(undefined);
+      fixture.componentInstance.beforeScroll = beforeScrollSpy;
+      fixture.detectChanges();
 
-    makeButtonVisible();
-    getScrollToTopButton()?.click();
-    // Allow microtasks (beforeScroll promise) to resolve.
-    await new Promise((resolve) => setTimeout(resolve, 50));
+      makeButtonVisible();
+      getScrollToTopButton()?.click();
+      // Allow microtasks (beforeScroll promise) to resolve.
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
-    expect(beforeScrollSpy).toHaveBeenCalled();
-  });
+      expect(beforeScrollSpy).toHaveBeenCalled();
+    }
+  );
 
   it('removes event listener on destroy', () => {
     const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
@@ -212,22 +220,26 @@ describe(ScrollToTopComponent.name, () => {
     document.body.removeChild(el);
   });
 
-  it('scrollToTop sets scrolling flag and calls scrollTo', { timeout: 10000 }, async () => {
-    const scrollToSpy = vi.fn();
-    document.documentElement.scrollTo = scrollToSpy as any;
-    const beforeScrollSpy = vi.fn().mockResolvedValue(undefined);
-    component.beforeScroll = beforeScrollSpy;
-    component.isVisible = true;
+  it(
+    'scrollToTop sets scrolling flag and calls scrollTo',
+    { timeout: 10000 },
+    async () => {
+      const scrollToSpy = vi.fn();
+      document.documentElement.scrollTo = scrollToSpy as any;
+      const beforeScrollSpy = vi.fn().mockResolvedValue(undefined);
+      component.beforeScroll = beforeScrollSpy;
+      component.isVisible = true;
 
-    await component.scrollToTop();
+      await component.scrollToTop();
 
-    expect(component.isVisible).toBeFalsy();
-    expect(component['scrolling']).toBeTruthy();
-    expect(beforeScrollSpy).toHaveBeenCalled();
-    expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+      expect(component.isVisible).toBeFalsy();
+      expect(component['scrolling']).toBeTruthy();
+      expect(beforeScrollSpy).toHaveBeenCalled();
+      expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
 
-    // Wait for the 500ms timeout.
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    expect(component['scrolling']).toBeFalsy();
-  });
+      // Wait for the 500ms timeout.
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      expect(component['scrolling']).toBeFalsy();
+    }
+  );
 });

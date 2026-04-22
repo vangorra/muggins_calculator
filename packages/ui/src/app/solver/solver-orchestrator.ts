@@ -1,6 +1,9 @@
 import { wrap, proxy, transfer, Remote } from 'comlink';
 import { signal } from '@angular/core';
-import { CalculateEquationResult, MugginsSolverCalculateConfig } from '@muggins_calculator/common';
+import {
+  CalculateEquationResult,
+  MugginsSolverCalculateConfig,
+} from '@muggins_calculator/common';
 import type {
   CoordinatorApi,
   CoordinatorProgress,
@@ -49,8 +52,7 @@ export class SolverOrchestrator {
     // Create compute workers.
     this.computeWorkers = Array.from(
       { length: WORKER_COUNT },
-      () =>
-        new Worker(new URL('./solver.worker.browser', import.meta.url))
+      () => new Worker(new URL('./solver.worker.browser', import.meta.url))
     );
 
     // Create MessageChannels and distribute ports.

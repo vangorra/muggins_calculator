@@ -1,4 +1,8 @@
-import { MathJaxConfig, MathJaxInputLoaderEnum, MathJaxOutputLoaderEnum } from './utils';
+import {
+  MathJaxConfig,
+  MathJaxInputLoaderEnum,
+  MathJaxOutputLoaderEnum,
+} from './utils';
 
 describe(MathJaxConfig.name, () => {
   it('has default inputLoader and outputLoader', () => {

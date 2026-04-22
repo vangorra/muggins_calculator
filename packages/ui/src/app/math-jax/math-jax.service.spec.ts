@@ -109,7 +109,10 @@ describe(MathJaxService.name, () => {
         },
       ],
     });
-    const service2 = runInInjectionContext(injector, () => new MathJaxService());
+    const service2 = runInInjectionContext(
+      injector,
+      () => new MathJaxService()
+    );
     expect(service2.getRenderFunction()).toBe(
       MathJaxService.NOOP_RENDER_FUNCTION
     );

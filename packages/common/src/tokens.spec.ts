@@ -33,7 +33,15 @@ describe('packTokens and unpackTokens', () => {
   });
 
   it('round-trips all operation tokens', () => {
-    const tokens = [TOKEN_PLUS, TOKEN_MINUS, TOKEN_MULTIPLY, TOKEN_DIVIDE, TOKEN_POWER, TOKEN_ROOT, TOKEN_MODULO];
+    const tokens = [
+      TOKEN_PLUS,
+      TOKEN_MINUS,
+      TOKEN_MULTIPLY,
+      TOKEN_DIVIDE,
+      TOKEN_POWER,
+      TOKEN_ROOT,
+      TOKEN_MODULO,
+    ];
     const packed = packTokens(tokens);
     const unpacked = unpackTokens(packed, tokens.length);
     expect(unpacked).toEqual(tokens);
@@ -50,7 +58,19 @@ describe('packTokens and unpackTokens', () => {
 
   it('round-trips a 6-dice postfix equation', () => {
     // 11 tokens for 6 dice
-    const tokens = [1, 2, TOKEN_PLUS, 3, TOKEN_MULTIPLY, 4, TOKEN_MINUS, 5, TOKEN_DIVIDE, 6, TOKEN_POWER];
+    const tokens = [
+      1,
+      2,
+      TOKEN_PLUS,
+      3,
+      TOKEN_MULTIPLY,
+      4,
+      TOKEN_MINUS,
+      5,
+      TOKEN_DIVIDE,
+      6,
+      TOKEN_POWER,
+    ];
     const packed = packTokens(tokens);
     expect(packed.length).toBe(packedByteLength(11)); // ceil(55/8) = 7
     const unpacked = unpackTokens(packed, tokens.length);
@@ -75,11 +95,11 @@ describe('packTokens and unpackTokens', () => {
 
 describe('packedByteLength', () => {
   it('calculates correct byte lengths', () => {
-    expect(packedByteLength(1)).toBe(1);  // 5 bits
-    expect(packedByteLength(3)).toBe(2);  // 15 bits
-    expect(packedByteLength(5)).toBe(4);  // 25 bits (3 dice)
-    expect(packedByteLength(7)).toBe(5);  // 35 bits (4 dice)
-    expect(packedByteLength(9)).toBe(6);  // 45 bits (5 dice)
+    expect(packedByteLength(1)).toBe(1); // 5 bits
+    expect(packedByteLength(3)).toBe(2); // 15 bits
+    expect(packedByteLength(5)).toBe(4); // 25 bits (3 dice)
+    expect(packedByteLength(7)).toBe(5); // 35 bits (4 dice)
+    expect(packedByteLength(9)).toBe(6); // 45 bits (5 dice)
     expect(packedByteLength(11)).toBe(7); // 55 bits (6 dice)
   });
 });
@@ -117,16 +137,24 @@ describe('operationsToMask', () => {
   });
 
   it('returns correct mask for a single operation', () => {
-    expect(operationsToMask([OperationEnum.PLUS])).toBe(OPERATION_MASKS[OperationEnum.PLUS]);
-    expect(operationsToMask([OperationEnum.MODULO])).toBe(OPERATION_MASKS[OperationEnum.MODULO]);
+    expect(operationsToMask([OperationEnum.PLUS])).toBe(
+      OPERATION_MASKS[OperationEnum.PLUS]
+    );
+    expect(operationsToMask([OperationEnum.MODULO])).toBe(
+      OPERATION_MASKS[OperationEnum.MODULO]
+    );
   });
 
   it('returns combined mask for multiple operations', () => {
-    const mask = operationsToMask([OperationEnum.PLUS, OperationEnum.MINUS, OperationEnum.MULTIPLY]);
+    const mask = operationsToMask([
+      OperationEnum.PLUS,
+      OperationEnum.MINUS,
+      OperationEnum.MULTIPLY,
+    ]);
     expect(mask).toBe(
       OPERATION_MASKS[OperationEnum.PLUS] |
-      OPERATION_MASKS[OperationEnum.MINUS] |
-      OPERATION_MASKS[OperationEnum.MULTIPLY]
+        OPERATION_MASKS[OperationEnum.MINUS] |
+        OPERATION_MASKS[OperationEnum.MULTIPLY]
     );
   });
 

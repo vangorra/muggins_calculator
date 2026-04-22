@@ -1,4 +1,10 @@
-import { ChangeDetectorRef, Component, effect, inject, OnDestroy } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  effect,
+  inject,
+  OnDestroy,
+} from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -7,7 +13,11 @@ import {
   Validators,
 } from '@angular/forms';
 import { ConfigurationService } from '../configuration.service';
-import { CALCULATION_MODE_CONFIGS, Configuration, THEME_CONFIGS } from '../general_types';
+import {
+  CALCULATION_MODE_CONFIGS,
+  Configuration,
+  THEME_CONFIGS,
+} from '../general_types';
 import { firstValueFrom, take } from 'rxjs';
 import { ToolbarService } from '../toolbar.service';
 import { Router } from '@angular/router';
@@ -15,7 +25,12 @@ import {
   ButtonTypeEnum,
   ConfirmDialogComponent,
 } from '../confirm-dialog/confirm-dialog.component';
-import { EQUATION_FORMATTER, Operation, OPERATIONS_LIST, MAX_FACE_VALUE } from '@muggins_calculator/common';
+import {
+  EQUATION_FORMATTER,
+  Operation,
+  OPERATIONS_LIST,
+  MAX_FACE_VALUE,
+} from '@muggins_calculator/common';
 import { MatRadioChange } from '@angular/material/radio';
 import { MINIMUM_PERFORMANT_DIE_COUNT } from '../const';
 import { MatDialog } from '@angular/material/dialog';
@@ -141,7 +156,10 @@ export class ConfigurationComponent implements OnDestroy {
     this.configurationService.save();
 
     const dieCount = this.configurationService.value().dice.length;
-    if (dieCount <= MINIMUM_PERFORMANT_DIE_COUNT && this.addDieSnackbarWarning) {
+    if (
+      dieCount <= MINIMUM_PERFORMANT_DIE_COUNT &&
+      this.addDieSnackbarWarning
+    ) {
       this.addDieSnackbarWarning.dismissWithAction();
     }
   }
@@ -184,9 +202,9 @@ export class ConfigurationComponent implements OnDestroy {
       ),
     });
 
-    this.formGroup.valueChanges.pipe(take(1)).subscribe(() =>
-      this.onFormChanged()
-    );
+    this.formGroup.valueChanges
+      .pipe(take(1))
+      .subscribe(() => this.onFormChanged());
 
     this.configuration = configuration;
   }

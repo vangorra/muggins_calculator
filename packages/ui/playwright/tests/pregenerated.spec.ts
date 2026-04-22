@@ -24,7 +24,9 @@ test('uses pre-generated solutions when faces are in DB', async ({ page }) => {
   });
 });
 
-test('falls back to local computation when faces are not in DB', async ({ page }) => {
+test('falls back to local computation when faces are not in DB', async ({
+  page,
+}) => {
   // Face value 4 exceeds the max face (3) in the test DB → not in DB → fallback.
   await selectFaces(page, [1, 1, 4]);
   await waitForDataProcessedState(page);

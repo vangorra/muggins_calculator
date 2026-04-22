@@ -302,7 +302,9 @@ describe('mugbin', () => {
       bad.set(new TextEncoder().encode(MUGBIN_MAGIC), 0);
       bad[6] = 99; // unsupported version
       const reader = new MugbinReader(new BufferDataSource(bad));
-      await expect(reader.loadIndex()).rejects.toThrow('Unsupported mugbin format version');
+      await expect(reader.loadIndex()).rejects.toThrow(
+        'Unsupported mugbin format version'
+      );
     });
 
     it('reader throws when index not loaded', () => {
@@ -410,7 +412,11 @@ describe('mugbin', () => {
       await reader2.loadIndex();
 
       // The new data should win (loadFrom skips existing keys).
-      const eqs = await reader2.getEquationsForTotal(reader2.findEntries([1, 2]), 3, 1);
+      const eqs = await reader2.getEquationsForTotal(
+        reader2.findEntries([1, 2]),
+        3,
+        1
+      );
       expect(eqs.length).toBe(1);
       expect(eqs[0].postfixTokens).toEqual(newTokens);
     });

@@ -21,12 +21,7 @@
     "target": "ES2022",
     "module": "es2020",
     "useDefineForClassFields": false,
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable",
-      "ESNext.Disposable"
-    ]
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "ESNext.Disposable"]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
@@ -34,7 +29,5 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true
   },
-  "include": [
-    "src/**/*.d.ts"
-  ]
+  "include": ["src/**/*.d.ts"]
 }

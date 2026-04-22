@@ -19,9 +19,7 @@ describe(ToolbarService.name, () => {
   });
 
   it('should be created', () => {
-    expect(service.config()).toEqual(
-      ToolbarService.DEFAULT_TOOLBAR_CONFIG
-    );
+    expect(service.config()).toEqual(ToolbarService.DEFAULT_TOOLBAR_CONFIG);
 
     service.set({
       title: 'Test title',

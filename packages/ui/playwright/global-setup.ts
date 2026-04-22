@@ -15,14 +15,14 @@ export default async function globalSetup(): Promise<void> {
 
   if (!existsSync(cliMain)) {
     throw new Error(
-      `CLI not built. Run: npm run build -w packages/cli\n  Expected: ${cliMain}`,
+      `CLI not built. Run: npm run build -w packages/cli\n  Expected: ${cliMain}`
     );
   }
 
   console.log('Generating test solutions database (3 dice, 3 sides)...');
   execSync(
     `node "${cliMain}" generate-all-solutions --outputDir "${testSolutionsDir}" --dieSize "3,3,3"`,
-    { stdio: 'inherit' },
+    { stdio: 'inherit' }
   );
   console.log(`Test solutions database generated at: ${testDbPath}`);
 }

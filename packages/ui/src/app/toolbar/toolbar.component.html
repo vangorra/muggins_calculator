@@ -1,25 +1,24 @@
 @if (config()) {
-  <mat-toolbar class="mat-elevation-z5">
-    <span class="configTitle">{{ config().title }}</span>
-    <span class="toolbar-spacer"></span>
-    <span class="buttons">
-      @for (button of config().buttons; track button) {
-        <button
-          mat-icon-button
-          [title]="button.title"
-          [attr.aria-label]="button.title"
-          [disabled]="button.disabledSignal()()"
-          (click)="button.onClick()"
-          [attr.data-test-id]="button.testId"
-          >
-          @if (!!button.icon) {
-            <mat-icon>{{ button.icon }}</mat-icon>
-          }
-          @if (!button.icon) {
-            <span class="title">{{ button.title }}</span>
-          }
-        </button>
+<mat-toolbar class="mat-elevation-z5">
+  <span class="configTitle">{{ config().title }}</span>
+  <span class="toolbar-spacer"></span>
+  <span class="buttons">
+    @for (button of config().buttons; track button) {
+    <button
+      mat-icon-button
+      [title]="button.title"
+      [attr.aria-label]="button.title"
+      [disabled]="button.disabledSignal()()"
+      (click)="button.onClick()"
+      [attr.data-test-id]="button.testId"
+    >
+      @if (!!button.icon) {
+      <mat-icon>{{ button.icon }}</mat-icon>
+      } @if (!button.icon) {
+      <span class="title">{{ button.title }}</span>
       }
-    </span>
-  </mat-toolbar>
+    </button>
+    }
+  </span>
+</mat-toolbar>
 }

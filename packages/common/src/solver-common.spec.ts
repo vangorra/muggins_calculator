@@ -95,8 +95,12 @@ describe('OPERATIONS', () => {
 describe('OPERATIONS record', () => {
   it('maps all operation enum values', () => {
     const allEnums = [
-      OperationEnum.PLUS, OperationEnum.MINUS, OperationEnum.MULTIPLY,
-      OperationEnum.DIVIDE, OperationEnum.POWER, OperationEnum.ROOT,
+      OperationEnum.PLUS,
+      OperationEnum.MINUS,
+      OperationEnum.MULTIPLY,
+      OperationEnum.DIVIDE,
+      OperationEnum.POWER,
+      OperationEnum.ROOT,
       OperationEnum.MODULO,
     ];
     for (const id of allEnums) {
@@ -126,15 +130,39 @@ describe('commonWorkerFunctions', () => {
   describe('combineResults', () => {
     it('combines and deduplicates multiple result arrays', () => {
       const arr1: CalculateEquationResult[] = [
-        { total: 1, equation: '1', fullEquation: '1 = 1', sortableEquation: 'a', postfixTokens: [] },
-        { total: 3, equation: '3', fullEquation: '3 = 3', sortableEquation: 'c', postfixTokens: [] },
+        {
+          total: 1,
+          equation: '1',
+          fullEquation: '1 = 1',
+          sortableEquation: 'a',
+          postfixTokens: [],
+        },
+        {
+          total: 3,
+          equation: '3',
+          fullEquation: '3 = 3',
+          sortableEquation: 'c',
+          postfixTokens: [],
+        },
       ];
       const arr2: CalculateEquationResult[] = [
-        { total: 2, equation: '2', fullEquation: '2 = 2', sortableEquation: 'b', postfixTokens: [] },
-        { total: 3, equation: '3', fullEquation: '3 = 3', sortableEquation: 'c', postfixTokens: [] },
+        {
+          total: 2,
+          equation: '2',
+          fullEquation: '2 = 2',
+          sortableEquation: 'b',
+          postfixTokens: [],
+        },
+        {
+          total: 3,
+          equation: '3',
+          fullEquation: '3 = 3',
+          sortableEquation: 'c',
+          postfixTokens: [],
+        },
       ];
       const combined = commonWorkerFunctions.combineResults([arr1, arr2]);
-      expect(combined.map(r => r.sortableEquation)).toEqual(['a', 'b', 'c']);
+      expect(combined.map((r) => r.sortableEquation)).toEqual(['a', 'b', 'c']);
     });
 
     it('handles empty input', () => {
@@ -149,22 +177,24 @@ describe('commonWorkerFunctions', () => {
   describe('getFaceAndOperationPermutations', () => {
     it('returns both face and operation permutations', () => {
       const config = {
-        minTotal: 1, maxTotal: 36,
+        minTotal: 1,
+        maxTotal: 36,
         faces: [1, 2],
         operations: [OperationEnum.PLUS],
       };
-      const result = commonWorkerFunctions.getFaceAndOperationPermutations(config);
+      const result =
+        commonWorkerFunctions.getFaceAndOperationPermutations(config);
       expect(result.facePermutations.length).toBeGreaterThan(0);
       expect(result.operationPermutations.length).toBeGreaterThan(0);
     });
   });
-
 });
 
 describe('calculateFromFaceAndOperationPermutations', () => {
   it('calculates equations from known inputs', () => {
     const config = {
-      minTotal: 1, maxTotal: 36,
+      minTotal: 1,
+      maxTotal: 36,
       faces: [2, 3],
       operations: [OperationEnum.PLUS],
     };
@@ -172,16 +202,19 @@ describe('calculateFromFaceAndOperationPermutations', () => {
       commonWorkerFunctions.getFaceAndOperationPermutations(config);
 
     const results = calculateFromFaceAndOperationPermutations(
-      config, facePermutations, operationPermutations
+      config,
+      facePermutations,
+      operationPermutations
     );
 
     // 2 + 3 = 5, should appear in results
-    expect(results.some(r => r.total === 5)).toBe(true);
+    expect(results.some((r) => r.total === 5)).toBe(true);
   });
 
   it('filters results outside min/max range', () => {
     const config = {
-      minTotal: 10, maxTotal: 20,
+      minTotal: 10,
+      maxTotal: 20,
       faces: [1, 2],
       operations: [OperationEnum.PLUS],
     };
@@ -189,7 +222,9 @@ describe('calculateFromFaceAndOperationPermutations', () => {
       commonWorkerFunctions.getFaceAndOperationPermutations(config);
 
     const results = calculateFromFaceAndOperationPermutations(
-      config, facePermutations, operationPermutations
+      config,
+      facePermutations,
+      operationPermutations
     );
 
     // 1 + 2 = 3, outside range
@@ -198,7 +233,8 @@ describe('calculateFromFaceAndOperationPermutations', () => {
 
   it('filters non-integer results', () => {
     const config = {
-      minTotal: 1, maxTotal: 36,
+      minTotal: 1,
+      maxTotal: 36,
       faces: [1, 3],
       operations: [OperationEnum.DIVIDE],
     };
@@ -206,7 +242,9 @@ describe('calculateFromFaceAndOperationPermutations', () => {
       commonWorkerFunctions.getFaceAndOperationPermutations(config);
 
     const results = calculateFromFaceAndOperationPermutations(
-      config, facePermutations, operationPermutations
+      config,
+      facePermutations,
+      operationPermutations
     );
 
     // 1/3 = 0.333... is not integer, 3/1 = 3 is integer
@@ -219,7 +257,8 @@ describe('calculateFromFaceAndOperationPermutations', () => {
     // faces [1,1,1] with [MINUS,DIVIDE] produces 1 / (1-1) = Infinity
     // which exercises the non-finite throw (line 254) and catch block (line 640)
     const config = {
-      minTotal: 0, maxTotal: 100,
+      minTotal: 0,
+      maxTotal: 100,
       faces: [1, 1, 1],
       operations: [OperationEnum.MINUS, OperationEnum.DIVIDE],
     };
@@ -228,7 +267,9 @@ describe('calculateFromFaceAndOperationPermutations', () => {
 
     // Should not throw - non-finite results are caught and filtered
     const results = calculateFromFaceAndOperationPermutations(
-      config, facePermutations, operationPermutations
+      config,
+      facePermutations,
+      operationPermutations
     );
 
     for (const r of results) {
@@ -238,7 +279,8 @@ describe('calculateFromFaceAndOperationPermutations', () => {
 
   it('produces correct fullEquation and sortableEquation', () => {
     const config = {
-      minTotal: 1, maxTotal: 36,
+      minTotal: 1,
+      maxTotal: 36,
       faces: [2, 3],
       operations: [OperationEnum.PLUS],
     };
@@ -246,10 +288,12 @@ describe('calculateFromFaceAndOperationPermutations', () => {
       commonWorkerFunctions.getFaceAndOperationPermutations(config);
 
     const results = calculateFromFaceAndOperationPermutations(
-      config, facePermutations, operationPermutations
+      config,
+      facePermutations,
+      operationPermutations
     );
 
-    const r5 = results.find(r => r.total === 5);
+    const r5 = results.find((r) => r.total === 5);
     expect(r5).toBeDefined();
     expect(r5!.fullEquation).toContain('5 =');
     expect(r5!.sortableEquation).toBeDefined();
@@ -257,7 +301,8 @@ describe('calculateFromFaceAndOperationPermutations', () => {
 
   it('deduplicates results with same sortableEquation', () => {
     const config = {
-      minTotal: 1, maxTotal: 36,
+      minTotal: 1,
+      maxTotal: 36,
       faces: [2, 3],
       operations: [OperationEnum.PLUS],
     };
@@ -265,10 +310,12 @@ describe('calculateFromFaceAndOperationPermutations', () => {
       commonWorkerFunctions.getFaceAndOperationPermutations(config);
 
     const results = calculateFromFaceAndOperationPermutations(
-      config, facePermutations, operationPermutations
+      config,
+      facePermutations,
+      operationPermutations
     );
 
-    const sortableEquations = results.map(r => r.sortableEquation);
+    const sortableEquations = results.map((r) => r.sortableEquation);
     const uniqueSet = new Set(sortableEquations);
     expect(sortableEquations.length).toBe(uniqueSet.size);
   });
@@ -318,7 +365,7 @@ describe('generateFaceCombinations', () => {
 
   it('produces no duplicate combinations', () => {
     const combos = generateFaceCombinations(3, 6);
-    const keys = combos.map(c => c.join('_'));
+    const keys = combos.map((c) => c.join('_'));
     expect(new Set(keys).size).toBe(keys.length);
   });
 
@@ -331,11 +378,14 @@ describe('generateFaceCombinations', () => {
 
 describe('generateResults', () => {
   it('yields results with total and postfixTokens', () => {
-    const results = [...generateResults({
-      minTotal: 0, maxTotal: 72,
-      faces: [1, 2],
-      operations: [OperationEnum.PLUS, OperationEnum.MINUS],
-    })];
+    const results = [
+      ...generateResults({
+        minTotal: 0,
+        maxTotal: 72,
+        faces: [1, 2],
+        operations: [OperationEnum.PLUS, OperationEnum.MINUS],
+      }),
+    ];
 
     expect(results.length).toBeGreaterThan(0);
     for (const r of results) {
@@ -346,19 +396,23 @@ describe('generateResults', () => {
   });
 
   it('yields deduplicated results', () => {
-    const results = [...generateResults({
-      minTotal: 0, maxTotal: 72,
-      faces: [1, 2, 3],
-      operations: [OperationEnum.PLUS, OperationEnum.MINUS],
-    })];
+    const results = [
+      ...generateResults({
+        minTotal: 0,
+        maxTotal: 72,
+        faces: [1, 2, 3],
+        operations: [OperationEnum.PLUS, OperationEnum.MINUS],
+      }),
+    ];
 
-    const keys = results.map(r => r.postfixTokens.join(','));
+    const keys = results.map((r) => r.postfixTokens.join(','));
     expect(new Set(keys).size).toBe(keys.length);
   });
 
   it('results match calculateFromFaceAndOperationPermutations output', () => {
     const config = {
-      minTotal: 0, maxTotal: 72,
+      minTotal: 0,
+      maxTotal: 72,
       faces: [1, 2],
       operations: [OperationEnum.PLUS, OperationEnum.MINUS],
     };
@@ -367,14 +421,18 @@ describe('generateResults', () => {
     const { facePermutations, operationPermutations } =
       commonWorkerFunctions.getFaceAndOperationPermutations(config);
     const directResults = calculateFromFaceAndOperationPermutations(
-      config, facePermutations, operationPermutations
+      config,
+      facePermutations,
+      operationPermutations
     );
 
     // Same number of unique equations
     expect(generatorResults.length).toBe(directResults.length);
 
     // Every direct result should have a matching generator result
-    const generatorKeys = new Set(generatorResults.map(r => r.postfixTokens.join(',')));
+    const generatorKeys = new Set(
+      generatorResults.map((r) => r.postfixTokens.join(','))
+    );
     for (const r of directResults) {
       expect(generatorKeys.has(r.postfixTokens.join(','))).toBe(true);
     }
@@ -382,11 +440,14 @@ describe('generateResults', () => {
 
   it('handles non-finite results gracefully (catch branch)', () => {
     // faces [1,1,1] with MINUS and DIVIDE produces 1/(1-1)=Infinity which throws
-    const results = [...generateResults({
-      minTotal: 0, maxTotal: 72,
-      faces: [1, 1, 1],
-      operations: [OperationEnum.MINUS, OperationEnum.DIVIDE],
-    })];
+    const results = [
+      ...generateResults({
+        minTotal: 0,
+        maxTotal: 72,
+        faces: [1, 1, 1],
+        operations: [OperationEnum.MINUS, OperationEnum.DIVIDE],
+      }),
+    ];
 
     // Should not throw, non-finite results are caught and skipped
     for (const r of results) {
@@ -395,11 +456,14 @@ describe('generateResults', () => {
   });
 
   it('respects minTotal and maxTotal', () => {
-    const results = [...generateResults({
-      minTotal: 3, maxTotal: 5,
-      faces: [1, 2, 3],
-      operations: [OperationEnum.PLUS],
-    })];
+    const results = [
+      ...generateResults({
+        minTotal: 3,
+        maxTotal: 5,
+        faces: [1, 2, 3],
+        operations: [OperationEnum.PLUS],
+      }),
+    ];
 
     for (const r of results) {
       expect(r.total).toBeGreaterThanOrEqual(3);
@@ -409,14 +473,17 @@ describe('generateResults', () => {
 
   it('accepts explicit permutations for chunked dispatch', () => {
     const config = {
-      minTotal: 0, maxTotal: 72,
+      minTotal: 0,
+      maxTotal: 72,
       faces: [1, 2],
       operations: [OperationEnum.PLUS],
     };
     const { facePermutations, operationPermutations } =
       commonWorkerFunctions.getFaceAndOperationPermutations(config);
 
-    const results = [...generateResults(config, facePermutations, operationPermutations)];
+    const results = [
+      ...generateResults(config, facePermutations, operationPermutations),
+    ];
     const directResults = [...generateResults(config)];
 
     expect(results.length).toBe(directResults.length);
@@ -425,11 +492,14 @@ describe('generateResults', () => {
   it('handles single die (slotCount=0 in lazy operation permutations)', () => {
     // With a single face, there are zero operator slots, triggering slotCount=0
     // in the lazyOperationPermutations generator (lines 358-359).
-    const results = [...generateResults({
-      minTotal: 1, maxTotal: 10,
-      faces: [5],
-      operations: [OperationEnum.PLUS],
-    })];
+    const results = [
+      ...generateResults({
+        minTotal: 1,
+        maxTotal: 10,
+        faces: [5],
+        operations: [OperationEnum.PLUS],
+      }),
+    ];
 
     // A single die with value 5 produces exactly one result: total=5
     expect(results.length).toBe(1);
@@ -439,11 +509,14 @@ describe('generateResults', () => {
 
   it('uses BigInt dedup key for 6 dice (11 tokens)', () => {
     // 6 faces = 11 tokens = 55 bits, which exceeds 2^53 and triggers the BigInt path
-    const results = [...generateResults({
-      minTotal: 1, maxTotal: 100,
-      faces: [1, 1, 1, 1, 1, 1],
-      operations: [OperationEnum.PLUS],
-    })];
+    const results = [
+      ...generateResults({
+        minTotal: 1,
+        maxTotal: 100,
+        faces: [1, 1, 1, 1, 1, 1],
+        operations: [OperationEnum.PLUS],
+      }),
+    ];
 
     // With 6 dice all being 1 and only PLUS, all results have total=6.
     // Different Catalan patterns produce structurally different postfix sequences
@@ -458,19 +531,22 @@ describe('generateResults', () => {
 
   it('yields duplicate results when deduplicate is false', () => {
     const config = {
-      minTotal: 0, maxTotal: 72,
+      minTotal: 0,
+      maxTotal: 72,
       faces: [1, 2, 3],
       operations: [OperationEnum.PLUS, OperationEnum.MINUS],
     };
 
     const deduped = [...generateResults(config)];
-    const notDeduped = [...generateResults(config, undefined, undefined, { deduplicate: false })];
+    const notDeduped = [
+      ...generateResults(config, undefined, undefined, { deduplicate: false }),
+    ];
 
     // Without dedup there should be at least as many results, and likely more duplicates
     expect(notDeduped.length).toBeGreaterThanOrEqual(deduped.length);
 
     // Verify duplicates actually exist in the non-deduped set
-    const keys = notDeduped.map(r => r.postfixTokens.join(','));
+    const keys = notDeduped.map((r) => r.postfixTokens.join(','));
     const uniqueKeys = new Set(keys);
     // The deduped set should be smaller or equal
     expect(deduped.length).toBe(uniqueKeys.size);
@@ -478,7 +554,8 @@ describe('generateResults', () => {
 
   it('is lazy — yields one at a time', () => {
     const gen = generateResults({
-      minTotal: 0, maxTotal: 72,
+      minTotal: 0,
+      maxTotal: 72,
       faces: [1, 2],
       operations: [OperationEnum.PLUS],
     });

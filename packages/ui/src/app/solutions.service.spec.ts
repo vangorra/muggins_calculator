@@ -40,28 +40,32 @@ async function buildMismatchedVersionMugbin(): Promise<Uint8Array> {
 }
 
 function mockFetchForMugbin(mugbinData: Uint8Array): void {
-  const fetchSpy = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = typeof input === 'string' ? input : input.toString();
-    if (!url.includes('.mugbin')) {
-      return new Response(null, { status: 404 });
-    }
-
-    const rangeHeader = (init?.headers as Record<string, string>)?.Range;
-    if (rangeHeader) {
-      const match = rangeHeader.match(/bytes=(\d+)-(\d+)/);
-      if (match) {
-        const start = parseInt(match[1], 10);
-        const end = parseInt(match[2], 10);
-        const slice = mugbinData.slice(start, end + 1);
-        return new Response(slice as unknown as BodyInit, {
-          status: 206,
-          headers: { 'Content-Range': `bytes ${start}-${end}/${mugbinData.length}` },
-        });
+  const fetchSpy = vi.fn(
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      if (!url.includes('.mugbin')) {
+        return new Response(null, { status: 404 });
       }
-    }
 
-    return new Response(mugbinData as unknown as BodyInit, { status: 200 });
-  });
+      const rangeHeader = (init?.headers as Record<string, string>)?.Range;
+      if (rangeHeader) {
+        const match = rangeHeader.match(/bytes=(\d+)-(\d+)/);
+        if (match) {
+          const start = parseInt(match[1], 10);
+          const end = parseInt(match[2], 10);
+          const slice = mugbinData.slice(start, end + 1);
+          return new Response(slice as unknown as BodyInit, {
+            status: 206,
+            headers: {
+              'Content-Range': `bytes ${start}-${end}/${mugbinData.length}`,
+            },
+          });
+        }
+      }
+
+      return new Response(mugbinData as unknown as BodyInit, { status: 200 });
+    }
+  );
   vi.stubGlobal('fetch', fetchSpy);
 }
 
@@ -96,7 +100,12 @@ describe(SolutionsService.name, () => {
       mockFetchForMugbin(data);
 
       // faces [5,6] not in the test data → returns null, but no version error
-      const result = await service.getJumpData(2, [5, 6], [OperationEnum.PLUS], () => {});
+      const result = await service.getJumpData(
+        2,
+        [5, 6],
+        [OperationEnum.PLUS],
+        () => {}
+      );
 
       expect(result).toBeNull();
       expect(localStorage.getItem('solutions_db_refresh')).toBeNull();
@@ -129,7 +138,12 @@ describe(SolutionsService.name, () => {
         configurable: true,
       });
 
-      const result = await service.getJumpData(2, [1, 2], [OperationEnum.PLUS], () => {});
+      const result = await service.getJumpData(
+        2,
+        [1, 2],
+        [OperationEnum.PLUS],
+        () => {}
+      );
 
       expect(result).toBeNull();
       expect(localStorage.getItem('solutions_db_refresh')).toBeNull();
@@ -152,7 +166,12 @@ describe(SolutionsService.name, () => {
       const data = await buildTestMugbin();
       mockFetchForMugbin(data);
 
-      const result = await service.getJumpData(2, [5, 6], [OperationEnum.PLUS], () => {});
+      const result = await service.getJumpData(
+        2,
+        [5, 6],
+        [OperationEnum.PLUS],
+        () => {}
+      );
 
       expect(result).toBeNull();
     });
@@ -166,7 +185,7 @@ describe(SolutionsService.name, () => {
         2,
         [1, 2],
         [OperationEnum.PLUS],
-        (completed, total) => progressCalls.push([completed, total]),
+        (completed, total) => progressCalls.push([completed, total])
       );
 
       expect(result).not.toBeNull();
@@ -185,7 +204,7 @@ describe(SolutionsService.name, () => {
         2,
         [1, 2],
         [OperationEnum.PLUS, OperationEnum.MINUS],
-        () => {},
+        () => {}
       );
 
       expect(result).not.toBeNull();
@@ -198,7 +217,12 @@ describe(SolutionsService.name, () => {
       mockFetchForMugbin(data);
 
       // Pass faces in reverse order
-      const result = await service.getJumpData(2, [2, 1], [OperationEnum.PLUS], () => {});
+      const result = await service.getJumpData(
+        2,
+        [2, 1],
+        [OperationEnum.PLUS],
+        () => {}
+      );
 
       expect(result).not.toBeNull();
       expect(result!.get(3)).toBe(1);
@@ -207,7 +231,12 @@ describe(SolutionsService.name, () => {
     it('returns null when fetch fails', async () => {
       mockFetchFailing();
 
-      const result = await service.getJumpData(2, [1, 2], [OperationEnum.PLUS], () => {});
+      const result = await service.getJumpData(
+        2,
+        [1, 2],
+        [OperationEnum.PLUS],
+        () => {}
+      );
 
       expect(result).toBeNull();
     });
@@ -218,7 +247,9 @@ describe(SolutionsService.name, () => {
       const data = await buildTestMugbin();
       mockFetchForMugbin(data);
 
-      const result = await service.getEquationsForTotal(2, [1, 2], 3, [OperationEnum.PLUS]);
+      const result = await service.getEquationsForTotal(2, [1, 2], 3, [
+        OperationEnum.PLUS,
+      ]);
 
       expect(result).not.toBeNull();
       expect(result!).toHaveLength(1);
@@ -231,7 +262,9 @@ describe(SolutionsService.name, () => {
       const data = await buildTestMugbin();
       mockFetchForMugbin(data);
 
-      const result = await service.getEquationsForTotal(2, [5, 6], 3, [OperationEnum.PLUS]);
+      const result = await service.getEquationsForTotal(2, [5, 6], 3, [
+        OperationEnum.PLUS,
+      ]);
 
       expect(result).toBeNull();
     });
@@ -239,7 +272,9 @@ describe(SolutionsService.name, () => {
     it('returns null when fetch fails', async () => {
       mockFetchFailing();
 
-      const result = await service.getEquationsForTotal(2, [1, 2], 3, [OperationEnum.PLUS]);
+      const result = await service.getEquationsForTotal(2, [1, 2], 3, [
+        OperationEnum.PLUS,
+      ]);
 
       expect(result).toBeNull();
     });
@@ -248,7 +283,9 @@ describe(SolutionsService.name, () => {
       const data = await buildTestMugbin();
       mockFetchForMugbin(data);
 
-      const result = await service.getEquationsForTotal(2, [1, 2], 99, [OperationEnum.PLUS]);
+      const result = await service.getEquationsForTotal(2, [1, 2], 99, [
+        OperationEnum.PLUS,
+      ]);
 
       expect(result).not.toBeNull();
       expect(result!).toHaveLength(0);

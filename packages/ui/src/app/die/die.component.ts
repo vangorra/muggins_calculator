@@ -31,7 +31,9 @@ export default class DieComponent implements OnInit {
   @Output()
   faceChanged = new EventEmitter<Die>();
 
-  readonly selectedFace = new FormControl(DEFAULT_DIE_SELECTED_FACE, { nonNullable: true });
+  readonly selectedFace = new FormControl(DEFAULT_DIE_SELECTED_FACE, {
+    nonNullable: true,
+  });
 
   private readonly selectedFaceValue = toSignal(this.selectedFace.valueChanges);
 

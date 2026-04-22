@@ -16,11 +16,7 @@
     "module": "node16",
     "useDefineForClassFields": false,
     "skipLibCheck": true,
-    "lib": [
-      "es2022"
-    ]
+    "lib": ["es2022"]
   },
-  "include": [
-    "./src/**/*.ts"
-  ]
+  "include": ["./src/**/*.ts"]
 }

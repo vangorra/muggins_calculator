@@ -68,4 +68,3 @@ export interface Die {
   readonly faceCount: number;
   readonly selectedFace: number;
 }
-

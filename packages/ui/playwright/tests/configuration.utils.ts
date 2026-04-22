@@ -9,10 +9,7 @@ import {
   THEME_CONFIGS,
   ThemeEnum,
 } from '../../src/app/general_types';
-import {
-  OperationEnum,
-  OPERATIONS,
-} from '@muggins_calculator/common';
+import { OperationEnum, OPERATIONS } from '@muggins_calculator/common';
 
 export const MIN_SIZE_QUERY =
   'app-configuration [formgroupname="board"] [formcontrolname="minSize"]';
@@ -82,21 +79,26 @@ export const getTheme = async (page: Page): Promise<ThemeEnum> => {
   return matchingTheme as ThemeEnum;
 };
 
-export const getCalculationMode = async (page: Page): Promise<CalculationModeEnum> => {
+export const getCalculationMode = async (
+  page: Page
+): Promise<CalculationModeEnum> => {
   const selected = await page.locator(
     'app-configuration .calculationMode mat-radio-button.mat-mdc-radio-checked'
   );
   const value = await selected.getAttribute('data-value');
 
-  const matchingMode = CALCULATION_MODE_CONFIGS.map((config) => config.mode).find(
-    (mode) => mode === value
-  );
+  const matchingMode = CALCULATION_MODE_CONFIGS.map(
+    (config) => config.mode
+  ).find((mode) => mode === value);
 
   expect(matchingMode).toBeTruthy();
   return matchingMode as CalculationModeEnum;
 };
 
-export const setCalculationMode = async (page: Page, mode: CalculationModeEnum) => {
+export const setCalculationMode = async (
+  page: Page,
+  mode: CalculationModeEnum
+) => {
   await page
     .locator(
       `app-configuration .calculationMode mat-radio-button[data-value="${mode}"] label`
@@ -126,9 +128,7 @@ export const getOperations = async (page: Page): Promise<OperationEnum[]> => {
     )
   );
 
-  operations.forEach((operation) =>
-    expect(OPERATIONS[operation]).toBeTruthy()
-  );
+  operations.forEach((operation) => expect(OPERATIONS[operation]).toBeTruthy());
   return operations;
 };
 

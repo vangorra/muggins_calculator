@@ -1,33 +1,33 @@
 {
-    "name": "muggins_calculator",
-    "version": "1.0.0",
-    "private": true,
-    "workspaces": [
-        "packages/*"
-    ],
-    "scripts": {
-        "start": "npm run start -w packages/ui",
-        "build": "npm run build --workspaces",
-        "test": "npm run test -w packages/ui && npm run test -w packages/common && npm run test -w packages/cli",
-        "e2e": "npm run e2e -w packages/ui",
-        "generate-all-solutions": "npm run build -w packages/common -w packages/cli && node packages/cli/dist/main.js generate-all-solutions --dieSize",
-        "upload-solutions": "gh release upload solutions-latest solutions/solutions-*d.mugbin --clobber",
-        "create-solutions-release": "gh release create solutions-latest solutions/solutions-*d.mugbin --title 'Precomputed Solutions' --notes 'Auto-generated mugbin solution files for deployment.'",
-        "clean": "npm run clean --workspaces",
-        "format": "prettier --write '**/*.{ts,scss,html,json}'"
-    },
-    "dependencies": {
-        "lodash": "^4.17.21"
-    },
-    "devDependencies": {
-        "@types/lodash": "^4.14.181",
-        "@types/node": "^20.19.25",
-        "eslint": "^8.57.0",
-        "eslint-config-airbnb-typescript": "^18.0.0",
-        "eslint-config-prettier": "^8.5.0",
-        "eslint-plugin-import": "^2.25.4",
-        "prettier": "2.6.2",
-        "rimraf": "^6.1.2",
-        "typescript": "^5.9.3"
-    }
+  "name": "muggins_calculator",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "npm run start -w packages/ui",
+    "build": "npm run build --workspaces",
+    "test": "npm run test -w packages/ui && npm run test -w packages/common && npm run test -w packages/cli",
+    "e2e": "npm run e2e -w packages/ui",
+    "generate-all-solutions": "npm run build -w packages/common -w packages/cli && node packages/cli/dist/main.js generate-all-solutions --dieSize",
+    "upload-solutions": "gh release upload solutions-latest solutions/solutions-*d.mugbin --clobber",
+    "create-solutions-release": "gh release create solutions-latest solutions/solutions-*d.mugbin --title 'Precomputed Solutions' --notes 'Auto-generated mugbin solution files for deployment.'",
+    "clean": "npm run clean --workspaces",
+    "format": "prettier --write '**/*.{ts,scss,html,json}'"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.181",
+    "@types/node": "^20.19.25",
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb-typescript": "^18.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.25.4",
+    "prettier": "2.6.2",
+    "rimraf": "^6.1.2",
+    "typescript": "^5.9.3"
+  }
 }

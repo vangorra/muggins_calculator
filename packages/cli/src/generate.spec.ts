@@ -120,7 +120,10 @@ describe('generateSolutionsData', () => {
     for (const group of data.groups) {
       for (let i = 0; i < group.count; i++) {
         const offset = i * equationLength;
-        const packed = group.packedEquations.slice(offset, offset + equationLength);
+        const packed = group.packedEquations.slice(
+          offset,
+          offset + equationLength
+        );
         const tokens = unpackTokens(packed, tokenCount);
         decodedEquations.push(postfixToInfixGrouped(tokens));
       }
@@ -131,7 +134,9 @@ describe('generateSolutionsData', () => {
     const { facePermutations, operationPermutations } =
       commonWorkerFunctions.getFaceAndOperationPermutations(calcConfig);
     const directResults = calculateFromFaceAndOperationPermutations(
-      calcConfig, facePermutations, operationPermutations
+      calcConfig,
+      facePermutations,
+      operationPermutations
     );
     const directEquations = directResults.map((r) => r.equation).sort();
 
@@ -141,7 +146,12 @@ describe('generateSolutionsData', () => {
 
 describe('generateSolutions', () => {
   it('writes a valid mugbin file', async () => {
-    await generateSolutions({ outputPath, faces: [1, 2], minTotal: 0, maxTotal: 10 });
+    await generateSolutions({
+      outputPath,
+      faces: [1, 2],
+      minTotal: 0,
+      maxTotal: 10,
+    });
 
     expect(fs.existsSync(outputPath)).toBe(true);
 
@@ -184,7 +194,9 @@ describe('generateSolutions', () => {
     const { facePermutations, operationPermutations } =
       commonWorkerFunctions.getFaceAndOperationPermutations(calcConfig);
     const directResults = calculateFromFaceAndOperationPermutations(
-      calcConfig, facePermutations, operationPermutations
+      calcConfig,
+      facePermutations,
+      operationPermutations
     );
     const directEquations = directResults.map((r) => r.equation).sort();
 
@@ -197,13 +209,17 @@ describe('generateAllSolutions', () => {
     vi.mocked(Worker).mockReset();
   });
 
-  function createMockWorker(onPostMessage: (emitter: EventEmitter, task: any) => void | Promise<void>) {
+  function createMockWorker(
+    onPostMessage: (emitter: EventEmitter, task: any) => void | Promise<void>
+  ) {
     return function (_url: any) {
       const emitter = new EventEmitter();
       (emitter as any).terminate = vi.fn().mockResolvedValue(undefined);
       (emitter as any).postMessage = (task: any) => {
         process.nextTick(() => {
-          Promise.resolve(onPostMessage(emitter, task)).catch((e) => emitter.emit('error', e));
+          Promise.resolve(onPostMessage(emitter, task)).catch((e) =>
+            emitter.emit('error', e)
+          );
         });
       };
       return emitter as any;
@@ -212,16 +228,29 @@ describe('generateAllSolutions', () => {
 
   function realDataWorker() {
     return createMockWorker(async (emitter, task) => {
-      await generateAndWriteTempFile(task.faces, task.minTotal, task.maxTotal, task.tempPath, task.flushHighWater);
+      await generateAndWriteTempFile(
+        task.faces,
+        task.minTotal,
+        task.maxTotal,
+        task.tempPath,
+        task.flushHighWater
+      );
       emitter.emit('message', { faces: task.faces, success: true });
     });
   }
 
   it('generates correct number of face combinations', async () => {
-    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const stdoutSpy = vi
+      .spyOn(process.stdout, 'write')
+      .mockImplementation(() => true);
     vi.mocked(Worker).mockImplementation(realDataWorker());
 
-    await generateAllSolutions({ outputDir: tmpDir, dieSizes: [3, 3], minTotal: 0, maxTotal: 10 });
+    await generateAllSolutions({
+      outputDir: tmpDir,
+      dieSizes: [3, 3],
+      minTotal: 0,
+      maxTotal: 10,
+    });
 
     const shardPath = path.join(tmpDir, shardedFileName(2));
     const data = new Uint8Array(fs.readFileSync(shardPath));
@@ -229,7 +258,14 @@ describe('generateAllSolutions', () => {
     await reader.loadIndex();
 
     // 2d3: C(3+1, 2) = 6 face combinations. Check each exists.
-    const faceCombos = [[1,1],[1,2],[1,3],[2,2],[2,3],[3,3]];
+    const faceCombos = [
+      [1, 1],
+      [1, 2],
+      [1, 3],
+      [2, 2],
+      [2, 3],
+      [3, 3],
+    ];
     for (const faces of faceCombos) {
       const entries = reader.findEntries(faces);
       expect(entries.length).toBe(1);
@@ -239,11 +275,18 @@ describe('generateAllSolutions', () => {
   });
 
   it('merges with existing mugbin file', async () => {
-    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const stdoutSpy = vi
+      .spyOn(process.stdout, 'write')
+      .mockImplementation(() => true);
     vi.mocked(Worker).mockImplementation(realDataWorker());
 
     // First run: generate 2d2 solutions.
-    await generateAllSolutions({ outputDir: tmpDir, dieSizes: [2, 2], minTotal: 0, maxTotal: 10 });
+    await generateAllSolutions({
+      outputDir: tmpDir,
+      dieSizes: [2, 2],
+      minTotal: 0,
+      maxTotal: 10,
+    });
 
     const shardPath2d = path.join(tmpDir, shardedFileName(2));
     const data1 = new Uint8Array(fs.readFileSync(shardPath2d));
@@ -252,7 +295,12 @@ describe('generateAllSolutions', () => {
     const count1 = reader1.getIndex().length;
 
     // Second run: generate 2d2 again into the same directory (merges into same shard).
-    await generateAllSolutions({ outputDir: tmpDir, dieSizes: [2, 2], minTotal: 0, maxTotal: 10 });
+    await generateAllSolutions({
+      outputDir: tmpDir,
+      dieSizes: [2, 2],
+      minTotal: 0,
+      maxTotal: 10,
+    });
 
     const data2 = new Uint8Array(fs.readFileSync(shardPath2d));
     const reader2 = new MugbinReader(new BufferDataSource(data2));
@@ -271,21 +319,38 @@ describe('generateAllSolutions', () => {
 
   it('errors on single die', async () => {
     await expect(
-      generateAllSolutions({ outputDir: tmpDir, dieSizes: [6], minTotal: 0, maxTotal: 72 }),
+      generateAllSolutions({
+        outputDir: tmpDir,
+        dieSizes: [6],
+        minTotal: 0,
+        maxTotal: 72,
+      })
     ).rejects.toThrow('At least 2 dice are required');
   });
 
   it('errors on die size out of range', async () => {
     await expect(
-      generateAllSolutions({ outputDir: tmpDir, dieSizes: [6, 11], minTotal: 0, maxTotal: 72 }),
+      generateAllSolutions({
+        outputDir: tmpDir,
+        dieSizes: [6, 11],
+        minTotal: 0,
+        maxTotal: 72,
+      })
     ).rejects.toThrow('out of range');
   });
 
   it('progress output includes estimated time remaining', async () => {
-    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const stdoutSpy = vi
+      .spyOn(process.stdout, 'write')
+      .mockImplementation(() => true);
     vi.mocked(Worker).mockImplementation(realDataWorker());
 
-    await generateAllSolutions({ outputDir: tmpDir, dieSizes: [2, 2], minTotal: 0, maxTotal: 10 });
+    await generateAllSolutions({
+      outputDir: tmpDir,
+      dieSizes: [2, 2],
+      minTotal: 0,
+      maxTotal: 10,
+    });
 
     const progressCalls = stdoutSpy.mock.calls
       .map((call) => String(call[0]))
@@ -299,15 +364,22 @@ describe('generateAllSolutions', () => {
   });
 
   it('spawns a pool of workers and reuses them for all tasks', async () => {
-    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const stdoutSpy = vi
+      .spyOn(process.stdout, 'write')
+      .mockImplementation(() => true);
 
     vi.mocked(Worker).mockImplementation(
       createMockWorker((emitter, task) => {
         emitter.emit('message', { faces: task.faces, success: true });
-      }),
+      })
     );
 
-    await generateAllSolutions({ outputDir: tmpDir, dieSizes: [2, 2], minTotal: 0, maxTotal: 10 });
+    await generateAllSolutions({
+      outputDir: tmpDir,
+      dieSizes: [2, 2],
+      minTotal: 0,
+      maxTotal: 10,
+    });
 
     // 6 mocked CPUs → concurrency=3, capped at 3 face combos → 3 workers in the pool.
     expect(vi.mocked(Worker)).toHaveBeenCalledTimes(3);
@@ -316,16 +388,29 @@ describe('generateAllSolutions', () => {
   });
 
   it('logs errors for failed worker messages', async () => {
-    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const stdoutSpy = vi
+      .spyOn(process.stdout, 'write')
+      .mockImplementation(() => true);
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     vi.mocked(Worker).mockImplementation(
       createMockWorker((emitter, task) => {
-        emitter.emit('message', { faces: task.faces, success: false, error: 'test error' });
-      }),
+        emitter.emit('message', {
+          faces: task.faces,
+          success: false,
+          error: 'test error',
+        });
+      })
     );
 
-    await generateAllSolutions({ outputDir: tmpDir, dieSizes: [2, 2], minTotal: 0, maxTotal: 10 });
+    await generateAllSolutions({
+      outputDir: tmpDir,
+      dieSizes: [2, 2],
+      minTotal: 0,
+      maxTotal: 10,
+    });
 
     expect(consoleErrorSpy).toHaveBeenCalled();
     stdoutSpy.mockRestore();
@@ -336,26 +421,38 @@ describe('generateAllSolutions', () => {
     vi.mocked(Worker).mockImplementation(
       createMockWorker((emitter) => {
         emitter.emit('error', new Error('worker crashed'));
-      }),
+      })
     );
 
     await expect(
-      generateAllSolutions({ outputDir: tmpDir, dieSizes: [2, 2], minTotal: 0, maxTotal: 10 }),
+      generateAllSolutions({
+        outputDir: tmpDir,
+        dieSizes: [2, 2],
+        minTotal: 0,
+        maxTotal: 10,
+      })
     ).rejects.toThrow('worker crashed');
   });
 
   it('worker tasks contain faces, minTotal, and maxTotal', async () => {
-    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const stdoutSpy = vi
+      .spyOn(process.stdout, 'write')
+      .mockImplementation(() => true);
     const receivedTasks: any[] = [];
 
     vi.mocked(Worker).mockImplementation(
       createMockWorker((emitter, task) => {
         receivedTasks.push(task);
         emitter.emit('message', { faces: task.faces, success: true });
-      }),
+      })
     );
 
-    await generateAllSolutions({ outputDir: tmpDir, dieSizes: [2, 2], minTotal: 0, maxTotal: 10 });
+    await generateAllSolutions({
+      outputDir: tmpDir,
+      dieSizes: [2, 2],
+      minTotal: 0,
+      maxTotal: 10,
+    });
 
     expect(receivedTasks.length).toBe(3);
     const firstTask = receivedTasks[0];
@@ -368,7 +465,9 @@ describe('generateAllSolutions', () => {
   });
 
   it('logs resume message when temp files already exist', async () => {
-    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const stdoutSpy = vi
+      .spyOn(process.stdout, 'write')
+      .mockImplementation(() => true);
     const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.mocked(Worker).mockImplementation(realDataWorker());
 
@@ -382,7 +481,12 @@ describe('generateAllSolutions', () => {
     const existingTempPath = path.join(tempDirPath, '1-1.mugbin');
     await generateAndWriteTempFile([1, 1], 0, 10, existingTempPath, 64 * 1024);
 
-    await generateAllSolutions({ outputDir: tmpDir, dieSizes: [2, 2], minTotal: 0, maxTotal: 10 });
+    await generateAllSolutions({
+      outputDir: tmpDir,
+      dieSizes: [2, 2],
+      minTotal: 0,
+      maxTotal: 10,
+    });
 
     const resumeLog = consoleLogSpy.mock.calls
       .map((call) => String(call[0]))
@@ -429,7 +533,13 @@ describe('generateAndWriteTempFile', () => {
     // (64KB) will fill and trigger flushGroup for individual groups.
     // [6, 6, 6, 6, 6, 6] with full range produces many equations per group, overflowing the 64KB buffer.
     const tempPath = path.join(tmpDir, 'flush-group.mugbin');
-    await generateAndWriteTempFile([6, 6, 6, 6, 6, 6], 0, 500, tempPath, 1024 * 1024 * 1024);
+    await generateAndWriteTempFile(
+      [6, 6, 6, 6, 6, 6],
+      0,
+      500,
+      tempPath,
+      1024 * 1024 * 1024
+    );
 
     expect(fs.existsSync(tempPath)).toBe(true);
     expect(fs.statSync(tempPath).size).toBeGreaterThan(0);
@@ -440,7 +550,6 @@ describe('generateAndWriteTempFile', () => {
     const entries = reader.findEntries([6, 6, 6, 6, 6, 6]);
     expect(entries.length).toBe(1);
   });
-
 });
 
 describe('buildSummaryEntries', () => {
@@ -457,9 +566,7 @@ describe('buildSummaryEntries', () => {
   });
 
   it('splits a group exceeding 65535 into multiple summary entries', () => {
-    const groups = [
-      { opsMask: 1, total: 5, count: 65536 + 10 },
-    ];
+    const groups = [{ opsMask: 1, total: 5, count: 65536 + 10 }];
     const entries = buildSummaryEntries(groups);
     expect(entries).toEqual([
       { opsMask: 1, total: 5, count: 65535 },
@@ -468,9 +575,7 @@ describe('buildSummaryEntries', () => {
   });
 
   it('splits a very large group into three or more entries', () => {
-    const groups = [
-      { opsMask: 7, total: 42, count: 65535 * 2 + 500 },
-    ];
+    const groups = [{ opsMask: 7, total: 42, count: 65535 * 2 + 500 }];
     const entries = buildSummaryEntries(groups);
     expect(entries).toEqual([
       { opsMask: 7, total: 42, count: 65535 },

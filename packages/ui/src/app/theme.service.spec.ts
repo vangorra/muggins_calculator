@@ -9,10 +9,13 @@ import { ThemeEnum } from './general_types';
  * media query matches and triggering change event listeners.
  */
 function createMatchMediaMock() {
-  const queryStates = new Map<string, {
-    matches: boolean;
-    listeners: Set<Function>;
-  }>();
+  const queryStates = new Map<
+    string,
+    {
+      matches: boolean;
+      listeners: Set<Function>;
+    }
+  >();
 
   function getOrCreate(query: string) {
     if (!queryStates.has(query)) {
@@ -24,7 +27,9 @@ function createMatchMediaMock() {
   const matchMediaFn = (query: string): MediaQueryList => {
     const state = getOrCreate(query);
     return {
-      get matches() { return state.matches; },
+      get matches() {
+        return state.matches;
+      },
       media: query,
       onchange: null,
       addListener: () => {},
@@ -190,23 +195,17 @@ describe(ThemeService.name, () => {
     testFromTo(ThemeEnum.LIGHT, ThemeEnum.DARK);
 
     it('automatic adopts media', () => {
-      mockMedia.set(
-        ThemeService.PREFERS_COLOR_SCHEME_MEDIA_QUERY
-      );
+      mockMedia.set(ThemeService.PREFERS_COLOR_SCHEME_MEDIA_QUERY);
       configurationService.update({
         theme: ThemeEnum.AUTOMATIC,
       });
       TestBed.flushEffects();
       expectTheme(ThemeEnum.LIGHT);
 
-      mockMedia.set(
-        ThemeService.PREFERS_DARK_COLOR_SCHEME_MEDIA_QUERY
-      );
+      mockMedia.set(ThemeService.PREFERS_DARK_COLOR_SCHEME_MEDIA_QUERY);
       expectTheme(ThemeEnum.DARK);
 
-      mockMedia.set(
-        ThemeService.PREFERS_COLOR_SCHEME_MEDIA_QUERY
-      );
+      mockMedia.set(ThemeService.PREFERS_COLOR_SCHEME_MEDIA_QUERY);
       expectTheme(ThemeEnum.LIGHT);
     });
   });

@@ -2,12 +2,33 @@ import {
   CalculateEquationResult,
   OperationEnum,
   operationsToMask,
+  isOperationToken,
+  OPERATION_MASKS,
+  OPERATION_TO_TOKEN,
   postfixToInfixGrouped,
   getSortableEquation,
   EQUATION_FORMATTER,
   MugbinReader,
   MugbinDataSource,
 } from '@muggins_calculator/common';
+
+/** Compute the opsMask directly from postfix tokens. */
+function tokensMask(postfixTokens: number[]): number {
+  const tokenToMask: Record<number, number> = {};
+  for (const [name, token] of Object.entries(OPERATION_TO_TOKEN) as [
+    OperationEnum,
+    number
+  ][]) {
+    tokenToMask[token] = OPERATION_MASKS[name];
+  }
+  let mask = 0;
+  for (const t of postfixTokens) {
+    if (isOperationToken(t)) {
+      mask |= tokenToMask[t] ?? 0;
+    }
+  }
+  return mask;
+}
 
 class FetchDataSource implements MugbinDataSource {
   constructor(private url: string) {}
@@ -19,7 +40,11 @@ class FetchDataSource implements MugbinDataSource {
       },
     });
     if (!response.ok && response.status !== 206) {
-      throw new Error(`HTTP ${response.status} fetching range ${offset}-${offset + length - 1}`);
+      throw new Error(
+        `HTTP ${response.status} fetching range ${offset}-${
+          offset + length - 1
+        }`
+      );
     }
     return new Uint8Array(await response.arrayBuffer());
   }
@@ -29,7 +54,9 @@ const readers = new Map<number, MugbinReader>();
 
 async function initSolutionsReader(diceCount: number): Promise<number> {
   const baseHref = new URL('.', self.location.href).pathname;
-  const source = new FetchDataSource(`${baseHref}solutions-${diceCount}d.mugbin`);
+  const source = new FetchDataSource(
+    `${baseHref}solutions-${diceCount}d.mugbin`
+  );
   const reader = new MugbinReader(source);
   await reader.loadIndex();
   readers.set(diceCount, reader);
@@ -40,7 +67,7 @@ async function getJumpData(
   diceCount: number,
   faces: number[],
   operations: OperationEnum[],
-  onProgress: (completed: number, total: number) => void,
+  onProgress: (completed: number, total: number) => void
 ): Promise<Map<number, number> | null> {
   const reader = readers.get(diceCount);
   if (!reader) return null;
@@ -62,7 +89,7 @@ async function getEquationsForTotal(
   diceCount: number,
   faces: number[],
   total: number,
-  operations: OperationEnum[],
+  operations: OperationEnum[]
 ): Promise<CalculateEquationResult[] | null> {
   const reader = readers.get(diceCount);
   if (!reader) return null;
@@ -72,21 +99,30 @@ async function getEquationsForTotal(
   if (entries.length === 0) return null;
 
   try {
-    const rawResults = await reader.getEquationsForTotal(entries, total, opsMask);
+    const rawResults = await reader.getEquationsForTotal(
+      entries,
+      total,
+      opsMask
+    );
 
-    const results: CalculateEquationResult[] = rawResults.map(({ postfixTokens }) => {
+    // Defense-in-depth: verify each equation only uses enabled operations.
+    // The mugbin reader filters at the summary level (by opsMask group), but this
+    // post-filter catches any edge case where a mismatched equation slips through.
+    const results: CalculateEquationResult[] = [];
+    for (const { postfixTokens } of rawResults) {
+      if ((tokensMask(postfixTokens) & ~opsMask) !== 0) continue;
       const equation = postfixToInfixGrouped(postfixTokens);
-      return {
+      results.push({
         total,
         equation,
         fullEquation: EQUATION_FORMATTER(total, equation),
         sortableEquation: getSortableEquation(equation),
         postfixTokens,
-      };
-    });
+      });
+    }
 
     results.sort((a, b) =>
-      a.equation < b.equation ? -1 : a.equation > b.equation ? 1 : 0,
+      a.equation < b.equation ? -1 : a.equation > b.equation ? 1 : 0
     );
 
     return results;

@@ -28,7 +28,10 @@ import {
   DB_VERSION,
 } from '@muggins_calculator/common';
 
-export function formatTimeRemaining(msPerItem: number, remaining: number): string {
+export function formatTimeRemaining(
+  msPerItem: number,
+  remaining: number
+): string {
   if (msPerItem <= 0 || remaining <= 0) return '';
   const remainingMs = msPerItem * remaining;
   let totalSeconds = Math.ceil(remainingMs / 1000);
@@ -50,7 +53,9 @@ export function formatTimeRemaining(msPerItem: number, remaining: number): strin
 
 /** Map from 5-bit operation token to its bitmask value. */
 const TOKEN_TO_MASK: Record<number, number> = Object.fromEntries(
-  (Object.entries(OPERATION_TO_TOKEN) as [OperationEnum, number][]).map(([name, token]) => [token, OPERATION_MASKS[name]]),
+  (Object.entries(OPERATION_TO_TOKEN) as [OperationEnum, number][]).map(
+    ([name, token]) => [token, OPERATION_MASKS[name]]
+  )
 );
 
 function postfixTokensToMask(postfixTokens: number[]): number {
@@ -74,17 +79,25 @@ export interface SummaryEntry {
  * multiple summary entries to fit the uint16 count field.
  */
 export function buildSummaryEntries(
-  groups: ReadonlyArray<{ opsMask: number; total: number; count: number }>,
+  groups: ReadonlyArray<{ opsMask: number; total: number; count: number }>
 ): SummaryEntry[] {
   const MAX_SUMMARY_COUNT = 65535;
   const summaryEntries: SummaryEntry[] = [];
   for (const g of groups) {
     let remaining = g.count;
     while (remaining > MAX_SUMMARY_COUNT) {
-      summaryEntries.push({ opsMask: g.opsMask, total: g.total, count: MAX_SUMMARY_COUNT });
+      summaryEntries.push({
+        opsMask: g.opsMask,
+        total: g.total,
+        count: MAX_SUMMARY_COUNT,
+      });
       remaining -= MAX_SUMMARY_COUNT;
     }
-    summaryEntries.push({ opsMask: g.opsMask, total: g.total, count: remaining });
+    summaryEntries.push({
+      opsMask: g.opsMask,
+      total: g.total,
+      count: remaining,
+    });
   }
   return summaryEntries;
 }
@@ -109,7 +122,7 @@ export interface GeneratedGroup {
 export function generateSolutionsData(
   faces: number[],
   minTotal: number,
-  maxTotal: number,
+  maxTotal: number
 ): GeneratedFaceData {
   const sortedFaces = [...faces].sort((a, b) => a - b);
   const diceCount = sortedFaces.length;
@@ -119,9 +132,12 @@ export function generateSolutionsData(
 
   const grouped = new Map<string, Uint8Array[]>();
 
-  for (const { total, postfixTokens } of generateResults(
-    { faces: sortedFaces, operations: allOperations, minTotal, maxTotal },
-  )) {
+  for (const { total, postfixTokens } of generateResults({
+    faces: sortedFaces,
+    operations: allOperations,
+    minTotal,
+    maxTotal,
+  })) {
     const opsMask = postfixTokensToMask(postfixTokens);
     const key = `${opsMask}:${total}`;
     let packedList = grouped.get(key);
@@ -157,13 +173,21 @@ export interface GenerateSolutionsOptions {
 }
 
 /** Generate solutions for a single face combination and write a .mugbin file. */
-export async function generateSolutions(options: GenerateSolutionsOptions): Promise<void> {
+export async function generateSolutions(
+  options: GenerateSolutionsOptions
+): Promise<void> {
   const { outputPath, faces, minTotal, maxTotal } = options;
   const writer = new MugbinWriter();
   const data = generateSolutionsData(faces, minTotal, maxTotal);
 
   for (const group of data.groups) {
-    writer.addEquations(data.faces, group.opsMask, group.total, group.packedEquations, group.count);
+    writer.addEquations(
+      data.faces,
+      group.opsMask,
+      group.total,
+      group.packedEquations,
+      group.count
+    );
   }
 
   const mugbinData = await writer.build();
@@ -194,7 +218,6 @@ export interface WorkerResult {
   readonly error?: string;
 }
 
-
 /** Compute the sharded output filename for a given dice count. */
 export function shardedFileName(diceCount: number): string {
   return `solutions-${diceCount}d.mugbin`;
@@ -210,7 +233,7 @@ function tempFilePath(tempDir: string, faces: number[]): string {
  * Each group's file is piped in sorted order so the compressed block matches the summary ordering.
  */
 async function streamCompressGroupFiles(
-  sortedGroups: ReadonlyArray<{ scratchPath: string }>,
+  sortedGroups: ReadonlyArray<{ scratchPath: string }>
 ): Promise<Buffer> {
   const gzip = zlib.createGzip();
   const chunks: Buffer[] = [];
@@ -255,7 +278,7 @@ export async function generateAndWriteTempFile(
   minTotal: number,
   maxTotal: number,
   tempPath: string,
-  flushHighWater: number,
+  flushHighWater: number
 ): Promise<void> {
   const sortedFaces = [...faces].sort((a, b) => a - b);
   const diceCount = sortedFaces.length;
@@ -305,7 +328,9 @@ export async function generateAndWriteTempFile(
   // Manual generator iteration so we can await async flushes between steps.
   const gen = generateResults(
     { faces: sortedFaces, operations: allOperations, minTotal, maxTotal },
-    undefined, undefined, { deduplicate: false },
+    undefined,
+    undefined,
+    { deduplicate: false }
   );
 
   for (let result = gen.next(); !result.done; result = gen.next()) {
@@ -367,7 +392,7 @@ export async function generateAndWriteTempFile(
 
   // Sort groups by (total, opsMask) — required by the mugbin summary/equation ordering.
   const sortedGroups = [...groups.values()].sort(
-    (a, b) => a.total - b.total || a.opsMask - b.opsMask,
+    (a, b) => a.total - b.total || a.opsMask - b.opsMask
   );
 
   // Release dedup sets now that generation is complete — free memory before compression.
@@ -379,7 +404,9 @@ export async function generateAndWriteTempFile(
   // summary entries to fit the uint16 count field.
   const summaryEntries = buildSummaryEntries(sortedGroups);
 
-  const summaryData = Buffer.allocUnsafe(summaryEntries.length * SUMMARY_ENTRY_SIZE);
+  const summaryData = Buffer.allocUnsafe(
+    summaryEntries.length * SUMMARY_ENTRY_SIZE
+  );
   for (let i = 0; i < summaryEntries.length; i++) {
     const s = summaryEntries[i];
     const off = i * SUMMARY_ENTRY_SIZE;
@@ -401,19 +428,21 @@ export async function generateAndWriteTempFile(
   rawIndex.set(facesKeyBuf, 0);
   rawIndexView.setUint8(4, diceCount);
   rawIndexView.setUint8(5, 0); // reserved
-  rawIndexView.setUint32(6, 0, true);                          // summaryOffset = 0
-  rawIndexView.setUint16(10, summaryData.length, true);        // summaryLength
-  rawIndexView.setUint32(12, summaryData.length, true);        // equationsOffset = after summaries
+  rawIndexView.setUint32(6, 0, true); // summaryOffset = 0
+  rawIndexView.setUint16(10, summaryData.length, true); // summaryLength
+  rawIndexView.setUint32(12, summaryData.length, true); // equationsOffset = after summaries
   rawIndexView.setUint32(16, compressedEquations.length, true); // equationsLength
 
   const compressedIndex = await gzipCompress(rawIndex);
 
   // Build 16-byte header.
   const header = Buffer.allocUnsafe(HEADER_SIZE);
-  new TextEncoder().encode(MUGBIN_MAGIC).forEach((b, i) => header.writeUInt8(b, i));
+  new TextEncoder()
+    .encode(MUGBIN_MAGIC)
+    .forEach((b, i) => header.writeUInt8(b, i));
   header.writeUInt8(MUGBIN_FORMAT_VERSION, 6);
   header.writeUInt8(DB_VERSION, 7);
-  header.writeUInt32LE(1, 8);                        // 1 index entry
+  header.writeUInt32LE(1, 8); // 1 index entry
   header.writeUInt32LE(compressedIndex.length, 12);
 
   // Write: header | compressed index | summaries | compressed equations.
@@ -480,7 +509,11 @@ async function readTempFileInfo(tempPath: string): Promise<TempFileInfo> {
 }
 
 /** Read a slice of a file into a Buffer without loading the whole file. */
-async function readFileBytesAt(filePath: string, offset: number, length: number): Promise<Buffer> {
+async function readFileBytesAt(
+  filePath: string,
+  offset: number,
+  length: number
+): Promise<Buffer> {
   if (length === 0) return Buffer.alloc(0);
   const fh = await fs.promises.open(filePath, 'r');
   try {
@@ -493,7 +526,10 @@ async function readFileBytesAt(filePath: string, offset: number, length: number)
 }
 
 /** Write a chunk to a WriteStream, honouring backpressure. */
-function streamWriteChunk(stream: fs.WriteStream, chunk: Buffer): Promise<void> {
+function streamWriteChunk(
+  stream: fs.WriteStream,
+  chunk: Buffer
+): Promise<void> {
   return new Promise((resolve, reject) => {
     stream.write(chunk, (err) => {
       if (err) reject(err);
@@ -512,7 +548,10 @@ function streamWriteChunk(stream: fs.WriteStream, chunk: Buffer): Promise<void> 
  *         file's summary and equation blocks sequentially — only one file's
  *         data in memory at a time.
  */
-export async function mergeTempMugbinFiles(tempPaths: string[], outputPath: string): Promise<void> {
+export async function mergeTempMugbinFiles(
+  tempPaths: string[],
+  outputPath: string
+): Promise<void> {
   // Pass 1: collect metadata.
   const infos: TempFileInfo[] = [];
   for (const p of tempPaths) {
@@ -529,9 +568,13 @@ export async function mergeTempMugbinFiles(tempPaths: string[], outputPath: stri
 
   // Calculate new relative data-section offsets.
   let relOffset = 0;
-  const newLayout: Array<{ summaryOffset: number; equationsOffset: number }> = [];
+  const newLayout: Array<{ summaryOffset: number; equationsOffset: number }> =
+    [];
   for (const info of infos) {
-    newLayout.push({ summaryOffset: relOffset, equationsOffset: relOffset + info.summaryLength });
+    newLayout.push({
+      summaryOffset: relOffset,
+      equationsOffset: relOffset + info.summaryLength,
+    });
     relOffset += info.summaryLength + info.equationsLength;
   }
 
@@ -570,7 +613,11 @@ export async function mergeTempMugbinFiles(tempPaths: string[], outputPath: stri
 
     for (const info of infos) {
       // Summary blocks are small — buffer them entirely.
-      const summaryBuf = await readFileBytesAt(info.path, info.summaryFileOffset, info.summaryLength);
+      const summaryBuf = await readFileBytesAt(
+        info.path,
+        info.summaryFileOffset,
+        info.summaryLength
+      );
       await streamWriteChunk(outStream, summaryBuf);
 
       // Equation blocks may be large — stream them chunk by chunk.
@@ -594,18 +641,20 @@ export async function mergeTempMugbinFiles(tempPaths: string[], outputPath: stri
 }
 
 export async function generateAllSolutions(
-  options: GenerateAllSolutionsOptions,
+  options: GenerateAllSolutionsOptions
 ): Promise<string> {
   const { outputDir, dieSizes, minTotal, maxTotal } = options;
 
   if (dieSizes.length < 2) {
-    throw new Error('At least 2 dice are required. A single die has no operations to combine.');
+    throw new Error(
+      'At least 2 dice are required. A single die has no operations to combine.'
+    );
   }
 
   for (const size of dieSizes) {
     if (size < MIN_FACE_VALUE || size > MAX_FACE_VALUE) {
       throw new Error(
-        `Die size ${size} is out of range. Face values must be between ${MIN_FACE_VALUE} and ${MAX_FACE_VALUE}.`,
+        `Die size ${size} is out of range. Face values must be between ${MIN_FACE_VALUE} and ${MAX_FACE_VALUE}.`
       );
     }
   }
@@ -621,16 +670,18 @@ export async function generateAllSolutions(
 
   // Skip face combinations whose temp file already exists (resumability).
   const pendingCombinations = faceCombinations.filter(
-    (faces) => !fs.existsSync(tempFilePath(tempDir, faces)),
+    (faces) => !fs.existsSync(tempFilePath(tempDir, faces))
   );
   const alreadyDone = faceCombinations.length - pendingCombinations.length;
 
   console.log(
     `Generating solutions for ${faceCombinations.length} face combinations ` +
-      `(${dieCount} dice, max face value ${maxFaceValue})...`,
+      `(${dieCount} dice, max face value ${maxFaceValue})...`
   );
   if (alreadyDone > 0) {
-    console.log(`  Resuming: ${alreadyDone} of ${faceCombinations.length} already computed.`);
+    console.log(
+      `  Resuming: ${alreadyDone} of ${faceCombinations.length} already computed.`
+    );
   }
 
   let completed = alreadyDone;
@@ -646,18 +697,24 @@ export async function generateAllSolutions(
         ? Math.max(1, options.concurrency)
         : defaultConcurrency,
       maxConcurrency,
-      pendingCombinations.length,
+      pendingCombinations.length
     );
 
     // Compute per-worker memory budget for write buffering based on free memory at startup.
     // Reserve 512 MB for the main thread, OS, and other processes.
     const freeMemory = os.freemem();
     const reservedMemory = 512 * 1024 * 1024;
-    const availableForWorkers = Math.max(freeMemory - reservedMemory, 128 * 1024 * 1024);
+    const availableForWorkers = Math.max(
+      freeMemory - reservedMemory,
+      128 * 1024 * 1024
+    );
     const perWorkerHighWater = Math.floor(availableForWorkers / concurrency);
 
     console.log(
-      `  Workers: ${concurrency}, memory budget per worker: ${(perWorkerHighWater / (1024 * 1024)).toFixed(0)} MB`,
+      `  Workers: ${concurrency}, memory budget per worker: ${(
+        perWorkerHighWater /
+        (1024 * 1024)
+      ).toFixed(0)} MB`
     );
 
     const tasks: WorkerTask[] = pendingCombinations.map((faces) => ({
@@ -672,7 +729,7 @@ export async function generateAllSolutions(
     // postMessage rather than being spawned and terminated per task.
     const workerPool = Array.from(
       { length: concurrency },
-      () => new Worker(new URL('./worker.js', import.meta.url)),
+      () => new Worker(new URL('./worker.js', import.meta.url))
     );
 
     let taskIndex = 0;
@@ -682,10 +739,15 @@ export async function generateAllSolutions(
     function printProgress(): void {
       const remaining = total - completed;
       // Divide by concurrency since workers run in parallel.
-      const eta = emaMsPerTask > 0 ? formatTimeRemaining(emaMsPerTask / concurrency, remaining) : '';
+      const eta =
+        emaMsPerTask > 0
+          ? formatTimeRemaining(emaMsPerTask / concurrency, remaining)
+          : '';
       const pct = ((completed / total) * 100).toFixed(1);
       process.stdout.write(
-        `\r  Progress: ${completed}/${total} (${pct}%)${eta ? ` — ${eta}` : ''}          `,
+        `\r  Progress: ${completed}/${total} (${pct}%)${
+          eta ? ` — ${eta}` : ''
+        }          `
       );
     }
 
@@ -711,15 +773,18 @@ export async function generateAllSolutions(
         });
 
         const taskDuration = Date.now() - taskStart;
-        emaMsPerTask = emaMsPerTask === 0
-          ? taskDuration
-          : EMA_ALPHA * taskDuration + (1 - EMA_ALPHA) * emaMsPerTask;
+        emaMsPerTask =
+          emaMsPerTask === 0
+            ? taskDuration
+            : EMA_ALPHA * taskDuration + (1 - EMA_ALPHA) * emaMsPerTask;
 
         completed++;
         if (msg.success) {
           printProgress();
         } else {
-          console.error(`\n  Error for faces [${msg.faces.join(', ')}]: ${msg.error}`);
+          console.error(
+            `\n  Error for faces [${msg.faces.join(', ')}]: ${msg.error}`
+          );
         }
       }
     }
@@ -744,7 +809,9 @@ export async function generateAllSolutions(
 
   const sizeMB = (fs.statSync(outputPath).size / (1024 * 1024)).toFixed(2);
   const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(1);
-  console.log(`Done. Written ${outputPath} (${sizeMB} MB, ${total} face combinations, ${elapsedSec}s)`);
+  console.log(
+    `Done. Written ${outputPath} (${sizeMB} MB, ${total} face combinations, ${elapsedSec}s)`
+  );
 
   return outputPath;
 }

@@ -34,7 +34,9 @@ export const EQUATION_FORMATTER = (total: string | number, equation: string) =>
 const GROUPING_PARENTHESIS = (text: string) => `(${text})`;
 const GROUPING_NONE = (text: string) => text;
 
-type OperationsRecord = { [K in OperationEnum]: Operation & { readonly id: K } };
+type OperationsRecord = {
+  [K in OperationEnum]: Operation & { readonly id: K };
+};
 
 export const OPERATIONS: OperationsRecord = {
   [OperationEnum.PLUS]: {
@@ -105,7 +107,11 @@ export const OPERATIONS: OperationsRecord = {
 export const OPERATIONS_LIST: Operation[] = Object.values(OPERATIONS);
 
 const SORTABLE_EQUATION_REGEX = /[()=]/g;
-const SORTABLE_EQUATION_CHAR_MAP: Record<string, string> = { '(': 'X', ')': 'Y', '=': 'Z' };
+const SORTABLE_EQUATION_CHAR_MAP: Record<string, string> = {
+  '(': 'X',
+  ')': 'Y',
+  '=': 'Z',
+};
 
 /**
  * In ASCII, operators like + - /, etc come before numbers. This means when sorting equations at the end,
@@ -115,10 +121,11 @@ const SORTABLE_EQUATION_CHAR_MAP: Record<string, string> = { '(': 'X', ')': 'Y',
  * @param equation
  */
 export function getSortableEquation(equation: string): string {
-  return equation.replace(SORTABLE_EQUATION_REGEX, (char) => SORTABLE_EQUATION_CHAR_MAP[char]);
+  return equation.replace(
+    SORTABLE_EQUATION_REGEX,
+    (char) => SORTABLE_EQUATION_CHAR_MAP[char]
+  );
 }
-
-
 
 /**
  * Generate all unique permutations of a number array using backtracking.
@@ -227,21 +234,25 @@ function getOperationPermutations(
 ): OperationEnum[][] {
   let result: OperationEnum[][] = [[]];
   for (let i = 0; i < config.faces.length - 1; i++) {
-    result = result.flatMap((combo) => config.operations.map((op) => [...combo, op]));
+    result = result.flatMap((combo) =>
+      config.operations.map((op) => [...combo, op])
+    );
   }
   return result;
 }
 
 function getFaceAndOperationPermutations(
   config: MugginsSolverCalculateConfig
-): { facePermutations: number[][], operationPermutations: OperationEnum[][] } {
+): { facePermutations: number[][]; operationPermutations: OperationEnum[][] } {
   return {
     facePermutations: uniquePermutations(config.faces),
     operationPermutations: getOperationPermutations(config),
   };
 }
 
-export function combineResults(resultsArrs: CalculateEquationResult[][]): CalculateEquationResult[] {
+export function combineResults(
+  resultsArrs: CalculateEquationResult[][]
+): CalculateEquationResult[] {
   const seen = new Map<string, CalculateEquationResult>();
   for (const arr of resultsArrs) {
     for (const result of arr) {
@@ -251,7 +262,11 @@ export function combineResults(resultsArrs: CalculateEquationResult[][]): Calcul
     }
   }
   return [...seen.values()].sort((a, b) =>
-    a.sortableEquation < b.sortableEquation ? -1 : a.sortableEquation > b.sortableEquation ? 1 : 0
+    a.sortableEquation < b.sortableEquation
+      ? -1
+      : a.sortableEquation > b.sortableEquation
+      ? 1
+      : 0
   );
 }
 
@@ -262,7 +277,11 @@ export function calculateFromFaceAndOperationPermutations(
 ): CalculateEquationResult[] {
   const results: CalculateEquationResult[] = [];
 
-  for (const { total, postfixTokens } of generateResults(config, facePermutations, operationPermutations)) {
+  for (const { total, postfixTokens } of generateResults(
+    config,
+    facePermutations,
+    operationPermutations
+  )) {
     const equation = postfixToInfixGrouped(postfixTokens);
     const sortableEquation = getSortableEquation(
       EQUATION_FORMATTER(`${total}`.padStart(4, '0'), equation)
@@ -277,7 +296,11 @@ export function calculateFromFaceAndOperationPermutations(
   }
 
   return results.sort((a, b) =>
-    a.sortableEquation < b.sortableEquation ? -1 : a.sortableEquation > b.sortableEquation ? 1 : 0
+    a.sortableEquation < b.sortableEquation
+      ? -1
+      : a.sortableEquation > b.sortableEquation
+      ? 1
+      : 0
   );
 }
 
@@ -286,10 +309,17 @@ export function calculateFromFaceAndOperationPermutations(
  * For dieCount=3, maxFaceValue=6, produces C(6+2, 3)=56 sorted combinations.
  * Each combination is sorted ascending (e.g., [1,1,2], [1,2,3], ..., [6,6,6]).
  */
-export function generateFaceCombinations(dieCount: number, maxFaceValue: number): number[][] {
+export function generateFaceCombinations(
+  dieCount: number,
+  maxFaceValue: number
+): number[][] {
   const results: number[][] = [];
 
-  function generate(current: number[], minValue: number, remaining: number): void {
+  function generate(
+    current: number[],
+    minValue: number,
+    remaining: number
+  ): void {
     if (remaining === 0) {
       results.push(current);
       return;
@@ -320,7 +350,10 @@ export function generateFaceCombinations(dieCount: number, maxFaceValue: number)
  * Using a numeric key avoids the string allocation of `tokens.join(',')` in
  * the hot deduplication loop inside generateResults.
  */
-function packTokenKey(tokens: ArrayLike<number>, length: number): number | bigint {
+function packTokenKey(
+  tokens: ArrayLike<number>,
+  length: number
+): number | bigint {
   if (length <= 10) {
     // Up to 50 bits — fits in a JS safe integer (max 2^53 - 1).
     // Multiply by 32 (= 2^5) then add the next token, equivalent to
@@ -353,7 +386,10 @@ export interface DbResult {
  * because generateResults processes each combination synchronously before
  * the generator advances to the next value.
  */
-function* lazyOperationPermutations(ops: Operation[], slotCount: number): Generator<Operation[]> {
+function* lazyOperationPermutations(
+  ops: Operation[],
+  slotCount: number
+): Generator<Operation[]> {
   if (slotCount === 0) {
     yield [];
     return;
@@ -401,7 +437,7 @@ export function* generateResults(
   config: MugginsSolverCalculateConfig,
   facePermutations?: number[][],
   operationPermutations?: OperationEnum[][],
-  options?: GenerateResultsOptions,
+  options?: GenerateResultsOptions
 ): Generator<DbResult> {
   const n = config.faces.length;
   const tokenCount = n * 2 - 1;
@@ -414,12 +450,15 @@ export function* generateResults(
   // that only one Operation[] exists at a time and is reused across iterations.
   let operationsSource: () => Iterable<Operation[]>;
   if (operationPermutations) {
-    const mapped = operationPermutations.map((ops) => ops.map((op) => OPERATIONS[op]));
+    const mapped = operationPermutations.map((ops) =>
+      ops.map((op) => OPERATIONS[op])
+    );
     operationsSource = () => mapped;
   } else {
     const operationList = config.operations.map((op) => OPERATIONS[op]);
     const slotCount = n - 1;
-    operationsSource = () => lazyOperationPermutations(operationList, slotCount);
+    operationsSource = () =>
+      lazyOperationPermutations(operationList, slotCount);
   }
 
   const deduplicate = options?.deduplicate !== false;
@@ -429,7 +468,11 @@ export function* generateResults(
   const temp = new Array<number>(tokenCount);
   const seen = deduplicate ? new Set<number | bigint>() : null;
   // Pre-allocate stack entries to avoid per-iteration object allocation.
-  const stack: StackEntry[] = Array.from({ length: n }, () => ({ total: 0, start: 0, isLeaf: false }));
+  const stack: StackEntry[] = Array.from({ length: n }, () => ({
+    total: 0,
+    start: 0,
+    isLeaf: false,
+  }));
 
   for (const pattern of patterns) {
     for (const faceOrder of facePairings) {
@@ -463,15 +506,21 @@ export function* generateResults(
             if (op.isCommutative && compareForSort(left, right) > 0) {
               const leftLen = right.start - left.start;
               const rightLen = pos - right.start;
-              for (let i = 0; i < leftLen + rightLen; i++) temp[i] = buffer[left.start + i];
-              for (let i = 0; i < rightLen; i++) buffer[left.start + i] = temp[leftLen + i];
-              for (let i = 0; i < leftLen; i++) buffer[left.start + rightLen + i] = temp[i];
+              for (let i = 0; i < leftLen + rightLen; i++)
+                temp[i] = buffer[left.start + i];
+              for (let i = 0; i < rightLen; i++)
+                buffer[left.start + i] = temp[leftLen + i];
+              for (let i = 0; i < leftLen; i++)
+                buffer[left.start + rightLen + i] = temp[i];
               leftTotal = right.total;
               rightTotal = left.total;
             }
 
             const total = op.solve(leftTotal, rightTotal);
-            if (!Number.isFinite(total)) { failed = true; break; }
+            if (!Number.isFinite(total)) {
+              failed = true;
+              break;
+            }
 
             // Re-use the left stack slot for the combined result.
             const entry = stack[stackTop++];
@@ -485,7 +534,12 @@ export function* generateResults(
         if (failed) continue;
 
         const total = stack[0].total;
-        if (!Number.isInteger(total) || total < config.minTotal || total > config.maxTotal) continue;
+        if (
+          !Number.isInteger(total) ||
+          total < config.minTotal ||
+          total > config.maxTotal
+        )
+          continue;
 
         if (seen) {
           const dedupKey = packTokenKey(buffer, tokenCount);

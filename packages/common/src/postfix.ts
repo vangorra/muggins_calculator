@@ -3,7 +3,11 @@
  */
 
 import { OPERATIONS, Operation } from './solver-common.js';
-import { isOperationToken, OPERATION_TO_TOKEN, OperationEnum } from './tokens.js';
+import {
+  isOperationToken,
+  OPERATION_TO_TOKEN,
+  OperationEnum,
+} from './tokens.js';
 
 let _tokenToOperation: Record<number, Operation> | undefined;
 
@@ -11,8 +15,8 @@ function getTokenToOperation(): Record<number, Operation> {
   if (!_tokenToOperation) {
     _tokenToOperation = Object.fromEntries(
       (Object.entries(OPERATION_TO_TOKEN) as [OperationEnum, number][]).map(
-        ([name, token]) => [token, OPERATIONS[name]],
-      ),
+        ([name, token]) => [token, OPERATIONS[name]]
+      )
     );
   }
   return _tokenToOperation;

@@ -1,25 +1,29 @@
-@use '@angular/material' as mat;
+@use "@angular/material" as mat;
 
 html {
-  @include mat.theme((
-    color: (
-      theme-type: light,
-      primary: mat.$violet-palette,
-      tertiary: mat.$azure-palette,
-    ),
-    typography: Roboto,
-    density: 0,
-  ));
+  @include mat.theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$violet-palette,
+        tertiary: mat.$azure-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
 }
 
 body.color-scheme-dark {
-  @include mat.theme((
-    color: (
-      theme-type: dark,
-      primary: mat.$violet-palette,
-      tertiary: mat.$azure-palette,
-    ),
-  ));
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: mat.$violet-palette,
+        tertiary: mat.$azure-palette,
+      ),
+    )
+  );
   color-scheme: dark;
 }
 
@@ -27,7 +31,8 @@ html {
   scrollbar-gutter: stable;
 }
 
-html, body {
+html,
+body {
   min-height: calc(100vh + 1px);
   overflow-x: hidden;
 }

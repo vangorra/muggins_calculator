@@ -21,7 +21,9 @@ describe('postfixToInfix', () => {
 
   it('converts nested expressions', () => {
     // (1 + 2) * 3 in postfix: 1 2 + 3 *
-    expect(postfixToInfix([1, 2, TOKEN_PLUS, 3, TOKEN_MULTIPLY])).toBe('1 + 2 * 3');
+    expect(postfixToInfix([1, 2, TOKEN_PLUS, 3, TOKEN_MULTIPLY])).toBe(
+      '1 + 2 * 3'
+    );
   });
 
   it('converts power', () => {
@@ -44,13 +46,25 @@ describe('postfixToInfixGrouped', () => {
 
   it('adds parentheses for sub-expressions', () => {
     // (1 + 2) * 3 in postfix: 1 2 + 3 *
-    expect(postfixToInfixGrouped([1, 2, TOKEN_PLUS, 3, TOKEN_MULTIPLY])).toBe('(1 + 2) * 3');
+    expect(postfixToInfixGrouped([1, 2, TOKEN_PLUS, 3, TOKEN_MULTIPLY])).toBe(
+      '(1 + 2) * 3'
+    );
   });
 
   it('adds parentheses for nested sub-expressions', () => {
     // ((1 + 2) * 3) - 4 in postfix: 1 2 + 3 * 4 -
     // The multiply sub-expression gets wrapped by its displayGroup (GROUPING_PARENTHESIS)
-    expect(postfixToInfixGrouped([1, 2, TOKEN_PLUS, 3, TOKEN_MULTIPLY, 4, TOKEN_MINUS])).toBe('((1 + 2) * 3) - 4');
+    expect(
+      postfixToInfixGrouped([
+        1,
+        2,
+        TOKEN_PLUS,
+        3,
+        TOKEN_MULTIPLY,
+        4,
+        TOKEN_MINUS,
+      ])
+    ).toBe('((1 + 2) * 3) - 4');
   });
 
   it('does not wrap root-level power', () => {
@@ -59,12 +73,16 @@ describe('postfixToInfixGrouped', () => {
 
   it('does not wrap sub-expression power (displayGroup is GROUPING_NONE for power)', () => {
     // 2 ^ 3 + 4 in postfix: 2 3 ^ 4 +
-    expect(postfixToInfixGrouped([2, 3, TOKEN_POWER, 4, TOKEN_PLUS])).toBe('2 ^ 3 + 4');
+    expect(postfixToInfixGrouped([2, 3, TOKEN_POWER, 4, TOKEN_PLUS])).toBe(
+      '2 ^ 3 + 4'
+    );
   });
 
   it('handles right-nested expressions', () => {
     // 1 + (2 * 3) in postfix: 1 2 3 * +
-    expect(postfixToInfixGrouped([1, 2, 3, TOKEN_MULTIPLY, TOKEN_PLUS])).toBe('1 + (2 * 3)');
+    expect(postfixToInfixGrouped([1, 2, 3, TOKEN_MULTIPLY, TOKEN_PLUS])).toBe(
+      '1 + (2 * 3)'
+    );
   });
 
   it('returns a single value for a single-token expression', () => {

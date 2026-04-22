@@ -23,9 +23,7 @@ export class ThemeService implements OnDestroy {
     this.applyStyle(configuration.theme);
 
   readonly mediaChangeListener = () =>
-    this.applyStyleFromConfiguration(
-      this.configurationService.value()
-    );
+    this.applyStyleFromConfiguration(this.configurationService.value());
 
   constructor(private readonly configurationService: ConfigurationService) {
     // Listen for configuration changes and apply the style.

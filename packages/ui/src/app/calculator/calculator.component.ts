@@ -41,11 +41,17 @@ export interface JumpTotal {
 const resultCountAnimation = trigger('resultCount', [
   transition(':enter', [
     style({ opacity: 0, transform: 'translateY(-100%)' }),
-    animate('200ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+    animate(
+      '200ms ease-out',
+      style({ opacity: 1, transform: 'translateY(0)' })
+    ),
   ]),
   transition(':leave', [
     style({ position: 'absolute', top: '0', left: '0' }),
-    animate('200ms ease-in', style({ opacity: 0, transform: 'translateY(100%)' })),
+    animate(
+      '200ms ease-in',
+      style({ opacity: 0, transform: 'translateY(100%)' })
+    ),
   ]),
 ]);
 
@@ -92,7 +98,9 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
   private readonly _jumpData = signal(new Map<number, number>());
   private readonly _dataSource = signal<'pregenerated' | 'local' | null>(null);
   private readonly _showLoadingPanel = signal(false);
-  readonly loadedEquations = signal(new Map<number, CalculateEquationResult[]>());
+  readonly loadedEquations = signal(
+    new Map<number, CalculateEquationResult[]>()
+  );
   readonly fallbackNotified = signal(false);
   readonly estimatedTimeToCompletion = signal<string | undefined>(undefined);
 
@@ -125,7 +133,9 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   // Show loading panel only when calculating AND the threshold has been exceeded.
   readonly showLoadingPanel = computed(
-    () => this._calculateStatus() === CalculateStatus.PROCESSING && this._showLoadingPanel(),
+    () =>
+      this._calculateStatus() === CalculateStatus.PROCESSING &&
+      this._showLoadingPanel()
   );
 
   readonly jumpTotals = computed(() => {
@@ -134,7 +144,9 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     const { minSize, maxSize } = config.board;
 
     return [...jumpData.entries()]
-      .filter(([total, count]) => total >= minSize && total <= maxSize && count > 0)
+      .filter(
+        ([total, count]) => total >= minSize && total <= maxSize && count > 0
+      )
       .map(([total, count]) => ({ total, count }))
       .sort((a, b) => a.total - b.total);
   });
@@ -144,7 +156,10 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
   });
 
   readonly resultCountArray = computed(() => {
-    if (this.calculateStatus() === CalculateStatus.PROCESSED && this.totalEquationCount() > 0) {
+    if (
+      this.calculateStatus() === CalculateStatus.PROCESSED &&
+      this.totalEquationCount() > 0
+    ) {
       return [this.totalEquationCount()];
     }
     return [];
@@ -217,7 +232,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
           }
         }
       },
-      { rootMargin: '200px' },
+      { rootMargin: '200px' }
     );
   }
 
@@ -259,7 +274,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       currentEstimatedTimeToCompletion -= 1000;
 
       const rescaledDuration = Duration.fromMillis(
-        Math.floor(currentEstimatedTimeToCompletion / 1000) * 1000,
+        Math.floor(currentEstimatedTimeToCompletion / 1000) * 1000
       ).rescale();
       this.estimatedTimeToCompletion.set(rescaledDuration.toHuman());
     }, 1000);
@@ -337,7 +352,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
             }
             this._calculateProgress.set(Math.floor((completed / total) * 100));
           }
-        },
+        }
       );
 
       if (this.cancelledRef) {
@@ -358,18 +373,26 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
     if (diceCount > 4) {
       this.showLoadingPanelNow();
     }
-    const notifyFallback = configuration.calculationMode !== CalculationModeEnum.LOCAL_ONLY;
-    console.log(notifyFallback
-      ? 'Pre-generated solutions unavailable. Falling back to local computation.'
-      : 'Local computation selected.');
-    await this.doLocalCalculation(configuration, faces, diceCount, notifyFallback);
+    const notifyFallback =
+      configuration.calculationMode !== CalculationModeEnum.LOCAL_ONLY;
+    console.log(
+      notifyFallback
+        ? 'Pre-generated solutions unavailable. Falling back to local computation.'
+        : 'Local computation selected.'
+    );
+    await this.doLocalCalculation(
+      configuration,
+      faces,
+      diceCount,
+      notifyFallback
+    );
   }
 
   private async doLocalCalculation(
     configuration: ReturnType<ConfigurationService['value']>,
     faces: number[],
     _diceCount: number,
-    notifyFallback = false,
+    notifyFallback = false
   ): Promise<void> {
     this.fallbackNotified.set(notifyFallback);
     this._dataSource.set('local');
@@ -377,10 +400,13 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
     // Track orchestrator progress via effect.
     // Must pass injector explicitly since this runs in an async method, outside the constructor injection context.
-    const effectRef = effect(() => {
-      const p = this.solverOrchestrator.progress();
-      this._calculateProgress.set(Math.floor(p.percentage * 100));
-    }, { injector: this.injector });
+    const effectRef = effect(
+      () => {
+        const p = this.solverOrchestrator.progress();
+        this._calculateProgress.set(Math.floor(p.percentage * 100));
+      },
+      { injector: this.injector }
+    );
     this.progressEffectCleanup = () => effectRef.destroy();
 
     this.restartEstimatedTimeInterval();
@@ -435,7 +461,8 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
   // --- Lazy loading ---
 
   async loadEquationsForTotal(total: number): Promise<void> {
-    if (this.loadedEquations().has(total) || this.loadingTotals.has(total)) return;
+    if (this.loadedEquations().has(total) || this.loadingTotals.has(total))
+      return;
     this.loadingTotals.add(total);
 
     try {
@@ -445,7 +472,12 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
         const faces = this.dice().map((d) => d.selectedFace);
         const diceCount = faces.length;
         const configuration = this.configurationService.value();
-        equations = await this.solutionsService.getEquationsForTotal(diceCount, faces, total, configuration.operations);
+        equations = await this.solutionsService.getEquationsForTotal(
+          diceCount,
+          faces,
+          total,
+          configuration.operations
+        );
 
         if (equations === null) {
           // Totals file failed — fall back to local computation.
@@ -460,6 +492,16 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
       const newMap = new Map(this.loadedEquations());
       newMap.set(total, equations);
       this.loadedEquations.set(newMap);
+
+      // Correct the jump data count if the actual equation count differs.
+      // This handles edge cases where the mugbin summary-level filtering
+      // produces a different count than per-equation filtering.
+      const expectedCount = this._jumpData().get(total);
+      if (expectedCount !== undefined && expectedCount !== equations.length) {
+        const corrected = new Map(this._jumpData());
+        corrected.set(total, equations.length);
+        this._jumpData.set(corrected);
+      }
     } finally {
       this.loadingTotals.delete(total);
     }
@@ -511,7 +553,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   onEquationClicked(calculateResult: CalculateEquationResult): void {
     const index = this.selectedEquations.findIndex(
-      (eq) => eq.fullEquation === calculateResult.fullEquation,
+      (eq) => eq.fullEquation === calculateResult.fullEquation
     );
     if (index >= 0) {
       this.selectedEquations.splice(index, 1);
@@ -522,7 +564,7 @@ export default class CalculatorComponent implements OnInit, OnDestroy {
 
   isEquationSelected(calculateResult: CalculateEquationResult): boolean {
     return this.selectedEquations.some(
-      (eq) => eq.fullEquation === calculateResult.fullEquation,
+      (eq) => eq.fullEquation === calculateResult.fullEquation
     );
   }
 

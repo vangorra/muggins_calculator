@@ -14,7 +14,9 @@
     Results
     <span class="resultCountContainer">
       (@for (count of resultCountArray(); track count) {
-        <span @resultCount class="resultCountValue">{{ count.toLocaleString() }}</span>
+      <span @resultCount class="resultCountValue">{{
+        count.toLocaleString()
+      }}</span>
       })
     </span>
   </mat-card-title>
@@ -23,84 +25,79 @@
     <div>Jump to solution:</div>
     <div>
       @for (jumpTotal of jumpTotals(); track jumpTotal.total) {
-        <span @jumpButton class="jumpButtonWrapper">
-          <button
-            mat-stroked-button
-            (click)="onJumpToTotal(jumpTotal.total)"
-            [attr.data-test-id]="'jumpTo_' + jumpTotal.total"
-            class="jumpToSolutionButton"
-          >
-            {{ jumpTotal.total }}
-          </button>
-        </span>
+      <span @jumpButton class="jumpButtonWrapper">
+        <button
+          mat-stroked-button
+          (click)="onJumpToTotal(jumpTotal.total)"
+          [attr.data-test-id]="'jumpTo_' + jumpTotal.total"
+          class="jumpToSolutionButton"
+        >
+          {{ jumpTotal.total }}
+        </button>
+      </span>
       }
     </div>
   </mat-card-subtitle>
 
   @if (showLoadingPanel()) {
-    <mat-card-content class="loading">
-      <p>
-        <mat-progress-bar
-          mode="determinate"
-          [value]="calculateProgress()"
-        ></mat-progress-bar>
-      </p>
-      <p>
-        Calculating all possible results.
-        @if (!!estimatedTimeToCompletion()) {
-          About {{ estimatedTimeToCompletion() }} remaining.
-        }
-      </p>
-      <button mat-raised-button (click)="cancel()">Cancel</button>
-    </mat-card-content>
+  <mat-card-content class="loading">
+    <p>
+      <mat-progress-bar
+        mode="determinate"
+        [value]="calculateProgress()"
+      ></mat-progress-bar>
+    </p>
+    <p>
+      Calculating all possible results. @if (!!estimatedTimeToCompletion()) {
+      About {{ estimatedTimeToCompletion() }} remaining. }
+    </p>
+    <button mat-raised-button (click)="cancel()">Cancel</button>
+  </mat-card-content>
   } @else if (calculateStatus() === calculateStatuses.CANCELLED) {
-    <mat-card-content class="cancelled">
-      <p>Calculation cancelled.</p>
-      <button mat-raised-button (click)="doCalculate()">Reload</button>
-    </mat-card-content>
+  <mat-card-content class="cancelled">
+    <p>Calculation cancelled.</p>
+    <button mat-raised-button (click)="doCalculate()">Reload</button>
+  </mat-card-content>
   } @else if (jumpTotals().length > 0) {
-    <div class="data processedState">
-      @if (fallbackNotified()) {
-        <mat-card-content class="fallback-warning">
-          Pre-computed solutions unavailable. Computing locally (this may take a while).
-        </mat-card-content>
-      }
-      <mat-card-content class="equations">
-        <mat-list>
-          @for (jumpTotal of jumpTotals(); track jumpTotal.total) {
-            <div
-              class="total-section"
-              [id]="'total-' + jumpTotal.total"
-              [attr.data-total]="jumpTotal.total"
-            >
-              @if ((loadedEquations().get(jumpTotal.total)?.length ?? 0) > 0) {
-                <mat-divider></mat-divider>
-                @for (
-                  eq of loadedEquations().get(jumpTotal.total)!;
-                  track eq.sortableEquation
-                ) {
-                  <mat-list-item
-                    @equation
-                    [class.mat-list-single-selected-option]="
-                      isEquationSelected(eq)
-                    "
-                    class="equation"
-                    (click)="onEquationClicked(eq)"
-                  >
-                    <span appMathJax>{{ eq.fullEquation }}</span>
-                  </mat-list-item>
-                }
-              }
-            </div>
-          }
+  <div class="data processedState">
+    @if (fallbackNotified()) {
+    <mat-card-content class="fallback-warning">
+      Pre-computed solutions unavailable. Computing locally (this may take a
+      while).
+    </mat-card-content>
+    }
+    <mat-card-content class="equations">
+      <mat-list>
+        @for (jumpTotal of jumpTotals(); track jumpTotal.total) {
+        <div
+          class="total-section"
+          [id]="'total-' + jumpTotal.total"
+          [attr.data-total]="jumpTotal.total"
+        >
+          @if ((loadedEquations().get(jumpTotal.total)?.length ?? 0) > 0) {
           <mat-divider></mat-divider>
-        </mat-list>
-      </mat-card-content>
-    </div>
-  } @else if (calculateStatus() === calculateStatuses.PROCESSED && !showLoadingPanel()) {
-    <mat-card-content class="none processedState"
-      >No equations could be determined.</mat-card-content
-    >
+          @for ( eq of loadedEquations().get(jumpTotal.total)!; track
+          eq.sortableEquation ) {
+          <mat-list-item
+            @equation
+            [class.mat-list-single-selected-option]="isEquationSelected(eq)"
+            class="equation"
+            (click)="onEquationClicked(eq)"
+          >
+            <span appMathJax>{{ eq.fullEquation }}</span>
+          </mat-list-item>
+          } }
+        </div>
+        }
+        <mat-divider></mat-divider>
+      </mat-list>
+    </mat-card-content>
+  </div>
+  } @else if (calculateStatus() === calculateStatuses.PROCESSED &&
+  !showLoadingPanel()) {
+  <mat-card-content class="none processedState"
+    >No equations could be determined.</mat-card-content
+  >
   }
 </mat-card>
 

@@ -36,7 +36,12 @@
  *   Each equation is packedByteLength(facesCount * 2 - 1) bytes.
  */
 
-import { packTokens, unpackTokens, packedByteLength, DB_VERSION } from './tokens.js';
+import {
+  packTokens,
+  unpackTokens,
+  packedByteLength,
+  DB_VERSION,
+} from './tokens.js';
 
 export const MUGBIN_MAGIC = 'MUGBIN';
 export const MUGBIN_FORMAT_VERSION = 2;
@@ -92,7 +97,9 @@ export async function gzipDecompress(data: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(zlib.gunzipSync(data));
 }
 
-async function collectStream(readable: ReadableStream<Uint8Array>): Promise<Uint8Array> {
+async function collectStream(
+  readable: ReadableStream<Uint8Array>
+): Promise<Uint8Array> {
   const reader = readable.getReader();
   const chunks: Uint8Array[] = [];
   for (;;) {
@@ -154,7 +161,7 @@ export class MugbinWriter {
     opsMask: number,
     total: number,
     packedEquations: Uint8Array,
-    count: number,
+    count: number
   ): void {
     const facesKey = facesKeyPadded(faces);
     const entryKey = facesKeyHex(facesKey);
@@ -179,7 +186,10 @@ export class MugbinWriter {
    * Import all entries from an existing mugbin file via a MugbinReader.
    * Copies raw summary and compressed equation data without re-compressing.
    */
-  async loadFrom(reader: MugbinReader, source: MugbinDataSource): Promise<void> {
+  async loadFrom(
+    reader: MugbinReader,
+    source: MugbinDataSource
+  ): Promise<void> {
     const index = reader.getIndex();
 
     for (const indexEntry of index) {
@@ -190,12 +200,12 @@ export class MugbinWriter {
 
       const summaryBytes = await source.readBytes(
         indexEntry.summaryOffset,
-        indexEntry.summaryLength,
+        indexEntry.summaryLength
       );
       const summaryView = new DataView(
         summaryBytes.buffer,
         summaryBytes.byteOffset,
-        summaryBytes.byteLength,
+        summaryBytes.byteLength
       );
       const summaries: MugbinSummaryEntry[] = [];
       for (let i = 0; i < summaryBytes.length; i += SUMMARY_ENTRY_SIZE) {
@@ -208,13 +218,16 @@ export class MugbinWriter {
 
       const compressedEquations = await source.readBytes(
         indexEntry.equationsOffset,
-        indexEntry.equationsLength,
+        indexEntry.equationsLength
       );
 
       this.entries.set(entryKey, {
         facesKey: new Uint8Array(facesKey),
         facesCount: indexEntry.facesCount,
-        groups: summaries.map((s) => ({ summary: s, equationChunk: new Uint8Array(0) })),
+        groups: summaries.map((s) => ({
+          summary: s,
+          equationChunk: new Uint8Array(0),
+        })),
         preCompressed: compressedEquations,
       });
     }
@@ -225,15 +238,18 @@ export class MugbinWriter {
     // Sort entries by facesKey bytes.
     const sortedEntries = [...this.entries.values()].sort((a, b) => {
       for (let i = 0; i < FACES_KEY_SIZE; i++) {
-        if (a.facesKey[i] !== b.facesKey[i]) return a.facesKey[i] - b.facesKey[i];
+        if (a.facesKey[i] !== b.facesKey[i])
+          return a.facesKey[i] - b.facesKey[i];
       }
       return 0;
     });
 
     // Sort groups within each entry by (total, opsMask) so summaries and equations are aligned.
     for (const entry of sortedEntries) {
-      entry.groups.sort((a, b) =>
-        a.summary.total - b.summary.total || a.summary.opsMask - b.summary.opsMask,
+      entry.groups.sort(
+        (a, b) =>
+          a.summary.total - b.summary.total ||
+          a.summary.opsMask - b.summary.opsMask
       );
     }
 
@@ -333,7 +349,10 @@ export class MugbinWriter {
   }
 }
 
-function concatenateChunks(chunks: Uint8Array[], totalBytes: number): Uint8Array {
+function concatenateChunks(
+  chunks: Uint8Array[],
+  totalBytes: number
+): Uint8Array {
   if (chunks.length === 1) return chunks[0];
   const result = new Uint8Array(totalBytes);
   let offset = 0;
@@ -361,12 +380,14 @@ export class MugbinReader {
     const headerView = new DataView(
       headerBytes.buffer,
       headerBytes.byteOffset,
-      headerBytes.byteLength,
+      headerBytes.byteLength
     );
 
     const magic = new TextDecoder().decode(headerBytes.slice(0, 6));
     if (magic !== MUGBIN_MAGIC) {
-      throw new Error(`Invalid mugbin file: expected magic "${MUGBIN_MAGIC}", got "${magic}"`);
+      throw new Error(
+        `Invalid mugbin file: expected magic "${MUGBIN_MAGIC}", got "${magic}"`
+      );
     }
 
     const formatVersion = headerView.getUint8(6);
@@ -379,13 +400,16 @@ export class MugbinReader {
     const compressedIndexSize = headerView.getUint32(12, true);
 
     // Read and decompress the index.
-    const compressedIndexBytes = await this.source.readBytes(HEADER_SIZE, compressedIndexSize);
+    const compressedIndexBytes = await this.source.readBytes(
+      HEADER_SIZE,
+      compressedIndexSize
+    );
     const indexBytes = await gzipDecompress(compressedIndexBytes);
 
     const indexView = new DataView(
       indexBytes.buffer,
       indexBytes.byteOffset,
-      indexBytes.byteLength,
+      indexBytes.byteLength
     );
 
     // Compute data section start for converting relative offsets to absolute.
@@ -411,7 +435,8 @@ export class MugbinReader {
 
   /** Return the loaded index entries. Throws if loadIndex() has not been called. */
   getIndex(): readonly MugbinIndexEntry[] {
-    if (!this.index) throw new Error('Index not loaded. Call loadIndex() first.');
+    if (!this.index)
+      throw new Error('Index not loaded. Call loadIndex() first.');
     return this.index;
   }
 
@@ -420,7 +445,8 @@ export class MugbinReader {
    * In v2, there is one entry per face combination (no opsMask in index).
    */
   findEntries(faces: number[], _opsMask?: number): MugbinIndexEntry[] {
-    if (!this.index) throw new Error('Index not loaded. Call loadIndex() first.');
+    if (!this.index)
+      throw new Error('Index not loaded. Call loadIndex() first.');
 
     const facesKey = facesKeyPadded(faces);
     const facesCount = faces.length;
@@ -455,7 +481,7 @@ export class MugbinReader {
   async getJumpData(
     entries: MugbinIndexEntry[],
     opsMask: number,
-    onProgress?: (completed: number, total: number) => void,
+    onProgress?: (completed: number, total: number) => void
   ): Promise<Map<number, number>> {
     const result = new Map<number, number>();
     let completed = 0;
@@ -464,7 +490,10 @@ export class MugbinReader {
 
     const summaryPromises = entries.map(async (entry) => {
       if (entry.summaryLength === 0) return;
-      const bytes = await this.source.readBytes(entry.summaryOffset, entry.summaryLength);
+      const bytes = await this.source.readBytes(
+        entry.summaryOffset,
+        entry.summaryLength
+      );
       const summaries = this.parseSummary(bytes);
       for (const { total, opsMask: entryOpsMask, count } of summaries) {
         if ((entryOpsMask & ~opsMask) === 0) {
@@ -486,14 +515,14 @@ export class MugbinReader {
   async getEquationsForTotal(
     entries: MugbinIndexEntry[],
     targetTotal: number,
-    opsMask: number,
+    opsMask: number
   ): Promise<{ postfixTokens: number[] }[]> {
     const results: { postfixTokens: number[] }[] = [];
 
     const promises = entries.map(async (entry) => {
       const summaryBytes = await this.source.readBytes(
         entry.summaryOffset,
-        entry.summaryLength,
+        entry.summaryLength
       );
       const summaries = this.parseSummary(summaryBytes);
 
@@ -515,7 +544,7 @@ export class MugbinReader {
 
       const compressedBytes = await this.source.readBytes(
         entry.equationsOffset,
-        entry.equationsLength,
+        entry.equationsLength
       );
       const decompressed = await gzipDecompress(compressedBytes);
 
@@ -524,7 +553,9 @@ export class MugbinReader {
         for (let i = 0; i < slice.count; i++) {
           const offset = slice.offset + i * eqByteLen;
           const packed = decompressed.slice(offset, offset + eqByteLen);
-          entryResults.push({ postfixTokens: unpackTokens(packed, tokenCount) });
+          entryResults.push({
+            postfixTokens: unpackTokens(packed, tokenCount),
+          });
         }
       }
       return entryResults;

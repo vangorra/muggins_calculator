@@ -16,9 +16,7 @@ describe(ConfigurationService.name, () => {
   it('modify works', () => {
     expect(service).toBeTruthy();
     expect(service.value()).toEqual(DEFAULT_CONFIGURATION);
-    expect(service.value().dice.length).toBe(
-      DEFAULT_CONFIGURATION.dice.length
-    );
+    expect(service.value().dice.length).toBe(DEFAULT_CONFIGURATION.dice.length);
 
     service.addDie();
     expect(service.value().dice.length).toBe(

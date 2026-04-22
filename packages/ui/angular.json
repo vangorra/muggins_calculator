@@ -34,9 +34,7 @@
                 "output": "./mathjax/es5"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ],
+            "styles": ["src/styles.scss"],
             "webWorkerTsConfig": "tsconfig.worker.json"
           },
           "configurations": {

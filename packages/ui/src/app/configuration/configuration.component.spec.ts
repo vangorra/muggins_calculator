@@ -4,7 +4,11 @@ import { ConfigurationComponent } from './configuration.component';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { ConfigurationService } from '../configuration.service';
-import { CalculationModeEnum, DieConfiguration, ThemeEnum } from '../general_types';
+import {
+  CalculationModeEnum,
+  DieConfiguration,
+  ThemeEnum,
+} from '../general_types';
 import { OperationEnum } from '@muggins_calculator/common';
 import { DEFAULT_CONFIGURATION, DEFAULT_DIE_SELECTED_FACE } from '../const';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -103,7 +107,8 @@ describe(ConfigurationComponent.name, () => {
   it('change operations', () => {
     const getOptionWithText = (text: string) =>
       Array.from(element.querySelectorAll('.operations mat-list-option')).find(
-        (el) => el.querySelector('[matlistitemtitle]')?.textContent?.trim() === text
+        (el) =>
+          el.querySelector('[matlistitemtitle]')?.textContent?.trim() === text
       ) as HTMLElement;
 
     const expectSelectedOperations = (
@@ -117,9 +122,7 @@ describe(ConfigurationComponent.name, () => {
       ).map((el) => el.getAttribute('data-value'));
 
       expect(selectedOperations).toEqual(operations);
-      expect(configurationService.value().operations).toEqual(
-        operations
-      );
+      expect(configurationService.value().operations).toEqual(operations);
 
       if (expectSave) {
         expect(configurationSaveSpy).toHaveBeenCalled();
@@ -222,9 +225,9 @@ describe(ConfigurationComponent.name, () => {
       }
 
       if (expectConfigUpdate) {
-        const configValue = (
-          configurationService.value().board as any
-        )[formControlName];
+        const configValue = (configurationService.value().board as any)[
+          formControlName
+        ];
         expect(configValue).toEqual(value);
       }
 
@@ -258,8 +261,12 @@ describe(ConfigurationComponent.name, () => {
   });
 
   it('change dice count', () => {
-    const addDieElement = element.querySelector('[title="Add Die"]') as HTMLElement;
-    const removeDieElement = element.querySelector('[title="Remove Die"]') as HTMLElement;
+    const addDieElement = element.querySelector(
+      '[title="Add Die"]'
+    ) as HTMLElement;
+    const removeDieElement = element.querySelector(
+      '[title="Remove Die"]'
+    ) as HTMLElement;
     const getDiceInputElements = () =>
       (
         Array.from(
@@ -281,8 +288,7 @@ describe(ConfigurationComponent.name, () => {
       })) as DieConfiguration[];
     };
 
-    const getConfigurationDiceValues = () =>
-      configurationService.value().dice;
+    const getConfigurationDiceValues = () => configurationService.value().dice;
 
     const addRemoveDie = (shouldAdd: boolean, expectSave = true) => {
       const initialDiceValues = getDiceValues();
@@ -323,8 +329,7 @@ describe(ConfigurationComponent.name, () => {
       }
 
       if (expectConfigUpdate) {
-        const configValue =
-          configurationService.value().dice[index].faceCount;
+        const configValue = configurationService.value().dice[index].faceCount;
         expect(configValue).toEqual(faceCount);
       }
 
@@ -480,18 +485,14 @@ describe(ConfigurationComponent.name, () => {
     resetButton.click();
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(configurationService.value()).not.toEqual(
-      DEFAULT_CONFIGURATION
-    );
+    expect(configurationService.value()).not.toEqual(DEFAULT_CONFIGURATION);
 
     // Click reset and accept the dialog.
     afterClosedObservable = new BehaviorSubject(true);
     resetButton.click();
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(configurationService.value()).toEqual(
-      DEFAULT_CONFIGURATION
-    );
+    expect(configurationService.value()).toEqual(DEFAULT_CONFIGURATION);
   });
 
   it('ngOnDestroy dismisses snackbar', () => {
@@ -534,7 +535,10 @@ describe(ConfigurationComponent.name, () => {
 
     // Now at 5 dice. Set up the snackbar ref mock for the dismiss path.
     const dismissWithActionSpy = vi.fn();
-    (component as any).addDieSnackbarWarning = { dismissWithAction: dismissWithActionSpy, afterDismissed: () => new BehaviorSubject({}) };
+    (component as any).addDieSnackbarWarning = {
+      dismissWithAction: dismissWithActionSpy,
+      afterDismissed: () => new BehaviorSubject({}),
+    };
 
     // Remove one more -> 4 dice, which is <= MINIMUM_PERFORMANT_DIE_COUNT (4)
     component.removeDie();

@@ -90,16 +90,19 @@ async function calculate(
   });
 
   // Step 1: Get face and operation permutations.
-  const { facePermutations, operationPermutations } = await queueWork(
-    (api) => api.getFaceAndOperationPermutations(calculateConfig)
+  const { facePermutations, operationPermutations } = await queueWork((api) =>
+    api.getFaceAndOperationPermutations(calculateConfig)
   );
   completedTasks += 1;
 
   if (cancelled) return [];
 
   // Step 2: Chunk the work and dispatch to workers.
-  const chunkSize = Math.max(1, Math.ceil(facePermutations.length / (WORKER_COUNT * 2)));
-  const chunks: (typeof facePermutations)[] = [];
+  const chunkSize = Math.max(
+    1,
+    Math.ceil(facePermutations.length / (WORKER_COUNT * 2))
+  );
+  const chunks: typeof facePermutations[] = [];
   for (let i = 0; i < facePermutations.length; i += chunkSize) {
     chunks.push(facePermutations.slice(i, i + chunkSize));
   }
@@ -144,9 +147,12 @@ async function calculate(
   });
 
   // Step 3: Combine and deduplicate results, then sort by total for display.
-  const combined = commonWorkerFunctions.combineResults(await Promise.all(workPromises));
-  const results = combined.sort((a, b) =>
-    a.total - b.total || a.sortableEquation.localeCompare(b.sortableEquation)
+  const combined = commonWorkerFunctions.combineResults(
+    await Promise.all(workPromises)
+  );
+  const results = combined.sort(
+    (a, b) =>
+      a.total - b.total || a.sortableEquation.localeCompare(b.sortableEquation)
   );
 
   completedTasks += 1;

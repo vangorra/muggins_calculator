@@ -1,6 +1,10 @@
 import { Injectable, InjectionToken, inject } from '@angular/core';
 import { wrap, proxy } from 'comlink';
-import { CalculateEquationResult, OperationEnum, DB_VERSION } from '@muggins_calculator/common';
+import {
+  CalculateEquationResult,
+  OperationEnum,
+  DB_VERSION,
+} from '@muggins_calculator/common';
 import type { SolutionsWorkerApi } from './solver/solutions-worker-impl';
 
 const DB_REFRESH_KEY = 'solutions_db_refresh';
@@ -11,11 +15,11 @@ export const SOLUTIONS_WORKER_API = new InjectionToken<SolutionsWorkerApi>(
     providedIn: 'root',
     factory: () => {
       const worker = new Worker(
-        new URL('./solver/solver.worker.browser', import.meta.url),
+        new URL('./solver/solver.worker.browser', import.meta.url)
       );
       return wrap<SolutionsWorkerApi>(worker) as unknown as SolutionsWorkerApi;
     },
-  },
+  }
 );
 
 @Injectable({
@@ -44,12 +48,14 @@ export class SolutionsService {
       }
 
       console.error(
-        `DB version mismatch: file has version ${dbVersion}, app expects version ${DB_VERSION}`,
+        `DB version mismatch: file has version ${dbVersion}, app expects version ${DB_VERSION}`
       );
 
       if (localStorage.getItem(DB_REFRESH_KEY)) {
         localStorage.removeItem(DB_REFRESH_KEY);
-        console.error('DB version still incompatible after refresh. Disabling precomputed solutions.');
+        console.error(
+          'DB version still incompatible after refresh. Disabling precomputed solutions.'
+        );
         return false;
       }
 
@@ -66,19 +72,24 @@ export class SolutionsService {
     diceCount: number,
     faces: number[],
     operations: OperationEnum[],
-    onProgress: (completed: number, total: number) => void,
+    onProgress: (completed: number, total: number) => void
   ): Promise<Map<number, number> | null> {
     const ready = await this.ensureReader(diceCount);
     if (!ready) return null;
 
-    return this.api.getJumpData(diceCount, faces, operations, proxy(onProgress));
+    return this.api.getJumpData(
+      diceCount,
+      faces,
+      operations,
+      proxy(onProgress)
+    );
   }
 
   async getEquationsForTotal(
     diceCount: number,
     faces: number[],
     total: number,
-    operations: OperationEnum[],
+    operations: OperationEnum[]
   ): Promise<CalculateEquationResult[] | null> {
     const ready = await this.ensureReader(diceCount);
     if (!ready) return null;

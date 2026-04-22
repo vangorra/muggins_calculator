@@ -272,29 +272,35 @@ The `generate-all-solutions` command writes to the `solutions/` directory by def
 
 ### Deploying Precomputed Solutions
 
-Solution files are stored as GitHub Release assets (not in git history) and downloaded during CI deployment. This keeps large binary files out of source control.
+Solution files are stored as GitHub Release assets (tag: `solutions-latest`), not in git history. The CI publish workflow downloads them during deployment and copies them into the build output. This keeps large binary files out of source control.
 
-**First-time setup:**
+**Generating solutions:**
 
 ```shell
-# Generate all solution files locally
+# Generate solutions for each dice count you want to support.
+# Each command creates solutions/solutions-Nd.mugbin (e.g., solutions-2d.mugbin).
 npm run generate-all-solutions -- "10,10"
 npm run generate-all-solutions -- "10,10,10"
 npm run generate-all-solutions -- "10,10,10,10"
-# ... etc for each dice count
-
-# Create the release with solution files
-npm run create-solutions-release
 ```
 
-**Updating solutions after regenerating locally:**
+Generation is resumable — if interrupted, re-running skips already-completed face combinations.
+
+**Uploading solutions to GitHub:**
 
 ```shell
-# Upload new files to the existing release (overwrites existing assets)
+# First time: create the GitHub Release with all solution files
+npm run create-solutions-release
+
+# Subsequent updates: upload new/changed files to the existing release (overwrites existing assets)
 npm run upload-solutions
 ```
 
-The publish workflow automatically downloads these files from the `solutions-latest` release and copies them into the build output before deploying to GitHub Pages. If no release exists, the site deploys without precomputed solutions (the UI falls back to local Web Worker computation).
+Both commands upload all `solutions/solutions-*d.mugbin` files from the local `solutions/` directory.
+
+**How CI uses solutions:**
+
+The publish workflow runs `gh release download solutions-latest` to fetch the `.mugbin` files and copies them into the build output before deploying to GitHub Pages. If no release exists, the site deploys without precomputed solutions and the UI falls back to local Web Worker computation.
 
 ### Dev Server & Proxy
 

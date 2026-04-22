@@ -16,11 +16,7 @@ import {
   waitForNoneProcessedState,
 } from './calculator.utils';
 import { PATH_CALCULATOR } from '../const';
-import {
-  initializePath,
-  scrollToQuerySelector,
-  scrollToTop,
-} from '../utils';
+import { initializePath, scrollToQuerySelector, scrollToTop } from '../utils';
 import {
   clickRemoveDieButton,
   clickToolbarCloseButton,
@@ -39,22 +35,24 @@ initializePath(PATH_CALCULATOR, waitForCalculatorPage);
 
 test('Defaults', async ({ page }) => {
   await waitForDataProcessedState(page);
-  expect((await getEquations(page)).sort()).toEqual([
-    '1 = 1 * (1 * 1)',
-    '1 = 1 * (1 / 1)',
-    '1 = 1 + (1 - 1)',
-    '1 = 1 - (1 - 1)',
-    '1 = 1 / (1 * 1)',
-    '1 = 1 / (1 / 1)',
-    '1 = (1 * 1) / 1',
-    '1 = (1 + 1) - 1',
-    '1 = (1 / 1) / 1',
-    '2 = 1 * (1 + 1)',
-    '2 = 1 + (1 * 1)',
-    '2 = 1 + (1 / 1)',
-    '2 = (1 + 1) / 1',
-    '3 = 1 + (1 + 1)',
-  ].sort());
+  expect((await getEquations(page)).sort()).toEqual(
+    [
+      '1 = 1 * (1 * 1)',
+      '1 = 1 * (1 / 1)',
+      '1 = 1 + (1 - 1)',
+      '1 = 1 - (1 - 1)',
+      '1 = 1 / (1 * 1)',
+      '1 = 1 / (1 / 1)',
+      '1 = (1 * 1) / 1',
+      '1 = (1 + 1) - 1',
+      '1 = (1 / 1) / 1',
+      '2 = 1 * (1 + 1)',
+      '2 = 1 + (1 * 1)',
+      '2 = 1 + (1 / 1)',
+      '2 = (1 + 1) / 1',
+      '3 = 1 + (1 + 1)',
+    ].sort()
+  );
   expect(await page.screenshot()).toMatchSnapshot({
     name: SCREENSHOT_DEFAULT_STARTUP,
   });
@@ -110,7 +108,9 @@ test('Select die faces. Confirm config persisted after reload.', async ({
   ];
 
   await selectFaces(page, SELECT_FACES);
-  expect((await getEquations(page)).sort()).toEqual([...expectedEquations].sort());
+  expect((await getEquations(page)).sort()).toEqual(
+    [...expectedEquations].sort()
+  );
   expect(await page.screenshot()).toMatchSnapshot({
     name: SCREENSHOT_SELECTED_FACES,
   });
@@ -119,7 +119,9 @@ test('Select die faces. Confirm config persisted after reload.', async ({
   await page.reload();
   await waitForDataProcessedState(page);
   await expectSelectedFaces(page, SELECT_FACES);
-  expect((await getEquations(page)).sort()).toEqual([...expectedEquations].sort());
+  expect((await getEquations(page)).sort()).toEqual(
+    [...expectedEquations].sort()
+  );
   expect(await page.screenshot()).toMatchSnapshot({
     name: SCREENSHOT_SELECTED_FACES,
   });
